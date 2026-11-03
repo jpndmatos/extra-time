@@ -1,0 +1,46 @@
+using Touchline;
+
+namespace Touchline.Tests;
+
+public class GoalParserTests
+{
+    [Theory]
+    [InlineData("Benfica [1]-0 FC Porto - Player 18'", "benfica", "porto", "18")]
+    [InlineData("Arsenal 0-[1] Liverpool - Mo Salah 90+2'", "arsenal", "liverpool", "90+2")]
+    [InlineData("Atlético Madrid [2]–1 Barcelona - Player 62’", "atletico", "barcelona", "62")]
+    [InlineData("Inter Milan [1]-0 AC Milan - Player 20'", "inter", "milan", "20")]
+    public void RecognizesTeamsScoresAndStoppageTime(string title, string home, string away, string minute)
+    {
+        var goal = GoalParser.Parse("id", title, DateTimeOffset.UtcNow, "https://www.reddit.com/r/soccer/comments/abc123/", null);
+        Assert.NotNull(goal); Assert.Equal(home, goal.HomeId); Assert.Equal(away, goal.AwayId); Assert.Equal(minute, goal.Minute);
+    }
+    [Theory]
+    [InlineData("Benfica 1-0 Porto - Player 18' disallowed")]
+    [InlineData("Arsenal 1-0 Liverpool - Player misses 18'")]
+    [InlineData("Arsenal 0-0 Liverpool - Player 18'")]
+    [InlineData("International [1]-0 Barcelona - Player 18'")]
+    [InlineData("Arsenal 1-0 Liverpool full time")]
+    [InlineData("Highlights Arsenal 1-0 Liverpool 90'")]
+    public void RejectsNonGoalsAndPartialAliases(string title) => Assert.Null(GoalParser.Parse("id", title, DateTimeOffset.UtcNow, "", null));
+
+    [Theory]
+    [InlineData("https://streamable.com/abc123", "https://streamable.com/e/abc123")]
+    [InlineData("https://youtu.be/abcdefghijk", "https://www.youtube-nocookie.com/embed/abcdefghijk")]
+    public void ConstructsEmbedsFromAllowedIdentifiers(string input, string expected) => Assert.Equal(expected, GoalParser.SafeMedia(input)?.Url);
+    [Theory]
+    [InlineData("https://streamable.com.evil.test/abc123")]
+    [InlineData("http://streamable.com/abc123")]
+    [InlineData("https://127.0.0.1/secret")]
+    [InlineData("javascript:alert(1)")]
+    public void RejectsUntrustedMediaUrls(string input) => Assert.Null(GoalParser.SafeMedia(input));
+
+    [Fact]
+    public void GroupsAlternatePostsAndPrefersPlayableClip()
+    {
+        var first = GoalParser.Parse("1", "Benfica [1]-0 Porto - Player 18'", DateTimeOffset.UtcNow, "https://www.reddit.com/r/soccer/comments/abc123/", null)!;
+        var second = first with { Id = "2", SourceUrl = "https://www.reddit.com/r/soccer/comments/def456/", Media = new("embed", "https://streamable.com/e/abc123") };
+        var grouped = Assert.Single(GoalParser.Group([first, second]));
+        Assert.Equal("2", grouped.Id); Assert.Equal([first.SourceUrl], grouped.Alternatives);
+        Assert.Equal(2, GoalParser.Group([first, second with { Minute = "25" }]).Length);
+    }
+}

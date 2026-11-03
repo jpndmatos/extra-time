@@ -1,0 +1,30 @@
+:root {
+  color-scheme: dark;
+  --color-paper: #141311;
+  --color-paper-2: #1d1b18;
+  --color-paper-3: #292621;
+  --color-stage: #0d0c0b;
+  --color-ink: #f5f0e6;
+  --color-ink-2: #d0c7b9;
+  --color-muted: #aaa092;
+  --color-rule: #3e3932;
+  --color-accent: #ff824b;
+  --color-accent-ink: #21150d;
+  --color-focus: #ffb88f;
+  --color-error: #ffd1bd;
+  --color-clear: transparent;
+  --font-body: "Segoe UI", Arial, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-mono: Consolas, ui-monospace, monospace;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 18px;
+  --text-title: 23px;
+  --text-heading: 28px;
+  --radius: 12px;
+  --radius-input: 7px;
+  --dur-micro: 120ms;
+  --container: 1664px;
+  --gutter: 28px;
+}

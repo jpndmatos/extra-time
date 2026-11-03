@@ -1,0 +1,27 @@
+{
+  "scope": "app",
+  "preserved": [],
+  "introduced": [
+    ".NET provider backend",
+    "React goal room",
+    "favourites",
+    "matchday",
+    "source setup"
+  ],
+  "material": {
+    "real": [
+      "team names",
+      "Reddit and football-data integration contracts"
+    ],
+    "sample": [
+      "fictional fixtures and goal metadata"
+    ],
+    "absent": [
+      "API credentials",
+      "footage",
+      "crests"
+    ]
+  },
+  "theme": "kiln",
+  "deal": "3/3"
+}

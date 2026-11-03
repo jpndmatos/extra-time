@@ -1,0 +1,10 @@
+node_modules/
+web/dist/
+**/bin/
+**/obj/
+data/
+tmp/
+.env*
+!.env.example
+web/test-results/
+tmp-*.log
