@@ -131,15 +131,14 @@ small {
   height: 100dvh;
 }
 .app-shell {
-  max-width: var(--container);
-  margin-inline: auto;
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 .topbar {
-  min-height: 76px;
-  padding: 12px var(--gutter);
+  min-height: 64px;
+  padding: 8px var(--gutter);
   display: flex;
   align-items: center;
   gap: 40px;
@@ -292,7 +291,7 @@ small {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 258px;
+  grid-template-columns: minmax(256px, 18fr) minmax(0, 58fr) minmax(248px, 20fr);
   gap: 16px;
 }
 .goal-queue,
@@ -425,7 +424,7 @@ small {
   background: var(--color-stage);
   min-height: 230px;
   flex: 1;
-  max-height: 480px;
+  max-height: none;
   border-radius: var(--radius);
   overflow: hidden;
   position: relative;
@@ -883,10 +882,10 @@ form .notice {
 .mobile-back {
   display: none;
 }
-@media (max-width: 1200px) {
+@media (max-width: 1120px) {
   .goal-workspace,
   .loading-view {
-    grid-template-columns: 290px minmax(0, 1fr);
+    grid-template-columns: 260px minmax(0, 1fr);
   }
   .match-rail,
   .loading-view > div:nth-child(3) {
@@ -1045,10 +1044,13 @@ form .notice {
     padding-block: 8px;
   }
   .app-footer > span:first-child {
-    display: none;
+    display: inline-flex;
   }
   .app-footer > span {
-    margin-left: auto;
+    margin-left: 0;
+  }
+  .app-footer > span:last-child {
+    display: none;
   }
   .teams-view .section-bar {
     flex-direction: column;
@@ -1177,4 +1179,36 @@ h2 {
 }
 input {
   caret-color: var(--color-focus);
+}
+.player-header > span:first-child {
+  flex: 1;
+}
+.player-header .cinema-toggle {
+  margin-left: auto;
+}
+.goal-workspace.cinema {
+  grid-template-columns: minmax(0, 1fr);
+}
+.goal-workspace.cinema .goal-queue,
+.goal-workspace.cinema .match-rail {
+  display: none;
+}
+.goal-workspace.cinema .player-column {
+  display: flex;
+}
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.live-status button {
+  color: var(--color-ink);
+  text-decoration: underline;
+  min-height: 32px;
+  padding-inline: 8px;
+}
+@media (max-width: 760px) {
+  .cinema-toggle {
+    display: none;
+  }
 }

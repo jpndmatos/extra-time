@@ -15,6 +15,16 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
     private DateTimeOffset tokenUntil;
     private readonly Dictionary<string, (DateTimeOffset At, ProviderResult<Fixture> Result)> fixtureResults = [];
     private (DateTimeOffset At, ProviderResult<Goal> Result)? redditResult;
+    private DateTimeOffset? lastFootballRequest;
+
+    private TimeSpan FixtureTtl(DateOnly day) => day == DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime)
+        ? TimeSpan.FromSeconds(30) : TimeSpan.FromMinutes(5);
+    private static TimeSpan ResultTtl(ProviderStatus status, TimeSpan normal) => status.State switch
+    {
+        "error" => TimeSpan.FromMinutes(2),
+        "waiting" => TimeSpan.FromSeconds(2),
+        _ => normal
+    };
 
     public async Task<Dashboard> Dashboard(DateOnly day, Store store, CancellationToken ct)
     {
@@ -23,14 +33,14 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
         try
         {
             var key = day.ToString("yyyy-MM-dd");
-            if (!fixtureResults.TryGetValue(key, out var result) || clock.GetUtcNow() - result.At >= TimeSpan.FromMinutes(2))
+            if (!fixtureResults.TryGetValue(key, out var result) || clock.GetUtcNow() - result.At >= ResultTtl(result.Result.Status, FixtureTtl(day)))
             {
                 result = (clock.GetUtcNow(), await Football(day, ct));
                 if (fixtureResults.Count >= 8) fixtureResults.Remove(fixtureResults.OrderBy(x => x.Value.At).First().Key);
                 fixtureResults[key] = result;
             }
             var matches = result.Result;
-            if (redditResult is null || clock.GetUtcNow() - redditResult.Value.At >= TimeSpan.FromMinutes(2))
+            if (redditResult is null || clock.GetUtcNow() - redditResult.Value.At >= ResultTtl(redditResult.Value.Result.Status, TimeSpan.FromSeconds(45)))
                 redditResult = (clock.GetUtcNow(), await Reddit(ct));
             var clips = redditResult.Value.Result;
             return new(Catalog.Teams, matches.Items, GoalParser.Group(clips.Items.Concat(store.Clips())),
@@ -44,8 +54,13 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
         var key = day.ToString("yyyy-MM-dd");
         var apiToken = config["FootballData:Token"];
         if (string.IsNullOrWhiteSpace(apiToken)) return new([], new("football-data.org", "disconnected", "Add a football-data.org key to load fixtures. Free-plan scores are delayed."));
-        if (fixtures.TryGetValue(key, out var cached) && clock.GetUtcNow() - cached.At < TimeSpan.FromMinutes(2))
+        if (fixtures.TryGetValue(key, out var cached) && clock.GetUtcNow() - cached.At < FixtureTtl(day))
             return new(cached.Items, new("football-data.org", "connected", "Fixtures connected. Score freshness depends on your plan.", cached.At));
+        // A shared ceiling across all dates/tabs: at most six fixture requests per
+        // minute, leaving capacity under the free plan's ten-per-minute allowance.
+        if (lastFootballRequest is { } last && clock.GetUtcNow() - last < TimeSpan.FromSeconds(10))
+            return new(cached.Items ?? [], new("football-data.org", "waiting", "Waiting for the next shared fixture refresh.", cached.At == default ? null : cached.At));
+        lastFootballRequest = clock.GetUtcNow();
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get,
@@ -82,8 +97,8 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
         if (string.IsNullOrWhiteSpace(config["Reddit:AccessToken"]) &&
             (string.IsNullOrWhiteSpace(config["Reddit:ClientId"]) || string.IsNullOrWhiteSpace(config["Reddit:ClientSecret"])))
             return new([], new("Reddit", "disconnected", "An approved app's OAuth credentials are required. See source setup."));
-        if (goalsAt is { } at && clock.GetUtcNow() - at < TimeSpan.FromMinutes(2))
-            return new(goals, new("Reddit", "connected", "Recent r/soccer goal posts. Refreshed at most once every two minutes.", goalsAt));
+        if (goalsAt is { } at && clock.GetUtcNow() - at < TimeSpan.FromSeconds(45))
+            return new(goals, new("Reddit", "connected", "Recent r/soccer goal posts. Refreshed at most once every 45 seconds.", goalsAt));
         try
         {
             var client = clients.CreateClient("providers");

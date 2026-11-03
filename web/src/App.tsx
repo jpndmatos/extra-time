@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useLiveFeed } from "./useLiveFeed";
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,6 +18,8 @@ import {
   Star,
   X,
   Play,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import {
   localDay,
@@ -92,10 +95,38 @@ export default function App() {
   const [saving, setSaving] = useState(false);
   const [pendingWrites, setPendingWrites] = useState(0);
   const [mobilePlayer, setMobilePlayer] = useState(false);
+  const [cinema, setCinema] = useState(false);
+  const [newGoalCount, setNewGoalCount] = useState(0);
+  const knownGoals = useRef<Set<string> | null>(null);
   const queue = useRef(Promise.resolve());
   const latest = useRef(prefs);
   latest.current = prefs;
   const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (!cinema) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setCinema(false);
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [cinema]);
+  const live = useLiveFeed(day, sample, (next) => {
+    if (knownGoals.current) {
+      const added = tracked(
+        next.goals,
+        next.matches,
+        latest.current,
+        team,
+        match,
+        unwatched,
+      ).filter((goal) => !knownGoals.current!.has(goal.id)).length;
+      if (added) setNewGoalCount((count) => count + added);
+    }
+    knownGoals.current = new Set(next.goals.map((goal) => goal.id));
+    setData(next);
+    setLoading(false);
+    setError("");
+  });
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -138,18 +169,6 @@ export default function App() {
       });
     return () => controller.abort();
   }, [day, sample, refresh]);
-
-  useEffect(() => {
-    const tick = window.setInterval(() => {
-      if (
-        document.visibilityState === "visible" &&
-        !sample &&
-        pendingWrites === 0
-      )
-        setRefresh((v) => v + 1);
-    }, 120_000);
-    return () => clearInterval(tick);
-  }, [sample, pendingWrites]);
 
   function save(next: Preferences) {
     setPrefs(next);
@@ -196,6 +215,7 @@ export default function App() {
   }
   function navigate(next: View) {
     setView(next);
+    setCinema(false);
     setImporting(false);
     setMobilePlayer(false);
     window.setTimeout(() => heading.current?.focus(), 0);
@@ -207,6 +227,7 @@ export default function App() {
     setMatch("");
   }
   function select(goal: Goal) {
+    setNewGoalCount(0);
     setSelectedId(goal.id);
     setPlaying(false);
     setMobilePlayer(true);
@@ -220,8 +241,16 @@ export default function App() {
   const visibleGoals = data
     ? tracked(data.goals, data.matches, prefs, team, match, unwatched)
     : [];
+  const playingGoal = playing
+    ? data?.goals.find((goal) => goal.id === selectedId)
+    : undefined;
   const selected =
-    visibleGoals.find((g) => g.id === selectedId) || visibleGoals[0];
+    playingGoal ||
+    visibleGoals.find((g) => g.id === selectedId) ||
+    visibleGoals[0];
+  useEffect(() => {
+    if (selectedId === null && selected) setSelectedId(selected.id);
+  }, [selectedId, selected?.id]);
   const hideScore =
     prefs.spoilers && selected && !revealed.includes(selected.id);
   const selectedDate = new Date(day + "T12:00:00");
@@ -573,7 +602,7 @@ export default function App() {
                 <>
                   {view === "goals" && (
                     <div
-                      className={`goal-workspace ${mobilePlayer && selected ? "player-open" : ""}`}
+                      className={`goal-workspace ${mobilePlayer && selected ? "player-open" : ""}${cinema ? " cinema" : ""}`}
                     >
                       <section className="goal-queue" aria-label="Goal feed">
                         <div className="section-bar">
@@ -728,6 +757,20 @@ export default function App() {
                                 {name(selected.awayId)}
                               </span>
                               <button
+                                className="icon-button cinema-toggle"
+                                aria-label={
+                                  cinema ? "Exit cinema view" : "Expand player"
+                                }
+                                aria-pressed={cinema}
+                                onClick={() => setCinema(!cinema)}
+                              >
+                                {cinema ? (
+                                  <Minimize2 size={17} />
+                                ) : (
+                                  <Maximize2 size={17} />
+                                )}
+                              </button>
+                              <button
                                 className="icon-button"
                                 onClick={() => toggle("watched", selected.id)}
                                 aria-label={
@@ -761,7 +804,8 @@ export default function App() {
                                     Reveal goal
                                   </button>
                                 </div>
-                              ) : playing && selected.media ? (
+                              ) : playingGoal?.id === selected.id &&
+                                selected.media ? (
                                 <iframe
                                   key={selected.id}
                                   src={selected.media.url}
@@ -795,6 +839,8 @@ export default function App() {
                                     <button
                                       className="primary"
                                       onClick={() => {
+                                        setSelectedId(selected.id);
+                                        setNewGoalCount(0);
                                         setPlaying(true);
                                         if (
                                           !prefs.watched.includes(selected.id)
@@ -1154,7 +1200,41 @@ export default function App() {
         )}
       </main>
       <footer className="app-footer">
-        <span>Your goals. One place.</span>
+        <span
+          className="live-status"
+          data-state={live.state}
+          title={
+            live.receivedAt
+              ? `Last feed change: ${new Date(live.receivedAt).toLocaleTimeString()}`
+              : undefined
+          }
+        >
+          {sample
+            ? "Sample / auto updates off"
+            : live.state === "connected"
+              ? connected
+                ? "Auto updates on"
+                : "Waiting for source access"
+              : live.state === "paused"
+                ? "Updates paused while hidden"
+                : live.state === "offline"
+                  ? "Offline / keeping your feed"
+                  : live.state === "reconnecting"
+                    ? "Reconnecting / keeping your feed"
+                    : "Connecting to updates…"}
+          {newGoalCount > 0 && (
+            <button
+              onClick={() => {
+                setNewGoalCount(0);
+                setSelectedId(visibleGoals[0]?.id || null);
+                setPlaying(false);
+                setMobilePlayer(false);
+              }}
+            >
+              {newGoalCount} new {newGoalCount === 1 ? "goal" : "goals"}
+            </button>
+          )}
+        </span>
         <span role="status">
           {pendingWrites
             ? "Saving favourites…"

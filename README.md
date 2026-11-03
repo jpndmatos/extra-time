@@ -34,7 +34,7 @@ Register at [football-data.org](https://www.football-data.org/client/register). 
 dotnet user-secrets set 'FootballData:Token' '<your-key>' --project src/Touchline.Api
 ```
 
-Restart the backend, then open Sources. Free-plan scores are delayed, and available competitions depend on the plan. The server makes a shared match-window request, cached for two minutes. There is no claim of instant livescores.
+Restart the backend, then open Sources. Free-plan scores are delayed, and available competitions depend on the plan. Today’s fixture window refreshes at most every 30 seconds; other dates are cached for five minutes. A shared ceiling of six fixture requests per minute applies across all tabs and dates. There is no claim of instant livescores.
 
 ## Connect Reddit only if your app is approved
 
@@ -53,7 +53,7 @@ Alternatively, set `Reddit:AccessToken` to an existing approved OAuth token. Suc
 
 Keys remain on the server and are never returned to the browser. No credential form writes secrets to source files. Do not commit keys or copy them into a chat.
 
-The Reddit reader scans up to 300 recent r/soccer posts, stopping after 48 hours. It does not guarantee every goal will be found. It refreshes at most every two minutes, backs off failures, ignores removed/NSFW posts, excludes misses, highlights and disallowed goals, and uses complete team aliases rather than substring guesses. A goal needs two supported teams, a score and a minute. Ambiguous/unrecognized titles are skipped. Alternate posts with the same teams, UTC posting date, score and minute are grouped conservatively.
+The Reddit reader scans up to 300 recent r/soccer posts, stopping after 48 hours. It does not guarantee every goal will be found. It refreshes at most every 45 seconds, backs off failures for two minutes, ignores removed/NSFW posts, excludes misses, highlights and disallowed goals, and uses complete team aliases rather than substring guesses. A goal needs two supported teams, a score and a minute. Ambiguous/unrecognized titles are skipped. Alternate posts with the same teams, UTC posting date, score and minute are grouped conservatively.
 
 Reddit posts are held in the short-lived memory cache, not archived in SQLite. Manually added links are explicitly stored locally. No scraping workaround, private API, clip downloading or rehosting is used. Other video hosts and removed/blocked embeds open in the original thread. Reddit-hosted DASH video is not combined or downloaded for inline playback.
 
@@ -63,7 +63,7 @@ This is a **single-user local application**, bound to loopback by default. Its S
 
 It has no multi-user login or public deployment configuration. Keep it local; an internet service would need accounts, per-user storage and an approved long-term clip provider. The provider boundary is separate from the UI so a supported source can replace Reddit later.
 
-The layout fills the viewport. Longer lists scroll inside keyboard-focusable panels. On phones, selecting a goal opens its player with a Back to goals action. Matchday remains available from the main navigation. Very short landscape windows permit workspace scrolling.
+The layout fills the full viewport width and height, including large displays. Cinema view expands the player into the workspace; Escape restores the feed. Longer lists scroll inside keyboard-focusable panels. On phones, selecting a goal opens its player with a Back to goals action. Matchday remains available from the main navigation. Very short landscape windows permit workspace scrolling.
 
 ## Checks
 
@@ -72,6 +72,8 @@ dotnet test tests/Touchline.Tests
 npm --prefix web test
 npm --prefix web run build
 node scripts/verify-browser.mjs
+# Optional: against a disposable host with TOUCHLINE_ALLOW_WRITES=1
+node scripts/verify-live.mjs
 ```
 
 The browser check uses the installed Playwright and axe dependencies from the sibling Relay workspace. It covers 320×568 through 1440×900, favourites, fixture follows, spoilers, reload persistence and accessibility. Set `TOUCHLINE_URL` to choose a host. Set `TOUCHLINE_ALLOW_WRITES=1` to include the manual-import test, which writes and removes a test clip; use a disposable database for this optional check. The default browser run does not write real preferences or clips. The iframe test intercepts the clip host and never presents a fabricated video as real footage.
@@ -79,3 +81,9 @@ The browser check uses the installed Playwright and axe dependencies from the si
 Provider and API tests use temporary SQLite databases and mocked HTTP responses. They cover goal matching, URL allowlists, duplicate grouping, error backoff, API validation, persistence and cross-site write rejection.
 
 Sources: [football-data match documentation](https://docs.football-data.org/general/v4/match.html), [Reddit OAuth documentation](https://github.com/reddit-archive/reddit/wiki/OAuth2).
+
+## Live updates
+
+`/api/live?day=YYYY-MM-DD` sends a server-sent event stream. The browser receives changed dashboard snapshots without REST polling. Content hashes suppress identical snapshots; heartbeats keep the connection alive. Local clip changes are detected within two seconds. The browser reconnects after interruptions and pauses its connection while hidden or offline. The selected video remains mounted as other goals arrive.
+
+This transport does not change the upstream providers’ delay or create access. Actual goals require approved Reddit credentials and actual fixtures require a football-data key. Free-plan scores can be delayed. Sample mode remains fictional and does not subscribe to the live feed. Source failures retain existing content and are visible in Sources.

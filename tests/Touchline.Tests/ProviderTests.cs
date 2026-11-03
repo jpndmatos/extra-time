@@ -8,6 +8,32 @@ namespace Touchline.Tests;
 public class ProviderTests
 {
     [Fact]
+    public async Task LiveRefreshCadenceAndDateBrowsingShareOneFixtureBudget()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "touchline-provider-" + Guid.NewGuid().ToString("N"));
+        var handler = new Handler(request => request.RequestUri!.Host == "api.football-data.org" ? "{\"matches\":[]}" : "{\"data\":{\"children\":[],\"after\":null}}");
+        var config = Config(directory); var store = new Store(config);
+        var clock = new Clock();
+        var providers = new Providers(new Factory(handler), config, clock);
+        var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
+        await providers.Dashboard(today, store, default); Assert.Equal(2, handler.Calls);
+        var queued = await providers.Dashboard(today.AddDays(1), store, default);
+        Assert.Equal("waiting", queued.Sources[0].State); Assert.Equal(2, handler.Calls);
+        clock.Advance(10);
+        await providers.Dashboard(today.AddDays(1), store, default); Assert.Equal(3, handler.Calls);
+        clock.Advance(20);
+        await providers.Dashboard(today, store, default); Assert.Equal(4, handler.Calls);
+        clock.Advance(15);
+        await providers.Dashboard(today, store, default); Assert.Equal(5, handler.Calls);
+        Cleanup(directory);
+    }
+    private sealed class Clock : TimeProvider
+    {
+        private DateTimeOffset now = DateTimeOffset.UtcNow;
+        public override DateTimeOffset GetUtcNow() => now;
+        public void Advance(int seconds) => now = now.AddSeconds(seconds);
+    }
+    [Fact]
     public async Task NormalizesFixturesParsesGoalsAndCachesBothFeeds()
     {
         var directory = Path.Combine(Path.GetTempPath(), "touchline-provider-" + Guid.NewGuid().ToString("N"));

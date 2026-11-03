@@ -17,6 +17,40 @@ public class ApiTests : IDisposable
         { ["DatabasePath"] = database, ["Reddit:Enabled"] = "false", ["FootballData:Token"] = "" })));
     }
     [Fact]
+    public async Task LiveStreamPushesManualGoalsWithoutAnotherDashboardRequest()
+    {
+        using var client = factory.CreateClient();
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+        using var message = new HttpRequestMessage(HttpMethod.Get, "/api/live");
+        using var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType!.MediaType);
+        using var reader = new StreamReader(await response.Content.ReadAsStreamAsync(deadline.Token));
+        var initial = await NextDashboard(reader, deadline.Token);
+        Assert.Empty(initial.Goals);
+        var saved = await client.PostAsJsonAsync("/api/clips", new ClipInput("Benfica [1]-0 Porto - Live player 18'", "https://www.reddit.com/r/soccer/comments/live123/goal/", null), deadline.Token);
+        saved.EnsureSuccessStatusCode();
+        var updated = await NextDashboard(reader, deadline.Token);
+        Assert.Equal("Live player", Assert.Single(updated.Goals).Scorer);
+        deadline.Cancel();
+    }
+    [Fact]
+    public async Task LiveStreamRejectsInvalidDateBeforeOpeningStream()
+    {
+        using var client = factory.CreateClient();
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/live?day=bad")).StatusCode);
+    }
+    private static async Task<Dashboard> NextDashboard(StreamReader reader, CancellationToken ct)
+    {
+        var dashboardEvent = false;
+        while (await reader.ReadLineAsync(ct) is { } line)
+        {
+            if (line.StartsWith("event:", StringComparison.Ordinal)) dashboardEvent = line == "event: dashboard";
+            if (dashboardEvent && line.StartsWith("data: ", StringComparison.Ordinal))
+                return System.Text.Json.JsonSerializer.Deserialize<Dashboard>(line[6..], JsonDefaults.Options)!;
+        }
+        throw new InvalidOperationException("The event stream ended before a dashboard arrived.");
+    }
+    [Fact]
     public async Task MissingCredentialsProduceHonestEmptySourcesAndSampleIsSeparate()
     {
         using var client = factory.CreateClient();

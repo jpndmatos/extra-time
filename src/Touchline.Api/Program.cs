@@ -30,6 +30,7 @@ app.Use(async (ctx, next) =>
 });
 app.UseDefaultFiles(); app.UseStaticFiles();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/api/live", LiveFeed.Stream);
 app.MapGet("/api/preferences", (Store store) => store.Preferences());
 app.MapPut("/api/preferences", (Preferences value, Store store) =>
 {
