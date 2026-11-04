@@ -1721,7 +1721,10 @@ summary:focus-visible {
     padding-inline: 0;
   }
   .player-header .team-crest {
-    display: none;
+    display: inline-flex;
+    width: 18px;
+    height: 20px;
+    flex-basis: 18px;
   }
   .playback-tools {
     padding-inline: var(--space-xs);

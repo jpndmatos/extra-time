@@ -17,6 +17,6 @@ public static class Samples
             new("sample-3", "Benfica [1]–0 FC Porto — Sample goal 18'", "benfica", "porto", 1, 0, "Sample scorer", "18", start.AddMinutes(18), "", null, [], true),
             new("sample-4", "Arsenal [1]–0 Chelsea — Sample goal 29'", "arsenal", "chelsea", 1, 0, "Sample scorer", "29", start.AddHours(-2).AddMinutes(29), "", null, [], true)
         ];
-        return new(Catalog.Teams, matches, goals, [new("Sample workspace", "sample", "Fictional fixtures and goal metadata. No footage is supplied.")], DateTimeOffset.UtcNow, true);
+        return new(Crests.Enrich(Catalog.Teams), matches, goals, [new("Sample workspace", "sample", "Fictional fixtures and goal metadata. No footage is supplied.")], DateTimeOffset.UtcNow, true);
     }
 }

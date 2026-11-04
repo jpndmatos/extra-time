@@ -48,7 +48,7 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
             var teams = matches.Items.SelectMany(match => new[] { Catalog.FromName(match.HomeName) with { Crest = match.HomeCrest }, Catalog.FromName(match.AwayName) with { Crest = match.AwayCrest } }).Concat(Catalog.Teams)
                 .Concat(allGoals.SelectMany(goal => new[] { Catalog.FromName(goal.HomeName ?? Catalog.Find(goal.HomeId)?.Name ?? goal.HomeId), Catalog.FromName(goal.AwayName ?? Catalog.Find(goal.AwayId)?.Name ?? goal.AwayId) }))
                 .DistinctBy(team => team.Id).OrderBy(team => team.Name).ToArray();
-            return new(teams, matches.Items, allGoals,
+            return new(Crests.Enrich(teams), matches.Items, allGoals,
                 [matches.Status, clips.Status], clock.GetUtcNow(), false);
         }
         finally { gate.Release(); }
