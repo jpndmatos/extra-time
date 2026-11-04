@@ -3333,3 +3333,64 @@ summary:focus-visible {
 .goal-row.watched:not(.selected):hover {
   background: var(--color-seen-hover);
 }
+
+/* Palette supplied by the owner: orange for unseen, green for the active clip. */
+.view-goals {
+  padding: var(--space-xs);
+  gap: var(--space-2xs);
+}
+.goal-workspace {
+  grid-template-columns: clamp(240px, 20%, 300px) minmax(0, 1fr);
+  gap: var(--space-xs);
+}
+.goal-queue .section-bar,
+.goal-row {
+  padding-inline: var(--space-xs);
+}
+.goal-row {
+  padding-block: var(--space-xs);
+  gap: var(--space-xs);
+}
+.goal-minute {
+  width: 32px;
+  letter-spacing: 0;
+}
+.queue-play {
+  width: 16px;
+}
+.goal-row:not(.watched):not(.selected) {
+  background: var(--color-unseen-surface);
+  border-left-color: var(--color-orange-signal);
+}
+.goal-row:not(.watched):not(.selected):hover {
+  background: var(--color-unseen-hover);
+}
+.goal-row:not(.watched):not(.selected) .goal-minute,
+.goal-row:not(.watched):not(.selected) .queue-play {
+  color: var(--color-orange-signal);
+}
+.goal-search {
+  margin: var(--space-2xs) var(--space-xs);
+}
+.player-column {
+  gap: var(--space-2xs);
+}
+.clip-details {
+  padding: var(--space-xs);
+  gap: var(--space-xs);
+}
+.topbar nav button[aria-current="page"] {
+  border-bottom-color: var(--color-orange-signal);
+}
+.header-utilities .add-clip-action {
+  border-color: var(--color-orange);
+  color: var(--color-orange-signal);
+}
+@media (max-width: 760px) {
+  .goal-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .goal-workspace.player-open .player-column {
+    gap: var(--space-2xs);
+  }
+}

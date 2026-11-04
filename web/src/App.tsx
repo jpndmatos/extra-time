@@ -1013,8 +1013,8 @@ export default function App() {
                                 aria-pressed={selected?.id === goal.id}
                                 aria-label={
                                   prefs.spoilers && !revealed.includes(goal.id)
-                                    ? `${name(goal.homeId)} versus ${name(goal.awayId)}, reveal goal`
-                                    : `${name(goal.homeId)} ${goal.homeScore}–${goal.awayScore} ${name(goal.awayId)}, ${goal.minute} minutes`
+                                    ? `${name(goal.homeId)} versus ${name(goal.awayId)}, reveal goal${prefs.watched.includes(goal.id) ? ", watched" : ""}`
+                                    : `${name(goal.homeId)} ${goal.homeScore}–${goal.awayScore} ${name(goal.awayId)}, ${goal.minute} minutes${prefs.watched.includes(goal.id) ? ", watched" : ""}`
                                 }
                               >
                                 <span className="goal-minute">
@@ -1076,29 +1076,33 @@ export default function App() {
                                         {goal.watchReason}
                                       </span>
                                     )}
-                                    {prefs.watched.includes(goal.id) && (
-                                      <span
-                                        className="watched-note"
-                                        title="Watched"
-                                      >
-                                        <Check size={12} aria-hidden="true" />
-                                        <span className="sr-only">Watched</span>
-                                      </span>
-                                    )}
                                     {goal.alternatives.length
-                                      ? ` / ${goal.alternatives.length} alternate`
+                                      ? `${goal.alternatives.length} alternate`
                                       : ""}
                                   </small>
                                 </span>
-                                <span className="queue-play" aria-hidden="true">
-                                  <Play
-                                    size={13}
-                                    fill={
-                                      selected?.id === goal.id
-                                        ? "currentColor"
-                                        : "none"
-                                    }
-                                  />
+                                <span
+                                  className="queue-play"
+                                  aria-hidden="true"
+                                  title={
+                                    prefs.watched.includes(goal.id)
+                                      ? "Watched"
+                                      : "Unwatched"
+                                  }
+                                >
+                                  {prefs.watched.includes(goal.id) &&
+                                  selected?.id !== goal.id ? (
+                                    <Check size={13} />
+                                  ) : (
+                                    <Play
+                                      size={13}
+                                      fill={
+                                        selected?.id === goal.id
+                                          ? "currentColor"
+                                          : "none"
+                                      }
+                                    />
+                                  )}
                                 </span>
                               </button>
                             ))
