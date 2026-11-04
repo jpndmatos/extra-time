@@ -6,9 +6,10 @@ public record Team(string Id, string Name, string ShortName, string Country, str
 public record Fixture(string Id, string HomeId, string AwayId, string HomeName, string AwayName,
     DateTimeOffset Kickoff, string Competition, string Status, int? HomeScore, int? AwayScore, bool Sample = false, string? HomeCrest = null, string? AwayCrest = null);
 public record Media(string Kind, string Url);
+public record ClipSource(Media Media, string SourceUrl);
 public record Goal(string Id, string Title, string HomeId, string AwayId, int HomeScore, int AwayScore,
     string Scorer, string? Minute, DateTimeOffset PublishedAt, string SourceUrl, Media? Media,
-    string[] Alternatives, bool Sample = false, string? HomeName = null, string? AwayName = null, string? Author = null);
+    string[] Alternatives, bool Sample = false, string? HomeName = null, string? AwayName = null, string? Author = null, ClipSource[]? Mirrors = null);
 public record ProviderStatus(string Name, string State, string Message, DateTimeOffset? UpdatedAt = null);
 public record Dashboard(Team[] Teams, Fixture[] Matches, Goal[] Goals, ProviderStatus[] Sources, DateTimeOffset UpdatedAt, bool Sample);
 public record Preferences(string[] Teams, string[] Matches, bool Spoilers, string[] Watched)

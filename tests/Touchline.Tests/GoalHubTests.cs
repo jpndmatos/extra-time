@@ -64,6 +64,7 @@ public class GoalHubTests
         var media = await resolver.Resolve("https://streamin.link/v/abcdef12", default);
         Assert.Equal("video", media?.Kind); Assert.Equal(2, handler.Calls);
         Assert.Equal(media, await resolver.Resolve("https://streamin.link/v/abcdef12", default)); Assert.Equal(2, handler.Calls);
+        Assert.NotNull(await resolver.Resolve("https://streamin.link/v/abcdef12", default, refresh: true)); Assert.Equal(4, handler.Calls);
     }
     [Theory]
     [InlineData("http://127.0.0.1/private")]

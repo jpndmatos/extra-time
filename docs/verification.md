@@ -1,6 +1,6 @@
 # Verification
 
-Verified on 4 November 2026 with .NET 10 and TypeScript strict mode. There are 37 backend tests and four frontend feed-filter tests. API and write-enabled browser checks use isolated SQLite databases.
+Verified on 4 November 2026 with .NET 10 and TypeScript strict mode. There are 38 backend tests and seven frontend tests. API and write-enabled browser checks use isolated SQLite databases.
 
 Real football-data.org requests returned HTTP 200 and loaded 55 fixtures across the date window. Its key is stored outside the repository in local .NET user secrets. Public r/soccer RSS also returned HTTP 200, initially providing 48 parsed goals, later 27 as the 48-hour window advanced. Fixtures supplied official crests for 107 clubs; missing crests use initials. No approved Reddit OAuth account is configured. Public RSS stops on its announced retirement date, 13 November 2026.
 
@@ -11,3 +11,5 @@ Browser checks passed at 1440×900, 1280×800, 1024×768, 390×844, 375×812 and
 Live-feed checks verify SSE delivery after a manual write, per-provider refresh cadence and the shared fixture request budget. Browser checks prove goals appear without another REST dashboard request, a playing iframe stays mounted, cinema view expands and exits with Escape, offline reconnection catches up, and the workspace spans 1920px. The clip and reconnection checks use controlled local clips and provider responses. The fixture connector has additionally passed the real-provider check described above.
 
 New feed tests cover unknown clubs, stoppage time, attribution, stale/unrelated/disallowed posts, XML entity rejection, shared caching and retirement without another request. Media tests cover allowed publisher redirects, arbitrary destinations, unexpected ports and caching. Clock tests verify midnight rollover, pinned dates and Today restoring automatic updates.
+
+Playback recovery checks pass with controlled responses: a failed publisher lookup selects another video of the same goal; a missing native video refreshes its publisher URL once and then switches; a stalled video times out instead of buffering forever; healthy loaded frames stay mounted; all-source exhaustion offers a successful fresh retry after recovery. An unrelated goal is present in these tests and must never be selected as a backup. Embedded-host errors that cannot be inspected across origins have a working manual source switch. Source attribution, 320px viewport bounds, retry visibility and axe accessibility checks pass. Live-update retention checks were repeated against an isolated database and still pass.

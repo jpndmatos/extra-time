@@ -76,6 +76,7 @@ dotnet test tests/Touchline.Tests
 npm --prefix web test
 npm --prefix web run build
 node scripts/verify-browser.mjs
+node scripts/verify-playback.mjs
 # Optional: against a disposable host with TOUCHLINE_ALLOW_WRITES=1
 node scripts/verify-live.mjs
 ```
@@ -85,6 +86,14 @@ The browser check uses the installed Playwright and axe dependencies from the si
 Provider and API tests use temporary SQLite databases and mocked HTTP responses. They cover goal matching, URL allowlists, duplicate grouping, error backoff, API validation, persistence and cross-site write rejection.
 
 Sources: [football-data match documentation](https://docs.football-data.org/general/v4/match.html), [Reddit OAuth documentation](https://github.com/reddit-archive/reddit/wiki/OAuth2).
+
+## Playback recovery
+
+Duplicate posts retain their distinct playable URLs and source attribution, capped at 12 per goal. Failed metadata lookups and native video errors automatically advance to the next source for that same goal. A resolved native clip gets one fresh publisher lookup before switching, to recover expired CDN URLs. A 15-second loading/stall watchdog prevents indefinite buffering; healthy playback, deliberate pauses and completed clips are left alone. The next source's metadata is warmed in advance.
+
+Embedded players cannot always expose their internal errors across origins. Their visible source switch lets the viewer recover manually; an iframe load is not treated as proof that its video played. Exhausted sources show an explicit failure, original posts and a fresh retry. No implementation can guarantee a video when every known host has removed or blocked it.
+
+`node scripts/verify-playback.mjs` checks controlled host failures, expired/missing video recovery, stalls, source exhaustion, manual embed switching and the 320px recovery UI. It does not write preferences or clips or pretend test media is actual footage.
 
 ## Live updates
 

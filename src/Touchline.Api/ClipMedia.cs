@@ -5,14 +5,18 @@ using System.Text.RegularExpressions;
 
 namespace Touchline;
 
-public record MediaRequest(string Url);
+public record MediaRequest(string Url, bool Refresh = false);
 public sealed class ClipMedia(IHttpClientFactory clients, TimeProvider clock)
 {
     private readonly ConcurrentDictionary<string, (DateTimeOffset At, Media Media)> cache = new();
-    public async Task<Media?> Resolve(string value, CancellationToken ct)
+    public async Task<Media?> Resolve(string value, CancellationToken ct, bool refresh = false)
     {
         var safe = GoalParser.SafeMedia(value);
         if (safe?.Kind != "resolve") return null;
+        if (refresh) cache.TryRemove(safe.Url, out _);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        deadline.CancelAfter(TimeSpan.FromSeconds(12));
+        ct = deadline.Token;
         if (cache.TryGetValue(safe.Url, out var existing) && clock.GetUtcNow() - existing.At < TimeSpan.FromMinutes(10)) return existing.Media;
         var client = clients.CreateClient("clip-metadata");
         var response = await client.GetAsync(safe.Url, HttpCompletionOption.ResponseHeadersRead, ct);

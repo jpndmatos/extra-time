@@ -113,6 +113,13 @@ public static partial class GoalParser
         {
             var ordered = group.OrderByDescending(g => g.Media is not null).ThenBy(g => g.PublishedAt).ToArray();
             var first = ordered[0];
-            return first with { Alternatives = ordered.Skip(1).Select(g => g.SourceUrl).Concat(first.Alternatives).Where(x => x != first.SourceUrl).Distinct().ToArray() };
+            var mirrors = ordered.SelectMany(g => (g.Media is null ? Array.Empty<ClipSource>() : [new ClipSource(g.Media, g.SourceUrl)])
+                .Concat(g.Mirrors ?? []))
+                .Where(source => SafeMedia(source.Media.Url) is not null && RedditUrl(source.SourceUrl) is not null)
+                .DistinctBy(source => source.Media.Url).Take(12).ToArray();
+            return first with {
+                Alternatives = ordered.SelectMany(g => g.Alternatives.Prepend(g.SourceUrl)).Where(x => x != first.SourceUrl).Distinct().ToArray(),
+                Mirrors = mirrors
+            };
         }).OrderByDescending(g => g.PublishedAt).ToArray();
 }

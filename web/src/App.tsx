@@ -922,6 +922,8 @@ export default function App() {
                                 <ClipPlayback
                                   key={`${selected.id}-${playbackAttempt}`}
                                   media={selected.media}
+                                  mirrors={selected.mirrors}
+                                  alternatives={selected.alternatives}
                                   sourceUrl={selected.sourceUrl}
                                   title={`${name(selected.homeId)} versus ${name(selected.awayId)} goal clip`}
                                 />

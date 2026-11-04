@@ -21,6 +21,8 @@ export type Fixture = {
   awayScore: number | null;
   sample: boolean;
 };
+export type Clip = { kind: string; url: string };
+export type ClipSource = { media: Clip; sourceUrl: string };
 export type Goal = {
   id: string;
   title: string;
@@ -32,7 +34,8 @@ export type Goal = {
   minute: string | null;
   publishedAt: string;
   sourceUrl: string;
-  media: { kind: string; url: string } | null;
+  media: Clip | null;
+  mirrors?: ClipSource[] | null;
   alternatives: string[];
   sample: boolean;
   homeName?: string | null;

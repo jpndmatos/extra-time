@@ -39,10 +39,10 @@ app.MapPost("/api/media", async (MediaRequest input, ClipMedia media, Cancellati
     if (string.IsNullOrEmpty(input.Url) || input.Url.Length > 2000) return Results.Problem("Choose a valid clip link.", statusCode: 400);
     try
     {
-        var result = await media.Resolve(input.Url, ct);
+        var result = await media.Resolve(input.Url, ct, input.Refresh);
         return result is null ? Results.Problem("This clip could not be loaded here. Open its original Reddit thread or clip host.", statusCode: 422) : Results.Ok(result);
     }
-    catch (Exception error) when (error is HttpRequestException || error is TaskCanceledException && !ct.IsCancellationRequested)
+    catch (Exception error) when (error is HttpRequestException || error is OperationCanceledException && !ct.IsCancellationRequested)
     { return Results.Problem("The clip host is unavailable. Open the original Reddit thread or try again later.", statusCode: 502); }
 });
 app.MapGet("/api/preferences", (Store store) => store.Preferences());

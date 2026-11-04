@@ -43,4 +43,18 @@ public class GoalParserTests
         Assert.Equal("2", grouped.Id); Assert.Equal([first.SourceUrl], grouped.Alternatives);
         Assert.Equal(2, GoalParser.Group([first, second with { Minute = "25" }]).Length);
     }
+
+    [Fact]
+    public void GroupingPreservesDistinctVideoMirrorsAndTheirPostsAcrossRefreshes()
+    {
+        var first = GoalParser.Parse("1", "Benfica [1]-0 Porto - Player 18'", DateTimeOffset.UtcNow, "https://www.reddit.com/r/soccer/comments/abc123/", "https://streamable.com/firstclip")!;
+        var second = first with { Id = "2", SourceUrl = "https://www.reddit.com/r/soccer/comments/def456/", Media = new("resolve", "https://streamin.link/v/abcdef12") };
+        var duplicate = second with { Id = "3", SourceUrl = "https://www.reddit.com/r/soccer/comments/ghi789/" };
+        var grouped = Assert.Single(GoalParser.Group([first, second, duplicate]));
+        Assert.Equal(2, grouped.Mirrors?.Length);
+        Assert.Equal(second.SourceUrl, grouped.Mirrors![1].SourceUrl);
+        var refreshed = Assert.Single(GoalParser.Group([grouped, second]));
+        Assert.Equal(2, refreshed.Mirrors?.Length); Assert.Equal(2, refreshed.Alternatives.Length);
+        Assert.Equal(2, GoalParser.Group([first, second with { Minute = "25" }]).Length);
+    }
 }
