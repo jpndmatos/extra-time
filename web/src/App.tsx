@@ -1188,82 +1188,6 @@ export default function App() {
                         </button>
                         {selected ? (
                           <>
-                            <div className="player-header">
-                              <span className="match-scoreboard">
-                                <span className="scoreboard-team home">
-                                  <TeamCrest
-                                    team={data.teams.find(
-                                      (t) => t.id === selected.homeId,
-                                    )}
-                                  />
-                                  <span title={name(selected.homeId)}>
-                                    {name(selected.homeId)}
-                                  </span>
-                                </span>
-                                <strong
-                                  className="scoreboard-result"
-                                  aria-label={
-                                    hideScore
-                                      ? "Score hidden"
-                                      : `Score at this goal: ${selected.homeScore} to ${selected.awayScore}`
-                                  }
-                                >
-                                  {hideScore ? (
-                                    <EyeOff size={18} />
-                                  ) : (
-                                    <>
-                                      {selected.homeScore}
-                                      <span>:</span>
-                                      {selected.awayScore}
-                                    </>
-                                  )}
-                                </strong>
-                                <span className="scoreboard-team away">
-                                  <TeamCrest
-                                    team={data.teams.find(
-                                      (t) => t.id === selected.awayId,
-                                    )}
-                                  />
-                                  <span title={name(selected.awayId)}>
-                                    {name(selected.awayId)}
-                                  </span>
-                                </span>
-                              </span>
-                              <button
-                                type="button"
-                                className="icon-button cinema-toggle"
-                                aria-label={
-                                  cinema ? "Exit cinema view" : "Expand player"
-                                }
-                                aria-pressed={cinema}
-                                onClick={() => setCinema(!cinema)}
-                              >
-                                {cinema ? (
-                                  <Minimize2 size={17} />
-                                ) : (
-                                  <Maximize2 size={17} />
-                                )}
-                              </button>
-                              <button
-                                type="button"
-                                className="icon-button"
-                                onClick={() => toggle("watched", selected.id)}
-                                aria-label={
-                                  prefs.watched.includes(selected.id)
-                                    ? "Mark as unwatched"
-                                    : "Mark as watched"
-                                }
-                                aria-pressed={prefs.watched.includes(
-                                  selected.id,
-                                )}
-                              >
-                                {prefs.watched.includes(selected.id) ? (
-                                  <Check size={17} />
-                                ) : (
-                                  <Eye size={17} />
-                                )}
-                              </button>
-                            </div>
                             <div className="video-stage">
                               {hideScore ? (
                                 <div className="stage-message">
@@ -1399,6 +1323,46 @@ export default function App() {
                                 )}
                               </div>
                               <div className="clip-actions">
+                                <div className="player-tools">
+                                  <button
+                                    type="button"
+                                    className="icon-button cinema-toggle"
+                                    aria-label={
+                                      cinema
+                                        ? "Exit cinema view"
+                                        : "Expand player"
+                                    }
+                                    aria-pressed={cinema}
+                                    onClick={() => setCinema(!cinema)}
+                                  >
+                                    {cinema ? (
+                                      <Minimize2 size={17} />
+                                    ) : (
+                                      <Maximize2 size={17} />
+                                    )}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="icon-button"
+                                    onClick={() =>
+                                      toggle("watched", selected.id)
+                                    }
+                                    aria-label={
+                                      prefs.watched.includes(selected.id)
+                                        ? "Mark as unwatched"
+                                        : "Mark as watched"
+                                    }
+                                    aria-pressed={prefs.watched.includes(
+                                      selected.id,
+                                    )}
+                                  >
+                                    {prefs.watched.includes(selected.id) ? (
+                                      <Check size={17} />
+                                    ) : (
+                                      <Eye size={17} />
+                                    )}
+                                  </button>
+                                </div>
                                 {selected.sourceUrl && (
                                   <a
                                     className="quiet"

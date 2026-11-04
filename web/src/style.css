@@ -3081,3 +3081,21 @@ summary:focus-visible {
     min-height: 32px;
   }
 }
+
+.player-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+.player-tools .icon-button {
+  min-width: 32px;
+  min-height: 36px;
+}
+.clip-actions {
+  flex-wrap: wrap;
+}
+@media (max-width: 760px) {
+  .player-tools .cinema-toggle {
+    display: none;
+  }
+}
