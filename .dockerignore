@@ -1,0 +1,13 @@
+.git
+.github
+.hallmark
+**/node_modules
+**/bin
+**/obj
+**/data
+web/dist
+docs
+tests
+tmp
+.env*
+**/.env*

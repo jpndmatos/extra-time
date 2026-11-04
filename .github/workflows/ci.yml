@@ -1,0 +1,38 @@
+name: Build and verify
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: npm --prefix web ci
+      - run: npm --prefix web test
+      - run: npm --prefix web run build
+      - run: dotnet test Touchline.sln --configuration Release --nologo
+      - name: Build API container
+        run: docker build -t touchline-api .
+      - name: Verify API container
+        run: |
+          docker run -d --name touchline-test -p 8080:8080 \
+            -e Reddit__PublicFeedEnabled=false -e Reddit__Enabled=false touchline-api
+          trap 'docker logs touchline-test; docker rm -f touchline-test' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://localhost:8080/api/health; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://localhost:8080/api/health
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/preferences)" = 404

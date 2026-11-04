@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   build:
+    if: vars.TOUCHLINE_API_URL != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
