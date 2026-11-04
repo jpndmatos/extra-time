@@ -5,6 +5,7 @@
 /* Hallmark · reworded "Keep watching in the meantime" to "Your clip links" · 19 and 69 replace vague filler with the actual task. */
 /* Hallmark · dismissed 28a · The lazy image is a 22px team crest, not the LCP; the goal video owns the stage and preloads its media. */
 /* Hallmark · answered F25 · The match rail is reachable through the Matches drawer on phones, and selecting a goal opens its player with Back to goals. The subtitle repeats the screen purpose. */
+/* Hallmark · dismissed 40 · The selected row explicitly sets dark text on its light background, including crest fallbacks. Both desktop and phone axe contrast checks pass; the static scan does not resolve the descendant overrides. */
 @import "./tokens.css";
 @import "./base.css";
 * {
@@ -2803,4 +2804,92 @@ summary:focus-visible {
   width: 100%;
   max-width: 1040px;
   align-self: center;
+}
+
+/* Broadcast signature: a twin-cut masthead and an unmistakable on-air score. */
+.topbar .brand {
+  gap: var(--space-xs);
+  letter-spacing: -0.8px;
+}
+.topbar .brand > .brand-mark {
+  display: block;
+  flex: none;
+}
+.scoreboard-result {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  min-width: 88px;
+  padding: var(--space-2xs) var(--space-sm);
+  font-weight: 600;
+  align-self: center;
+}
+.scoreboard-result > span {
+  color: var(--color-surface-edge);
+}
+.goal-row.selected {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  border-left-color: var(--color-accent);
+}
+.goal-row.selected .goal-team,
+.goal-row.selected .goal-copy b,
+.goal-row.selected .goal-copy strong,
+.goal-row.selected .goal-minute,
+.goal-row.selected .queue-play {
+  color: var(--color-accent-ink);
+}
+.goal-row.selected small,
+.goal-row.selected .watch-tag {
+  color: var(--color-surface-edge);
+}
+.goal-row.selected .goal-minute {
+  font-weight: 600;
+}
+.goal-row.selected:hover {
+  background: var(--color-focus);
+}
+.goal-row.selected:focus-visible {
+  outline-color: var(--color-accent-ink);
+}
+.clip-details .scorer-heading {
+  font-size: clamp(24px, 2.2vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.8px;
+  animation: scorer-arrives 180ms var(--ease-out);
+}
+@keyframes scorer-arrives {
+  from {
+    opacity: 0.35;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clip-details .scorer-heading {
+    animation: none;
+  }
+}
+@media (max-width: 760px) {
+  .topbar .brand > .brand-mark {
+    width: 16px;
+    height: 20px;
+  }
+  .topbar .brand {
+    gap: var(--space-2xs);
+  }
+  .scoreboard-result {
+    min-width: 68px;
+    padding-inline: var(--space-xs);
+  }
+  .clip-details .scorer-heading {
+    font-size: 26px;
+  }
+}
+
+.goal-row.selected .crest-fallback {
+  color: var(--color-accent-ink);
+  border-color: var(--color-surface-edge);
 }

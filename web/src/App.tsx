@@ -577,7 +577,20 @@ export default function App() {
       </a>
       <header className="topbar">
         <a className="brand" href="/" aria-label="Touchline home">
-          <GoalIcon size={27} strokeWidth={1.6} />
+          <svg
+            className="brand-mark"
+            width="22"
+            height="24"
+            viewBox="0 0 22 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 21 10 3M12 21 19 3"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+          </svg>
           <span>touchline</span>
         </a>
         <nav aria-label="Main navigation">
@@ -1339,7 +1352,10 @@ export default function App() {
                             </div>
                             <div className="clip-details">
                               <div>
-                                <h2>
+                                <h2
+                                  className="scorer-heading"
+                                  key={selected.id}
+                                >
                                   {hideScore
                                     ? "Goal details hidden"
                                     : selected.scorer}
