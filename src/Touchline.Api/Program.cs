@@ -1,4 +1,5 @@
 using Touchline;
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -7,6 +8,13 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 });
 builder.Configuration.AddUserSecrets<Program>(optional: true).AddEnvironmentVariables().AddCommandLine(args);
 builder.Services.AddCors();
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ["application/json", "application/javascript", "text/javascript", "text/css", "text/html", "image/svg+xml"];
+});
 builder.Services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>().Configure<IConfiguration>((options, config) =>
     options.AddDefaultPolicy(policy => policy.WithOrigins(config.GetSection("Hosting:AllowedOrigins").Get<string[]>() ?? [])
         .WithMethods("GET", "POST").WithHeaders("Content-Type")));
@@ -28,6 +36,9 @@ builder.Services.AddProblemDetails();
 var app = builder.Build();
 var allowedOrigins = app.Configuration.GetSection("Hosting:AllowedOrigins").Get<string[]>() ?? [];
 app.UseExceptionHandler();
+// Compress public snapshots and static files, never private state or event streams.
+app.UseWhen(context => context.Request.Path == "/api/dashboard" || !context.Request.Path.StartsWithSegments("/api"),
+    branch => branch.UseResponseCompression());
 app.UseCors();
 app.Use(async (ctx, next) =>
 {
@@ -55,6 +66,10 @@ app.UseStaticFiles(new StaticFileOptions
     {
         if (context.Context.Request.Path.StartsWithSegments("/crests"))
             context.Context.Response.Headers.CacheControl = "public,max-age=604800";
+        else if (context.Context.Request.Path.StartsWithSegments("/assets"))
+            context.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+        else if (context.File.Name == "index.html")
+            context.Context.Response.Headers.CacheControl = "no-cache";
     }
 });
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));

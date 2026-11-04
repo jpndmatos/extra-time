@@ -78,6 +78,8 @@ The layout fills the full viewport. Cinema view expands the player; Escape resto
 
 Live updates use an event stream with a 45-second heartbeat deadline. If the stream fails, the visible tab polls every 30 seconds while reconnecting with backoff. Hidden/offline tabs stop requests. Event snapshots share their database read and serialization across viewers of the same day. Ordinary API reads avoid a cross-origin preflight.
 
+The API compresses public dashboard responses and text assets with Brotli or gzip. Event streams and private preference responses are excluded. Hashed frontend assets use an immutable cache; HTML revalidates so new releases are discovered.
+
 ## Checks
 
 ```powershell

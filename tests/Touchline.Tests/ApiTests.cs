@@ -22,8 +22,10 @@ public class ApiTests : IDisposable
         using var client = factory.CreateClient();
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(8));
         using var message = new HttpRequestMessage(HttpMethod.Get, "/api/live");
+        message.Headers.AcceptEncoding.ParseAdd("gzip");
         using var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
         Assert.Equal("text/event-stream", response.Content.Headers.ContentType!.MediaType);
+        Assert.Empty(response.Content.Headers.ContentEncoding);
         using var reader = new StreamReader(await response.Content.ReadAsStreamAsync(deadline.Token));
         var initial = await NextDashboard(reader, deadline.Token);
         Assert.Empty(initial.Goals);
@@ -32,6 +34,19 @@ public class ApiTests : IDisposable
         var updated = await NextDashboard(reader, deadline.Token);
         Assert.Equal("Live player", Assert.Single(updated.Goals).Scorer);
         deadline.Cancel();
+    }
+    [Fact]
+    public async Task CompressesPublicSnapshotsButNeverPrivatePreferences()
+    {
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.AcceptEncoding.ParseAdd("gzip");
+        using var response = await client.GetAsync("/api/dashboard?sample=true");
+        Assert.Contains("gzip", response.Content.Headers.ContentEncoding);
+        using var gzip = new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress);
+        var dashboard = await System.Text.Json.JsonSerializer.DeserializeAsync<Dashboard>(gzip, JsonDefaults.Options);
+        Assert.True(dashboard!.Sample); Assert.NotEmpty(dashboard.Goals);
+        using var privateResponse = await client.GetAsync("/api/preferences");
+        Assert.Empty(privateResponse.Content.Headers.ContentEncoding);
     }
     [Fact]
     public async Task LiveStreamRejectsInvalidDateBeforeOpeningStream()
