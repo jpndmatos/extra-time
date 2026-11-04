@@ -126,9 +126,11 @@ export default function ClipPlayback({
         />
       </div>
       <div className="playback-tools">
-        <span role="status">
-          {failed.length ? "Backup, " : ""}Source {number}/{sources.length}
-        </span>
+        {sources.length > 1 && (
+          <span role="status">
+            {failed.length ? "Backup, " : ""}Source {number}/{sources.length}
+          </span>
+        )}
         <a
           href={current.sourceUrl}
           target="_blank"

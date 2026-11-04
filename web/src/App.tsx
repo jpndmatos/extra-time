@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Check,
-  ChevronLeft,
   ChevronRight,
   ExternalLink,
   Eye,
@@ -19,7 +18,8 @@ import {
 import ClipPlayback, { warmClip } from "./ClipPlayback";
 import TeamCrest from "./TeamCrest";
 import { clubCrest } from "./goalCategories";
-import { adjacentGoal, searchGoals } from "./goalNavigation";
+import { searchGoals } from "./goalNavigation";
+import { matchGoals } from "./matchGoals";
 import { useCompactPlayer } from "./useCompactPlayer";
 import { useLiveFeed } from "./useLiveFeed";
 import { useMatchday } from "./useMatchday";
@@ -223,9 +223,7 @@ export default function App() {
     selected &&
     !revealed.includes(selected.id)
   );
-  const index = goals.findIndex((goal) => goal.id === selected?.id);
-  const previous = adjacentGoal(goals, selected?.id, -1);
-  const next = adjacentGoal(goals, selected?.id, 1);
+  const match = matchGoals(data, selected);
   useEffect(() => {
     if (!selectedId && selected) setSelectedId(selected.id);
   }, [selectedId, selected?.id]);
@@ -750,155 +748,212 @@ export default function App() {
                       </div>
                     )}
                   </div>
-                  <div className="clip-details">
-                    <div>
-                      <h2 className="scorer-heading" key={selected.id}>
-                        {hideScore ? "Goal details hidden" : selected.scorer}
-                      </h2>
-                      <p>
-                        {hideScore
-                          ? "Scores and scorers stay hidden until you reveal this goal."
-                          : selected.sample
-                            ? "Fictional goal metadata for the sample workspace."
-                            : `${minute(selected)} goal`}
-                      </p>
-                      {!hideScore && selected.watchReason && (
-                        <a
-                          className="watch-reason"
-                          href={selected.watchSourceUrl || selected.sourceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <Star size={14} />
-                          {selected.watchReason}, tagged on Reddit
-                          <ExternalLink size={12} />
-                        </a>
-                      )}
-                      {!hideScore && !selected.sample && (
-                        <details className="post-details">
-                          <summary>Original post</summary>
-                          <p>{selected.title}</p>
-                          {selected.author && (
-                            <p>Posted to r/soccer by u/{selected.author}</p>
-                          )}
-                          <p>
-                            Starts muted. Use the player controls for sound.
-                          </p>
-                        </details>
-                      )}
-                    </div>
-                    <div className="clip-actions">
-                      <div className="player-tools">
-                        <button
-                          type="button"
-                          className="icon-button cinema-toggle"
-                          aria-label={
-                            cinema ? "Exit cinema view" : "Expand player"
-                          }
-                          title={
-                            cinema ? "Exit cinema view (Esc)" : "Expand player"
-                          }
-                          aria-pressed={cinema}
-                          onClick={() => setCinema(!cinema)}
-                        >
-                          {cinema ? (
-                            <Minimize2 size={17} />
-                          ) : (
-                            <Maximize2 size={17} />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          className="icon-button"
-                          disabled={!ready}
-                          aria-label={
-                            prefs.watched.includes(selected.id)
-                              ? "Mark as unwatched"
-                              : "Mark as watched"
-                          }
-                          title={
-                            prefs.watched.includes(selected.id)
-                              ? "Mark as unwatched"
-                              : "Mark as watched"
-                          }
-                          aria-pressed={prefs.watched.includes(selected.id)}
-                          onClick={() =>
-                            save({
-                              ...latest.current,
-                              watched: latest.current.watched.includes(
-                                selected.id,
-                              )
-                                ? latest.current.watched.filter(
-                                    (id) => id !== selected.id,
-                                  )
-                                : [
-                                    ...latest.current.watched,
-                                    selected.id,
-                                  ].slice(-1000),
-                            })
-                          }
-                        >
-                          {prefs.watched.includes(selected.id) ? (
-                            <Check size={17} />
-                          ) : (
-                            <Eye size={17} />
-                          )}
-                        </button>
+                  <div className="goal-info">
+                    {match && (
+                      <div className="match-context" aria-label="Match score">
+                        <div className="match-scoreline">
+                          <span className="match-club">
+                            <TeamCrest
+                              team={club(selected.homeId)}
+                              src={clubCrest(
+                                club(selected.homeId),
+                                data?.teams || [],
+                                name(selected.homeId),
+                              )}
+                            />
+                            <span>{name(selected.homeId)}</span>
+                          </span>
+                          <strong
+                            aria-label={
+                              hideScore
+                                ? "Score hidden"
+                                : `${prefs.spoilers ? selected.homeScore : match.homeScore} to ${prefs.spoilers ? selected.awayScore : match.awayScore}`
+                            }
+                          >
+                            {hideScore
+                              ? "— : —"
+                              : `${prefs.spoilers ? selected.homeScore : match.homeScore} : ${prefs.spoilers ? selected.awayScore : match.awayScore}`}
+                          </strong>
+                          <span className="match-club">
+                            <TeamCrest
+                              team={club(selected.awayId)}
+                              src={clubCrest(
+                                club(selected.awayId),
+                                data?.teams || [],
+                                name(selected.awayId),
+                              )}
+                            />
+                            <span>{name(selected.awayId)}</span>
+                          </span>
+                        </div>
+                        <small>
+                          {hideScore
+                            ? "Score hidden"
+                            : prefs.spoilers
+                              ? "Score at this goal"
+                              : match.label}
+                        </small>
                       </div>
-                      {selected.sourceUrl && (
-                        <a
-                          className="quiet"
-                          href={selected.sourceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Reddit thread
-                          <ExternalLink size={15} />
-                        </a>
-                      )}
-                      <nav
-                        className="clip-navigation"
-                        aria-label="Goal navigation"
-                        onKeyDown={(event) => {
-                          if (
-                            event.key === "ArrowLeft" ||
-                            event.key === "ArrowRight"
-                          ) {
-                            event.preventDefault();
-                            const goal =
-                              event.key === "ArrowLeft" ? previous : next;
-                            if (goal) select(goal);
-                          }
-                        }}
-                      >
-                        <button
-                          type="button"
-                          className="icon-button"
-                          aria-label="Previous goal"
-                          title="Previous goal (Left arrow)"
-                          disabled={!previous}
-                          onClick={() => previous && select(previous)}
-                        >
-                          <ChevronLeft size={17} />
-                        </button>
-                        <span title="Position in the current results">
-                          {index >= 0
-                            ? `${index + 1} / ${goals.length}`
-                            : `${goals.length} results`}
-                        </span>
-                        <button
-                          type="button"
-                          className="icon-button"
-                          aria-label="Next goal"
-                          title="Next goal (Right arrow)"
-                          disabled={!next}
-                          onClick={() => next && select(next)}
-                        >
-                          <ChevronRight size={17} />
-                        </button>
-                      </nav>
+                    )}
+                    <div className="clip-details">
+                      <div className="clip-caption">
+                        <h2 className="scorer-heading" key={selected.id}>
+                          {hideScore ? "Goal details hidden" : selected.scorer}
+                        </h2>
+                        <p>
+                          {hideScore
+                            ? "Reveal to see goal details"
+                            : `${minute(selected)} goal`}
+                        </p>
+                        {!hideScore && selected.watchReason && (
+                          <a
+                            className="watch-reason"
+                            href={selected.watchSourceUrl || selected.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <Star size={14} />
+                            {selected.watchReason}, tagged on Reddit
+                            <ExternalLink size={12} />
+                          </a>
+                        )}
+                        {!hideScore && !selected.sample && (
+                          <details className="post-details">
+                            <summary>Original post</summary>
+                            <p>{selected.title}</p>
+                            {selected.author && (
+                              <p>Posted to r/soccer by u/{selected.author}</p>
+                            )}
+                            <p>
+                              Starts muted. Use the player controls for sound.
+                            </p>
+                          </details>
+                        )}
+                      </div>
+                      <div className="clip-actions">
+                        <div className="player-tools">
+                          <button
+                            type="button"
+                            className="icon-button cinema-toggle"
+                            aria-label={
+                              cinema ? "Exit cinema view" : "Expand player"
+                            }
+                            title={
+                              cinema
+                                ? "Exit cinema view (Esc)"
+                                : "Expand player"
+                            }
+                            aria-pressed={cinema}
+                            onClick={() => setCinema(!cinema)}
+                          >
+                            {cinema ? (
+                              <Minimize2 size={17} />
+                            ) : (
+                              <Maximize2 size={17} />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-button"
+                            disabled={!ready}
+                            aria-label={
+                              prefs.watched.includes(selected.id)
+                                ? "Mark as unwatched"
+                                : "Mark as watched"
+                            }
+                            title={
+                              prefs.watched.includes(selected.id)
+                                ? "Mark as unwatched"
+                                : "Mark as watched"
+                            }
+                            aria-pressed={prefs.watched.includes(selected.id)}
+                            onClick={() =>
+                              save({
+                                ...latest.current,
+                                watched: latest.current.watched.includes(
+                                  selected.id,
+                                )
+                                  ? latest.current.watched.filter(
+                                      (id) => id !== selected.id,
+                                    )
+                                  : [
+                                      ...latest.current.watched,
+                                      selected.id,
+                                    ].slice(-1000),
+                              })
+                            }
+                          >
+                            {prefs.watched.includes(selected.id) ? (
+                              <Check size={17} />
+                            ) : (
+                              <Eye size={17} />
+                            )}
+                          </button>
+                        </div>
+                        {selected.sourceUrl && (
+                          <a
+                            className="quiet"
+                            href={selected.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Reddit thread
+                            <ExternalLink size={15} />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
+                  {match && match.goals.length > 1 && (
+                    <nav
+                      className="match-goals"
+                      aria-label="Goals from this match"
+                    >
+                      {match.goals.map((goal) => {
+                        const hidden =
+                          prefs.spoilers && !revealed.includes(goal.id);
+                        return (
+                          <button
+                            type="button"
+                            key={goal.id}
+                            data-match-goal-id={goal.id}
+                            aria-current={
+                              goal.id === selected.id ? "true" : undefined
+                            }
+                            aria-label={
+                              hidden
+                                ? "Reveal another goal from this match"
+                                : `${minute(goal)} ${goal.scorer}, ${goal.homeScore} to ${goal.awayScore}`
+                            }
+                            onClick={() => select(goal)}
+                            onPointerEnter={() => {
+                              if (!hidden)
+                                void warmClip(goal.media).catch(() => {});
+                            }}
+                          >
+                            <span className="match-goal-minute">
+                              {hidden ? <EyeOff size={13} /> : minute(goal)}
+                            </span>
+                            <span className="match-goal-copy">
+                              <b>{hidden ? "Goal hidden" : goal.scorer}</b>
+                              <span>
+                                {hidden
+                                  ? "Reveal goal"
+                                  : `${goal.homeScore}–${goal.awayScore}`}
+                              </span>
+                            </span>
+                            {goal.id === selected.id ? (
+                              <Play size={12} fill="currentColor" />
+                            ) : prefs.watched.includes(goal.id) ? (
+                              <Check size={12} />
+                            ) : (
+                              <Play size={12} />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </nav>
+                  )}
                   {selected.alternatives.length > 0 && (
                     <details className="post-details alternates">
                       <summary>Other posts of this goal</summary>

@@ -84,7 +84,10 @@ try {
       header.search.left - header.left.right,
       "Search fills the space after the logo",
     ).toBeLessThanOrEqual(16);
-    expect(header.right.left - header.search.right, "Search fills the space up to the tools").toBeLessThanOrEqual(16);
+    expect(
+      header.right.left - header.search.right,
+      "Search fills the space up to the tools",
+    ).toBeLessThanOrEqual(16);
     expect(
       header.left.right,
       "Browsing does not overlap search",
@@ -156,6 +159,25 @@ try {
       .getByRole("button", { name: "Clear search", exact: true })
       .click();
     await expect(page.locator(".goal-row")).toHaveCount(4);
+    if (width === 1440) {
+      await expect(page.locator(".match-goals > button")).toHaveCount(3);
+      await expect(
+        page.getByRole("navigation", { name: "Goal navigation" }),
+      ).toHaveCount(0);
+      await page.locator('[data-match-goal-id="sample-3"]').click();
+      await expect(page.locator(".match-scoreline > strong")).toHaveText(
+        "— : —",
+      );
+      await page
+        .getByRole("button", { name: "Reveal goal", exact: true })
+        .click();
+      await expect(page.locator(".match-scoreline > strong")).toHaveText(
+        "1 : 0",
+      );
+      await expect(
+        page.getByText("Score at this goal", { exact: true }),
+      ).toBeVisible();
+    }
     expect(errors).toEqual([]);
     await context.close();
     console.log(

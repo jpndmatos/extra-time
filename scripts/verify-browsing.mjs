@@ -14,6 +14,11 @@ async function openSeen(page) {
   )
     await accordion.locator("summary").click();
 }
+async function selectFromList(page, id) {
+  const row = page.locator(`[data-goal-id="${id}"]`);
+  if (!(await row.isVisible())) await openSeen(page);
+  await row.click();
+}
 try {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
@@ -117,13 +122,13 @@ try {
   ).toBeVisible();
   expect(loads).toBe(1);
   expect(new URL(page.url()).searchParams.get("q")).toBe("joao");
-  await page.getByRole("button", { name: "Next goal", exact: true }).click();
+  await selectFromList(page, "clipc");
   await expect(
     page.getByRole("heading", { name: "João Félix", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Next goal", exact: true }),
-  ).toBeDisabled();
+    page.getByRole("navigation", { name: "Goal navigation" }),
+  ).toHaveCount(0);
   await page.reload();
   await expect(
     page.getByRole("searchbox", { name: "Search goals" }),
@@ -133,15 +138,11 @@ try {
     .getByRole("button", { name: "Clear goal search", exact: true })
     .click();
   await expect(page.locator(".goal-row")).toHaveCount(3);
-  await page
-    .getByRole("button", { name: "Previous goal", exact: true })
-    .click();
+  await selectFromList(page, "clipb");
   await expect(
     page.getByRole("heading", { name: "Second test scorer", exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Previous goal", exact: true })
-    .press("ArrowRight");
+  await selectFromList(page, "clipc");
   await expect(
     page.getByRole("heading", { name: "João Félix", exact: true }),
   ).toBeVisible();
@@ -166,7 +167,7 @@ try {
   await expect(page.locator(".goal-row")).toHaveCount(0);
   await page.getByRole("searchbox", { name: "Search goals" }).fill("Atleti");
   await expect(page.locator(".goal-row")).toHaveCount(1);
-  await page.getByRole("button", { name: "Next goal", exact: true }).click();
+  await selectFromList(page, "clipc");
   await page.getByRole("button", { name: "Reveal goal", exact: true }).click();
   await page.getByRole("searchbox", { name: "Search goals" }).fill("Felix");
   await expect(page.locator(".goal-row")).toHaveCount(1);
@@ -264,13 +265,14 @@ try {
     const dashboard = await response.json();
     await route.fulfill({
       response,
-      json: { ...dashboard, teams, goals: longGoals },
+      json: { ...dashboard, teams, matches: [], goals: longGoals },
     });
   });
   await page.goto(base);
   await expect(page.locator(".goal-row")).toHaveCount(20);
-  for (let index = 0; index < 12; index++)
-    await page.getByRole("button", { name: "Next goal", exact: true }).click();
+  await expect(page.locator(".match-goals > button")).toHaveCount(20);
+  for (let index = 1; index <= 12; index++)
+    await page.locator(`[data-match-goal-id="long${index}"]`).click();
   await openSeen(page);
   await page.locator(".goal-row.selected").scrollIntoViewIfNeeded();
   const queuePosition = await page.locator(".goal-list").evaluate((list) => {
@@ -321,7 +323,7 @@ try {
   expect(loads).toBe(beforeCollapse);
   expect(errors).toEqual([]);
   console.log(
-    "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, previous/next, keyboard browsing and visible mobile search.",
+    "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, same-match goal selection, keyboard browsing and visible mobile search.",
   );
 } finally {
   await browser.close();

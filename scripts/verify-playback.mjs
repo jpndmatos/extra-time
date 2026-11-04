@@ -243,7 +243,8 @@ try {
   ).toBeVisible();
   expect(state.errors).toEqual([]);
   await state.page.setViewportSize({ width: 320, height: 568 });
-  await state.page.locator(".goal-row").first().click();
+  await state.page.locator(".seen-goals > summary").click();
+  await state.page.locator('[data-goal-id="controlled-goal"]').click();
   await state.page.getByRole("button", { name: "Try next source" }).click();
   await expect(
     state.page

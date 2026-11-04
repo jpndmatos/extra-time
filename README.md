@@ -115,6 +115,6 @@ Ones to watch filters titles explicitly labelled great goal, screamer, banger, g
 
 ## Faster goal browsing
 
-Search the current feed by club, alias or scorer, including accent-insensitive names. The query is bookmarked in `q`. Hidden scorers and scores are excluded from search until their goal is revealed. Searching keeps the current player mounted; previous/next buttons navigate only the current results. Arrow keys browse focused goal rows, Enter plays, and arrows inside the navigation controls move between clips without intercepting the video player's keyboard controls. Search stays visible in the header on desktop and phones. Every available post is shown without club or match restrictions.
+Search the current feed by club, alias or scorer, including accent-insensitive names. The query is bookmarked in `q`. Hidden scorers and scores are excluded from search until their goal is revealed. Searching keeps the current player mounted. The player footer shows the match score and chronological goal buttons from the same fixture, including goals outside the search results. Fixture scores and clip-derived scores are labelled separately. Spoiler mode reveals only the score at the opened goal. Arrow keys browse focused goal rows and Enter plays. Search stays visible in the header on desktop and phones. Every available post is shown without club or match restrictions.
 
 On phones, returning to the list stops the hidden player instead of continuing to stream behind it. Selecting a goal starts its player again.
