@@ -48,7 +48,7 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
             var teams = matches.Items.SelectMany(match => new[] { Catalog.FromName(match.HomeName) with { Crest = match.HomeCrest }, Catalog.FromName(match.AwayName) with { Crest = match.AwayCrest } }).Concat(Catalog.Teams)
                 .Concat(allGoals.SelectMany(goal => new[] { Catalog.FromName(goal.HomeName ?? Catalog.Find(goal.HomeId)?.Name ?? goal.HomeId), Catalog.FromName(goal.AwayName ?? Catalog.Find(goal.AwayId)?.Name ?? goal.AwayId) }))
                 .DistinctBy(team => team.Id).OrderBy(team => team.Name).ToArray();
-            return new(Crests.Enrich(teams), matches.Items, allGoals,
+            return new(Crests.Enrich(teams), MatchCoverage.Merge(matches.Items, allGoals), allGoals,
                 [matches.Status, clips.Status], clock.GetUtcNow(), false);
         }
         finally { gate.Release(); }
@@ -172,19 +172,28 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
         if (clock.GetUtcNow() >= RedditFeed.Retirement) return new([], new("Reddit", "disconnected", "Reddit's public RSS retirement date has passed (13 November 2026). Use approved API access or add goal links manually."));
         if (goalsAt is { } at && clock.GetUtcNow() - at < TimeSpan.FromMinutes(2))
             return new(goals, new("Reddit", "connected", "r/soccer public RSS, refreshed every two minutes. Reddit plans to retire RSS on 13 November 2026.", at));
+        var feeds = await Task.WhenAll(
+            FetchPublicFeed("https://www.reddit.com/r/soccer/new/.rss?limit=100", ct),
+            FetchPublicFeed("https://www.reddit.com/r/soccer/top/.rss?t=day&limit=100", ct));
+        if (feeds.All(feed => feed is null)) return new(goals, new("Reddit", "error", "The public r/soccer feeds could not refresh. Previously loaded goals remain visible.", goalsAt));
+        goals = GoalParser.Group(feeds.Where(feed => feed is not null).SelectMany(feed => feed!).DistinctBy(goal => goal.Id));
+        goalsAt = clock.GetUtcNow();
+        var coverage = feeds.Any(feed => feed is null) ? "One public feed is unavailable; coverage is partial. " : "Recent and daily top r/soccer posts. ";
+        return new(goals, new("Reddit", "connected", coverage + "Refreshed every two minutes. RSS retires on 13 November 2026.", goalsAt));
+    }
+    private async Task<Goal[]?> FetchPublicFeed(string url, CancellationToken ct)
+    {
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, "https://www.reddit.com/r/soccer/new/.rss?limit=100");
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.TryAddWithoutValidation("User-Agent", "Touchline/0.1 personal RSS reader");
             request.Headers.Accept.ParseAdd("application/atom+xml");
             using var response = await clients.CreateClient("providers").SendAsync(request, ct);
-            if (!response.IsSuccessStatusCode) return new(goals, Failure("Reddit", response.StatusCode, goalsAt));
-            goals = RedditFeed.Parse(await response.Content.ReadAsStringAsync(ct), clock.GetUtcNow());
-            goalsAt = clock.GetUtcNow();
-            return new(goals, new("Reddit", "connected", "r/soccer public RSS, refreshed every two minutes. Reddit plans to retire RSS on 13 November 2026.", goalsAt));
+            if (!response.IsSuccessStatusCode) return null;
+            return RedditFeed.Parse(await response.Content.ReadAsStringAsync(ct), clock.GetUtcNow());
         }
         catch (Exception error) when (error is HttpRequestException or System.Xml.XmlException || error is TaskCanceledException && !ct.IsCancellationRequested)
-        { return new(goals, new("Reddit", "error", "The public r/soccer feed could not refresh. Try again later or open the source thread. Previously loaded goals remain visible.", goalsAt)); }
+        { return null; }
     }
     private static ProviderStatus Failure(string name, HttpStatusCode code, DateTimeOffset? at) => new(name, "error", code switch
     {

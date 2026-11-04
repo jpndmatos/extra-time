@@ -54,7 +54,7 @@ public static partial class GoalParser
         if (scorer.Length == 0) scorer = "Goal";
         var minuteText = Regex.Replace(minute.Groups["minute"].Value, @"[\s'’′]", "");
         return new(id, title, home.Id, away.Id, h, a, scorer, minuteText,
-            published, source, SafeMedia(clipUrl), [], false, home.Name, away.Name);
+            published, source, SafeMedia(clipUrl), [], false, home.Name, away.Name, WatchReason: Spotlight.Reason(title), WatchSourceUrl: Spotlight.Reason(title) is null ? null : source);
     }
 
     private static bool IsTeamName(string value) => value.Length is >= 2 and <= 90 &&
@@ -119,6 +119,8 @@ public static partial class GoalParser
                 .DistinctBy(source => source.Media.Url).Take(12).ToArray();
             return first with {
                 Alternatives = ordered.SelectMany(g => g.Alternatives.Prepend(g.SourceUrl)).Where(x => x != first.SourceUrl).Distinct().ToArray(),
+                WatchReason = ordered.Select(g => g.WatchReason ?? Spotlight.Reason(g.Title)).FirstOrDefault(reason => reason is not null),
+                WatchSourceUrl = ordered.FirstOrDefault(g => g.WatchReason is not null || Spotlight.Reason(g.Title) is not null) is { } tagged ? tagged.WatchSourceUrl ?? tagged.SourceUrl : null,
                 Mirrors = mirrors
             };
         }).OrderByDescending(g => g.PublishedAt).ToArray();

@@ -19,6 +19,37 @@ const prefs: Preferences = {
   spoilers: false,
 };
 describe("goal feed", () => {
+  it("shows only title-tagged goals in Ones to watch, without requiring follows", () => {
+    const tagged = { ...goal, id: "tagged", watchReason: "Great goal" };
+    expect(
+      tracked([goal, tagged], [], prefs, "", "", false, true, true),
+    ).toEqual([tagged]);
+    expect(
+      tracked(
+        [tagged],
+        [],
+        { ...prefs, watched: ["tagged"] },
+        "",
+        "",
+        true,
+        true,
+        true,
+      ),
+    ).toEqual([]);
+  });
+  it("links discovered matches by goal IDs even when provider team names differ", () => {
+    const linked = { ...fixture, homeId: "rss-benfica-fc", goalIds: ["goal"] };
+    expect(
+      tracked(
+        [goal],
+        [linked],
+        { ...prefs, matches: [linked.id] },
+        "",
+        linked.id,
+        false,
+      ),
+    ).toEqual([goal]);
+  });
   it("shows the public hub without favourites while Following stays personal", () => {
     expect(tracked([goal], [], prefs, "", "", false, true)).toEqual([goal]);
     expect(tracked([goal], [], prefs, "", "", false, false)).toEqual([]);

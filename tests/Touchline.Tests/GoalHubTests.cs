@@ -45,14 +45,31 @@ public class GoalHubTests
             var day = DateOnly.FromDateTime(Now.UtcDateTime);
             Assert.Single((await providers.Dashboard(day, store, default)).Goals);
             clock.Now = Now.AddSeconds(119);
-            await providers.Dashboard(day, store, default); Assert.Equal(1, handler.Calls);
+            await providers.Dashboard(day, store, default); Assert.Equal(2, handler.Calls);
             clock.Now = RedditFeed.Retirement;
             var retired = await providers.Dashboard(day, store, default);
-            Assert.Empty(retired.Goals); Assert.Equal("disconnected", retired.Sources[1].State); Assert.Equal(1, handler.Calls);
+            Assert.Empty(retired.Goals); Assert.Equal("disconnected", retired.Sources[1].State); Assert.Equal(2, handler.Calls);
         }
         finally { Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); File.Delete(path); }
     }
     private sealed class Clock : TimeProvider { public DateTimeOffset Now = GoalHubTests.Now; public override DateTimeOffset GetUtcNow() => Now; }
+
+    [Fact]
+    public async Task NewAndDailyTopPostsBothReachTheDashboard()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "touchline-top-" + Guid.NewGuid().ToString("N") + ".db");
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["DatabasePath"] = path, ["Reddit:PublicFeedEnabled"] = "true" }).Build();
+        var handler = new Handler(request => new(HttpStatusCode.OK) { Content = new StringContent(request.RequestUri!.AbsolutePath.Contains("/top/")
+            ? Feed("Benfica [1]-0 Porto - Player 18' (Great goal)").Replace("abc123", "top123") : Feed()) });
+        var store = new Store(config);
+        try
+        {
+            var result = await new Providers(new Factory(handler), config, new Clock()).Dashboard(DateOnly.FromDateTime(Now.UtcDateTime), store, default);
+            Assert.Equal(2, result.Goals.Length); Assert.Equal(2, result.Matches.Length);
+            Assert.Contains(result.Goals, goal => goal.Id == "top123" && goal.WatchReason == "Great goal");
+        }
+        finally { Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); File.Delete(path); }
+    }
 
     [Fact]
     public async Task ClipResolverFollowsOnlyAllowedPublisherRedirectsAndCachesMetadata()

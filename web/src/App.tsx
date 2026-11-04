@@ -80,8 +80,12 @@ export default function App() {
   const day = matchday.day;
   const [team, setTeam] = useState(initial.get("team") || "");
   const [match, setMatch] = useState(initial.get("match") || "");
-  const [feed, setFeed] = useState<"all" | "following">(
-    initial.get("feed") === "following" ? "following" : "all",
+  const [feed, setFeed] = useState<"all" | "following" | "watch">(
+    initial.get("feed") === "watch"
+      ? "watch"
+      : initial.get("feed") === "following"
+        ? "following"
+        : "all",
   );
   const [data, setData] = useState<Dashboard | null>(null);
   const [prefs, setPrefs] = useState<Preferences>(sample ? loadSample : empty);
@@ -158,7 +162,8 @@ export default function App() {
         team,
         match,
         unwatched,
-        feed === "all",
+        feed !== "following",
+        feed === "watch",
       ).filter((goal) => !knownGoals.current!.has(goal.id)).length;
       if (added) setNewGoalCount((count) => count + added);
     }
@@ -174,7 +179,7 @@ export default function App() {
     if (sample) params.set("sample", "true");
     if (team) params.set("team", team);
     if (match) params.set("match", match);
-    if (feed === "following") params.set("feed", "following");
+    if (feed !== "all") params.set("feed", feed);
     if (!matchday.followingToday) params.set("day", day);
     history.replaceState(null, "", `${location.pathname}?${params}`);
   }, [view, sample, day, team, match, feed, matchday.followingToday]);
@@ -286,7 +291,8 @@ export default function App() {
         team,
         match,
         unwatched,
-        feed === "all",
+        feed !== "following",
+        feed === "watch",
       )
     : [];
   const playingGoal = playing
@@ -302,19 +308,51 @@ export default function App() {
   const hideScore =
     prefs.spoilers && selected && !revealed.includes(selected.id);
   const selectedDate = new Date(day + "T12:00:00");
-  const matchList =
-    data?.matches
-      .filter(
-        (m) =>
-          localDay(new Date(m.kickoff)) === day &&
-          (!team || m.homeId === team || m.awayId === team),
-      )
-      .sort(
-        (a, b) =>
-          Number(prefs.matches.includes(b.id)) -
-            Number(prefs.matches.includes(a.id)) ||
-          a.kickoff.localeCompare(b.kickoff),
-      ) || [];
+  const competitionRank = (competition: string) => {
+    const leagues = [
+      "champions league",
+      "premier league",
+      "primera division",
+      "la liga",
+      "bundesliga",
+      "serie a",
+      "ligue 1",
+      "primeira liga",
+      "europa league",
+      "championship",
+    ];
+    const rank = leagues.findIndex((league) =>
+      competition.toLowerCase().includes(league),
+    );
+    return rank < 0 ? leagues.length : rank;
+  };
+  const orderMatches = (a: Fixture, b: Fixture) =>
+    Number(prefs.matches.includes(b.id)) -
+      Number(prefs.matches.includes(a.id)) ||
+    competitionRank(a.competition) - competitionRank(b.competition) ||
+    a.kickoff.localeCompare(b.kickoff);
+  const relevantMatches =
+    data?.matches.filter(
+      (fixture) =>
+        !team ||
+        fixture.homeId === team ||
+        fixture.awayId === team ||
+        data.goals.some(
+          (goal) =>
+            fixture.goalIds?.includes(goal.id) &&
+            (goal.homeId === team || goal.awayId === team),
+        ),
+    ) || [];
+  const goalMatches = relevantMatches
+    .filter((fixture) => !!fixture.goalIds?.length)
+    .sort(orderMatches);
+  const scheduledMatches = relevantMatches
+    .filter(
+      (fixture) =>
+        !fixture.goalIds?.length && localDay(new Date(fixture.kickoff)) === day,
+    )
+    .sort(orderMatches);
+  const matchList = [...goalMatches, ...scheduledMatches];
   const filteredTeams =
     data?.teams.filter((t) =>
       `${t.name} ${t.country} ${t.aliases.join(" ")}`
@@ -380,18 +418,20 @@ export default function App() {
         <div className="fixture-meta">
           <span>{fixture.competition}</span>
           <span>
-            {fixture.status === "FINISHED"
-              ? "Full time"
-              : live
-                ? fixture.sample
-                  ? "Sample in play"
-                  : "In play"
-                : ["TIMED", "SCHEDULED"].includes(fixture.status)
-                  ? new Intl.DateTimeFormat(undefined, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }).format(new Date(fixture.kickoff))
-                  : fixture.status.toLowerCase()}
+            {fixture.source === "reddit"
+              ? "From goal posts"
+              : fixture.status === "FINISHED"
+                ? "Full time"
+                : live
+                  ? fixture.sample
+                    ? "Sample in play"
+                    : "In play"
+                  : ["TIMED", "SCHEDULED"].includes(fixture.status)
+                    ? new Intl.DateTimeFormat(undefined, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }).format(new Date(fixture.kickoff))
+                    : fixture.status.toLowerCase()}
           </span>
         </div>
         <div className="fixture-body">
@@ -400,6 +440,8 @@ export default function App() {
             className="fixture-teams"
             onClick={() => {
               setMatch(fixture.id);
+              setSelectedId(null);
+              setPlaying(true);
               setTeam("");
               setFeed("all");
               setMatchesOpen(false);
@@ -435,6 +477,21 @@ export default function App() {
             <Bookmark size={17} fill={followed ? "currentColor" : "none"} />
           </button>
         </div>
+        {!!fixture.goalIds?.length && (
+          <p className="fixture-clips">
+            <span>
+              {fixture.goalIds.length}{" "}
+              {fixture.goalIds.length === 1 ? "goal clip" : "goal clips"}
+            </span>
+            <span>
+              {fixture.source === "reddit" ? "Posted " : ""}
+              {new Intl.DateTimeFormat(undefined, {
+                day: "numeric",
+                month: "short",
+              }).format(new Date(fixture.kickoff))}
+            </span>
+          </p>
+        )}
       </article>
     );
   }
@@ -638,6 +695,8 @@ export default function App() {
                     aria-pressed={feed === "all" && !team && !match}
                     onClick={() => {
                       setFeed("all");
+                      setSelectedId(null);
+                      setPlaying(true);
                       setTeam("");
                       setMatch("");
                     }}
@@ -649,11 +708,27 @@ export default function App() {
                     aria-pressed={feed === "following" && !team && !match}
                     onClick={() => {
                       setFeed("following");
+                      setSelectedId(null);
+                      setPlaying(true);
                       setTeam("");
                       setMatch("");
                     }}
                   >
                     Following
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={feed === "watch" && !team && !match}
+                    onClick={() => {
+                      setFeed("watch");
+                      setTeam("");
+                      setMatch("");
+                      setSelectedId(null);
+                      setPlaying(true);
+                    }}
+                  >
+                    <Star size={14} />
+                    Ones to watch
                   </button>
                   {data?.teams
                     .filter((t) => prefs.teams.includes(t.id))
@@ -713,7 +788,10 @@ export default function App() {
                       <section className="goal-queue" aria-label="Goal feed">
                         <div className="section-bar">
                           <h2>
-                            Recent goals <span>{visibleGoals.length}</span>
+                            {feed === "watch"
+                              ? "Ones to watch"
+                              : "Recent goals"}{" "}
+                            <span>{visibleGoals.length}</span>
                           </h2>
                           <label className="check-filter">
                             <input
@@ -819,6 +897,15 @@ export default function App() {
                                       : goal.scorer}
                                   </strong>
                                   <small>
+                                    {goal.watchReason && (
+                                      <span
+                                        className="watch-tag"
+                                        title="Label from a Reddit post title"
+                                      >
+                                        <Star size={11} />
+                                        {goal.watchReason}
+                                      </span>
+                                    )}
                                     {goal.sample
                                       ? "Sample goal"
                                       : new Intl.DateTimeFormat(undefined, {
@@ -840,41 +927,51 @@ export default function App() {
                             <div className="empty queue-empty">
                               <GoalIcon size={26} />
                               <h3>
-                                {prefs.teams.length || prefs.matches.length
-                                  ? "No goals in this feed"
-                                  : "Start with your teams"}
+                                {feed === "watch"
+                                  ? "No tagged goals yet"
+                                  : prefs.teams.length || prefs.matches.length
+                                    ? "No goals in this feed"
+                                    : "Start with your teams"}
                               </h3>
                               <p>
-                                {unwatched
-                                  ? "You’re caught up. Turn off Unwatched to see your clips."
-                                  : match || team
-                                    ? "No matching goal clips yet. Try another team or clear the filter."
-                                    : prefs.teams.length
-                                      ? "Your followed teams’ goals will appear when a source finds them. You can also add a clip link."
-                                      : "Follow a club to keep its goals close."}
+                                {feed === "watch"
+                                  ? "Posts labelled great goal, screamer, golazo and similar appear here. These labels come from Reddit titles."
+                                  : unwatched
+                                    ? "You’re caught up. Turn off Unwatched to see your clips."
+                                    : match || team
+                                      ? "No matching goal clips yet. Try another team or clear the filter."
+                                      : prefs.teams.length
+                                        ? "Your followed teams’ goals will appear when a source finds them. You can also add a clip link."
+                                        : "Follow a club to keep its goals close."}
                               </p>
                               <button
                                 type="button"
                                 className="quiet"
                                 onClick={() =>
-                                  unwatched
-                                    ? setUnwatched(false)
-                                    : match || team
-                                      ? (setMatch(""), setTeam(""))
-                                      : navigate(
-                                          prefs.teams.length
-                                            ? "sources"
-                                            : "teams",
-                                        )
+                                  feed === "watch"
+                                    ? (setFeed("all"),
+                                      setSelectedId(null),
+                                      setPlaying(true))
+                                    : unwatched
+                                      ? setUnwatched(false)
+                                      : match || team
+                                        ? (setMatch(""), setTeam(""))
+                                        : navigate(
+                                            prefs.teams.length
+                                              ? "sources"
+                                              : "teams",
+                                          )
                                 }
                               >
-                                {unwatched
+                                {feed === "watch"
                                   ? "Show all goals"
-                                  : match || team
-                                    ? "Clear filter"
-                                    : prefs.teams.length
-                                      ? "Check sources"
-                                      : "Choose teams"}
+                                  : unwatched
+                                    ? "Show all goals"
+                                    : match || team
+                                      ? "Clear filter"
+                                      : prefs.teams.length
+                                        ? "Check sources"
+                                        : "Choose teams"}
                               </button>
                             </div>
                           )}
@@ -1049,6 +1146,21 @@ export default function App() {
                                       ? "Fictional goal metadata for the sample workspace."
                                       : selected.title}
                                 </p>
+                                {selected.watchReason && (
+                                  <a
+                                    className="watch-reason"
+                                    href={
+                                      selected.watchSourceUrl ||
+                                      selected.sourceUrl
+                                    }
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <Star size={14} />
+                                    {selected.watchReason}, tagged on Reddit
+                                    <ExternalLink size={12} />
+                                  </a>
+                                )}
                                 {selected.author && (
                                   <p>
                                     Posted to r/soccer by u/{selected.author}
@@ -1098,19 +1210,33 @@ export default function App() {
                           <div className="player-welcome">
                             <span className="wordmark">touchline</span>
                             <h2>
-                              Your teams.
-                              <br />
-                              Their goals.
+                              {feed === "watch" ? (
+                                "Ones to watch"
+                              ) : (
+                                <>
+                                  Your teams.
+                                  <br />
+                                  Their goals.
+                                </>
+                              )}
                             </h2>
                             <p>
-                              Follow your clubs, pick a match, keep the moments.
+                              {feed === "watch"
+                                ? "Great goals and other title-tagged clips appear here."
+                                : "Follow your clubs, pick a match, keep the moments."}
                             </p>
                             <button
                               type="button"
                               className="primary"
-                              onClick={() => navigate("teams")}
+                              onClick={() =>
+                                feed === "watch"
+                                  ? setFeed("all")
+                                  : navigate("teams")
+                              }
                             >
-                              Choose your teams
+                              {feed === "watch"
+                                ? "Show all goals"
+                                : "Choose your teams"}
                               <ArrowRight size={17} />
                             </button>
                             {!sample && (
@@ -1141,7 +1267,7 @@ export default function App() {
                         aria-label="Matches"
                       >
                         <div className="section-bar">
-                          <h2>Matchday</h2>
+                          <h2>Matches</h2>
                           <button
                             type="button"
                             ref={matchesClose}
@@ -1165,7 +1291,30 @@ export default function App() {
                           aria-label="Today’s matches"
                         >
                           {matchList.length ? (
-                            matchList.map(matchRow)
+                            <>
+                              {!!goalMatches.length && (
+                                <>
+                                  <h3 className="match-group-heading">
+                                    With goals <span>Last 48 hours</span>
+                                  </h3>
+                                  {goalMatches.map(matchRow)}
+                                </>
+                              )}
+                              {!!scheduledMatches.length && (
+                                <>
+                                  <h3 className="match-group-heading">
+                                    Fixtures{" "}
+                                    <span>
+                                      {new Intl.DateTimeFormat(undefined, {
+                                        day: "numeric",
+                                        month: "short",
+                                      }).format(selectedDate)}
+                                    </span>
+                                  </h3>
+                                  {scheduledMatches.map(matchRow)}
+                                </>
+                              )}
+                            </>
                           ) : (
                             <div className="empty">
                               <p>

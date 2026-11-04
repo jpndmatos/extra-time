@@ -10,6 +10,8 @@ export type Fixture = {
   id: string;
   homeId: string;
   awayId: string;
+  source?: string | null;
+  goalIds?: string[] | null;
   homeCrest?: string | null;
   awayCrest?: string | null;
   homeName: string;
@@ -41,6 +43,8 @@ export type Goal = {
   homeName?: string | null;
   awayName?: string | null;
   author?: string | null;
+  watchReason?: string | null;
+  watchSourceUrl?: string | null;
 };
 export type Preferences = {
   teams: string[];
@@ -78,6 +82,18 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export function localDay(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
+export function matchesGoal(fixture: Fixture, goal: Goal) {
+  return (
+    !!fixture.goalIds?.includes(goal.id) ||
+    (fixture.homeId === goal.homeId &&
+      fixture.awayId === goal.awayId &&
+      Math.abs(
+        new Date(goal.publishedAt).getTime() -
+          new Date(fixture.kickoff).getTime(),
+      ) <
+        6 * 3600_000)
+  );
+}
 export function tracked(
   goals: Goal[],
   matches: Fixture[],
@@ -86,35 +102,23 @@ export function tracked(
   match: string,
   unwatched: boolean,
   allGoals = false,
+  onlyWatch = false,
 ) {
   return goals.filter((goal) => {
     const favouriteMatch = matches.some(
-      (m) =>
-        preferences.matches.includes(m.id) &&
-        m.homeId === goal.homeId &&
-        m.awayId === goal.awayId &&
-        Math.abs(
-          new Date(goal.publishedAt).getTime() - new Date(m.kickoff).getTime(),
-        ) <
-          6 * 3600_000,
+      (fixture) =>
+        preferences.matches.includes(fixture.id) && matchesGoal(fixture, goal),
     );
     return (
       (allGoals ||
         preferences.teams.includes(goal.homeId) ||
         preferences.teams.includes(goal.awayId) ||
         favouriteMatch) &&
+      (!onlyWatch || !!goal.watchReason) &&
       (!team || goal.homeId === team || goal.awayId === team) &&
       (!match ||
         matches.some(
-          (m) =>
-            m.id === match &&
-            m.homeId === goal.homeId &&
-            m.awayId === goal.awayId &&
-            Math.abs(
-              new Date(goal.publishedAt).getTime() -
-                new Date(m.kickoff).getTime(),
-            ) <
-              6 * 3600_000,
+          (fixture) => fixture.id === match && matchesGoal(fixture, goal),
         )) &&
       (!unwatched || !preferences.watched.includes(goal.id))
     );
