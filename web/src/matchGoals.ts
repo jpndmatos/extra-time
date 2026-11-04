@@ -19,12 +19,15 @@ export function matchGoals(data: Dashboard | null, selected: Goal | undefined) {
             6 * 3600_000,
     )
     .sort((a, b) => {
-      const minute = (value: string | null) =>
-        (value || "")
-          .split("+")
-          .reduce((sum, part) => sum + (Number(part) || 0), 0);
+      const minute = (value: string | null) => {
+        const [base, added = 0] = (value || "").split("+").map(Number);
+        return [base || 0, added] as const;
+      };
+      const [aBase, aAdded] = minute(a.minute),
+        [bBase, bAdded] = minute(b.minute);
       return (
-        minute(a.minute) - minute(b.minute) ||
+        aBase - bBase ||
+        aAdded - bAdded ||
         Date.parse(a.publishedAt) - Date.parse(b.publishedAt)
       );
     });

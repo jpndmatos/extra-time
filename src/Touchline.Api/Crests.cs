@@ -5,18 +5,6 @@ namespace Touchline;
 
 public static class Crests
 {
-    private static readonly Dictionary<string, string> Aliases = new()
-    {
-        ["aek athens"] = "aek", ["feyenoord"] = "feyenoord rotterdam",
-        ["shakhtar"] = "shakhtar donetsk", ["lens"] = "racing club de lens",
-        ["betis"] = "real betis balompie", ["real betis"] = "real betis balompie",
-        ["como"] = "como 1907", ["bolton"] = "bolton wanderers",
-        ["cardiff"] = "cardiff city", ["charlton"] = "charlton athletic",
-        ["lincoln"] = "lincoln city", ["qpr"] = "queens park rangers",
-        ["bragantino"] = "rb bragantino", ["slavia prague"] = "slavia praha",
-        ["stuttgart"] = "vfb stuttgart", ["west ham"] = "west ham united",
-        ["wolves"] = "wolverhampton wanderers", ["manchester utd"] = "man-utd"
-    };
     private static readonly Dictionary<string, string> Bundled = Load();
     private static Dictionary<string, string> Load()
     {
@@ -30,8 +18,7 @@ public static class Crests
     {
         var parent = Regex.Replace(GoalParser.Normalize(name), @"\b(?:u[ -]?\d{2}|under[ -]?\d{2}|women(?:'s)?|ladies|feminino|feminina|frauen)\b|\(w\)", "");
         parent = Regex.Replace(parent, @"\s+(?:ii|b)$", "").Trim();
-        var key = ClubNames.Key(parent);
-        return Aliases.GetValueOrDefault(key, key);
+        return ClubNames.Key(parent);
     }
     public static Team[] Enrich(IEnumerable<Team> input)
     {

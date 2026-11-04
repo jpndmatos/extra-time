@@ -14,6 +14,10 @@ public static partial class GoalParser
     private static partial Regex Excluded();
     [GeneratedRegex(@"^/r/[^/]+/comments/(?<id>[a-z0-9]+)(?:/|$)", RegexOptions.IgnoreCase)]
     private static partial Regex RedditPath();
+    private static readonly (Team Team, Regex Pattern)[] TeamAliases = Catalog.Teams
+        .SelectMany(team => team.Aliases.Select(alias => (Team: team, Alias: Normalize(alias))))
+        .OrderByDescending(item => item.Alias.Length)
+        .Select(item => (item.Team, new Regex(@"(?<![\p{L}\p{N}])" + Regex.Escape(item.Alias) + @"(?![\p{L}\p{N}])", RegexOptions.CultureInvariant))).ToArray();
 
     public static string Normalize(string value) => string.Concat(value.Normalize(NormalizationForm.FormD)
         .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)).ToLowerInvariant();
@@ -27,8 +31,8 @@ public static partial class GoalParser
         // complete words prevents Inter matching "international" or Milan matching Inter Milan.
         var left = title[..score.Index];
         var right = title[(score.Index + score.Length)..];
-        var home = FindTeam(left);
-        var away = FindTeam(right);
+        Team? home;
+        Team? away;
         if (allowUnknownTeams)
         {
             // RSS supplies public post titles, including clubs outside the seed
@@ -40,6 +44,7 @@ public static partial class GoalParser
             home = Catalog.ByName(homeText) ?? Catalog.FromName(homeText);
             away = Catalog.ByName(awayText) ?? Catalog.FromName(awayText);
         }
+        else { home = FindTeam(left); away = FindTeam(right); }
         if (home is null || away is null || home.Id == away.Id) return null;
         var h = int.Parse(score.Groups["home"].Value.Trim('[', ']'), CultureInfo.InvariantCulture);
         var a = int.Parse(score.Groups["away"].Value.Trim('[', ']'), CultureInfo.InvariantCulture);
@@ -49,8 +54,11 @@ public static partial class GoalParser
         if (!minute.Success) return null;
         var scorer = right[..minute.Index];
         foreach (var alias in away.Aliases.OrderByDescending(x => x.Length))
-            scorer = Regex.Replace(scorer, Regex.Escape(alias), "", RegexOptions.IgnoreCase);
-        scorer = scorer.Trim(' ', '-', '–', ':', '|', '(', ')', '[', ']');
+        {
+            var remainder = Regex.Replace(scorer, @"^\s*" + Regex.Escape(alias) + @"(?![\p{L}\p{N}])", "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            if (remainder != scorer) { scorer = remainder; break; }
+        }
+        scorer = scorer.Trim(' ', '-', '–', '—', ':', '|');
         if (scorer.Length == 0) scorer = "Goal";
         var minuteText = Regex.Replace(minute.Groups["minute"].Value, @"[\s'’′]", "");
         return new(id, title, home.Id, away.Id, h, a, scorer, minuteText,
@@ -63,9 +71,9 @@ public static partial class GoalParser
     private static Team? FindTeam(string text)
     {
         var normalized = Normalize(text);
-        return Catalog.Teams.SelectMany(t => t.Aliases.Select(a => (Team: t, Alias: Normalize(a))))
-            .OrderByDescending(x => x.Alias.Length)
-            .FirstOrDefault(x => Regex.IsMatch(normalized, @"(?<![\p{L}\p{N}])" + Regex.Escape(x.Alias) + @"(?![\p{L}\p{N}])")).Team;
+        foreach (var candidate in TeamAliases)
+            if (candidate.Pattern.IsMatch(normalized)) return candidate.Team;
+        return null;
     }
 
     public static string? RedditUrl(string value)
@@ -108,7 +116,8 @@ public static partial class GoalParser
     }
 
     public static Goal[] Group(IEnumerable<Goal> goals) => goals
-        .GroupBy(g => $"{g.HomeId}:{g.AwayId}:{g.PublishedAt.UtcDateTime:yyyy-MM-dd}:{g.HomeScore}:{g.AwayScore}:{g.Minute}")
+        .GroupBy(g => $"{ClubNames.Key(g.HomeName ?? g.HomeId)}:{ClubNames.Key(g.AwayName ?? g.AwayId)}:{g.HomeScore}:{g.AwayScore}:{g.Minute}")
+        .SelectMany(GoalSessions.Split)
         .Select(group =>
         {
             var ordered = group.OrderByDescending(g => g.Media is not null).ThenBy(g => g.PublishedAt).ToArray();

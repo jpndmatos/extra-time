@@ -15,6 +15,26 @@ public class GoalParserTests
         Assert.NotNull(goal); Assert.Equal(home, goal.HomeId); Assert.Equal(away, goal.AwayId); Assert.Equal(minute, goal.Minute);
     }
     [Theory]
+    [InlineData("Benfica [1]-0 Roma - Romano Floriani 18'", "Romano Floriani")]
+    [InlineData("Chelsea 0-[1] Arsenal - Arsenal Campbell (pen.) 42'", "Arsenal Campbell (pen.)")]
+    [InlineData("Porto [1]-0 Inter - Winter Santos 18'", "Winter Santos")]
+    public void RemovesOnlyTheOpponentPrefixWithoutDamagingScorerNames(string title, string expected)
+    {
+        var goal = GoalParser.Parse("name", title, DateTimeOffset.UtcNow, "", null, true);
+        Assert.NotNull(goal); Assert.Equal(expected, goal.Scorer);
+    }
+    [Fact]
+    public void GroupsTheSameGoalAcrossClubAliasesWithoutCombiningYouthTeams()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var first = GoalParser.Parse("first", "Dortmund [1]-0 Betis - Player 49'", now, "https://www.reddit.com/r/soccer/comments/first/", "https://streamable.com/firstclip", true)!;
+        var mirror = GoalParser.Parse("mirror", "Borussia Dortmund [1]-0 Real Betis - Player 49'", now, "https://www.reddit.com/r/soccer/comments/mirror/", "https://streamable.com/otherclip", true)!;
+        var youth = GoalParser.Parse("youth", "Dortmund U19 [1]-0 Betis U19 - Player 49'", now, "https://www.reddit.com/r/soccer/comments/youth/", "https://streamable.com/youthclip", true)!;
+        var grouped = GoalParser.Group([first, mirror, youth]);
+        Assert.Equal(2, grouped.Length);
+        Assert.Equal(2, grouped.Single(goal => goal.Id == "first").Mirrors!.Length);
+    }
+    [Theory]
     [InlineData("Benfica 1-0 Porto - Player 18' disallowed")]
     [InlineData("Arsenal 1-0 Liverpool - Player misses 18'")]
     [InlineData("Arsenal 0-0 Liverpool - Player 18'")]

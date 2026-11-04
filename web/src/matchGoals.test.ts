@@ -32,6 +32,23 @@ const dashboard = (goals: Goal[], matches: Fixture[] = []): Dashboard => ({
   sample: false,
 });
 describe("same-match context", () => {
+  it("keeps added time in its own period before the following period starts", () => {
+    const goals = [
+      goal("extra-time", "91", 5),
+      goal("second-half", "46", 3),
+      goal("half-time", "45+2", 2),
+      goal("first-half", "45", 1),
+      goal("full-time", "90+7", 4),
+    ];
+    const result = matchGoals(dashboard(goals), goals[0])!;
+    expect(result.goals.map((goal) => goal.id)).toEqual([
+      "first-half",
+      "half-time",
+      "second-half",
+      "full-time",
+      "extra-time",
+    ]);
+  });
   it("keeps other matches and yesterday's meeting out, in chronological order", () => {
     const other = { ...goal("other", "30", 1), awayId: "different" };
     const old = goal("yesterday", "90", 3, "2026-11-03T18:00:00Z");
