@@ -110,6 +110,8 @@ try {
     if (!(await firstGoal.isVisible()))
       await page.locator(".seen-goals > summary").click();
     await firstGoal.click();
+    if (width >= 760)
+      await expect(firstGoal).toHaveAccessibleName(/Sample scorer/);
     await expect(
       page.getByRole("heading", { name: "Sample goal" }),
     ).toBeVisible();
@@ -119,6 +121,10 @@ try {
     await expect(
       page.getByRole("heading", { name: "Goal hidden" }),
     ).toBeVisible();
+    if (width >= 760)
+      await expect(firstGoal).not.toHaveAccessibleName(
+        /Sample scorer|67 minutes/,
+      );
     await page
       .getByRole("button", { name: "Reveal goal", exact: true })
       .click();

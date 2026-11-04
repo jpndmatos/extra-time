@@ -65,7 +65,7 @@ export default memo(function GoalRow({
       onFocus={prepare}
       onBlur={cancelWarm}
       aria-pressed={selected}
-      aria-label={`${homeName} ${hidden ? "versus" : `${goal.homeScore}–${goal.awayScore}`} ${awayName}${hidden ? ", reveal goal" : `, ${goal.minute || "unknown"} minutes`}${watched ? ", watched" : ""}`}
+      aria-label={`${homeName} ${hidden ? "versus" : `${goal.homeScore}–${goal.awayScore}`} ${awayName}${hidden ? ", reveal goal" : `, ${goal.minute || "unknown"} minutes, ${goal.scorer}${goal.watchReason ? `, ${goal.watchReason}` : ""}`}${watched ? ", watched" : ""}`}
     >
       <span className="goal-minute">
         {hidden ? (
@@ -101,7 +101,9 @@ export default memo(function GoalRow({
             </span>
           ))}
         </span>
-        <strong>{hidden ? "Goal details hidden" : goal.scorer}</strong>
+        <strong title={hidden ? undefined : goal.scorer}>
+          {hidden ? "Goal details hidden" : goal.scorer}
+        </strong>
         {!hidden && (goal.watchReason || goal.alternatives.length > 0) && (
           <small>
             {goal.watchReason && (
