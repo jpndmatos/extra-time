@@ -21,6 +21,8 @@ For development, run `dotnet run --project src/Touchline.Api` and `npm --prefix 
 ## What works without keys
 
 - Browse every available r/soccer goal in the fetched feed, without choosing clubs or fixtures.
+- Start with senior games in Main; switch to Women, U21, U19, Other youth or Reserves. Categories use the available post and competition metadata.
+- Check individual Reddit and fixture source states and last fetch times from the top-right connection panel.
 - Search by team, alias or scorer. Old favourite and match URL parameters cannot filter the hub.
 - Play supported clips muted, with source recovery and alternate links. Reselecting the active goal preserves playback.
 - Mark goals seen immediately when opened; use Unwatched to hide them or mark one unwatched again.

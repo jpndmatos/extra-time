@@ -2287,3 +2287,228 @@ summary:focus-visible {
     min-width: 32px;
   }
 }
+/* A single navigation line; compact records retain legible club crests. */
+.goal-hub-header {
+  position: relative;
+  gap: 16px;
+  padding: 6px 16px;
+  min-height: 54px;
+}
+.goal-hub-header .brand {
+  margin-right: 0;
+  flex-shrink: 0;
+}
+.goal-categories {
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.goal-hub-header .goal-categories button {
+  min-height: 38px;
+  white-space: nowrap;
+  padding: 0 10px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+.goal-hub-header .goal-categories button[aria-current="page"] {
+  color: var(--color-ink);
+  background: var(--color-green-selected);
+  border-color: var(--color-green-signal);
+}
+.goal-categories button span {
+  margin-left: 6px;
+  font-size: 10px;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+.goal-hub-header > .goal-search {
+  margin-left: auto;
+  flex: 1 1 180px;
+  min-width: 140px;
+  max-width: 280px;
+}
+.goal-hub-header .header-utilities {
+  gap: 6px;
+}
+.connection-status {
+  position: static;
+  font-size: 11px;
+}
+.connection-status summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  min-height: 36px;
+  padding: 0 6px;
+  list-style: none;
+}
+.connection-status summary::-webkit-details-marker {
+  display: none;
+}
+.connection-status time {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.connection-dot {
+  display: inline-block;
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ba824d;
+}
+.connection-dot[data-state="connected"] {
+  background: #7fba9c;
+}
+.connection-dot[data-state="error"],
+.connection-dot[data-state="offline"] {
+  background: #dc8275;
+}
+.connection-panel {
+  position: absolute;
+  right: 12px;
+  top: calc(100% + 4px);
+  z-index: 30;
+  width: 330px;
+  max-width: calc(100vw - 24px);
+  padding: 16px;
+  background: #202322;
+  border: 1px solid #414743;
+  box-shadow: 0 12px 32px #0009;
+}
+.connection-panel > strong {
+  font-size: 13px;
+}
+.connection-source {
+  padding-block: 12px;
+  border-bottom: 1px solid #363c38;
+  margin-bottom: 10px;
+}
+.connection-source > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.connection-source > div > span:last-child {
+  margin-left: auto;
+  color: var(--color-muted);
+}
+.connection-source b {
+  font-weight: 500;
+}
+.connection-source p {
+  margin: 7px 0;
+  color: var(--color-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.connection-panel small {
+  color: var(--color-muted);
+  font-size: 10px;
+}
+.goal-row {
+  padding: 6px 10px;
+  gap: 8px;
+}
+.goal-minute {
+  width: 30px;
+  flex-basis: 30px;
+}
+.goal-copy .team-crest {
+  width: 18px;
+  height: 18px;
+  flex-basis: 18px;
+}
+.goal-team {
+  min-height: 20px;
+}
+.goal-copy strong,
+.goal-copy small {
+  padding-left: 24px;
+}
+.goal-copy strong {
+  margin-top: 1px;
+  font-size: 11px;
+}
+.goal-copy .goal-team-name {
+  font-size: 12px;
+}
+.goal-queue .section-bar {
+  min-height: 36px;
+}
+@media (max-width: 1250px) {
+  .goal-hub-header .brand > span {
+    display: none;
+  }
+  .goal-hub-header .brand > .brand-mark {
+    display: block;
+  }
+  .goal-hub-header .heading-actions button > span {
+    display: none;
+  }
+  .connection-label {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .goal-hub-header {
+    flex-wrap: wrap;
+    column-gap: 10px;
+    row-gap: 0;
+    padding: 4px 10px 0;
+  }
+  .goal-hub-header .goal-categories {
+    order: 4;
+    flex: 1 0 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .goal-hub-header .goal-categories button {
+    flex: 1 0 auto;
+    min-height: 40px;
+    padding-inline: 10px;
+  }
+  .goal-hub-header > .goal-search {
+    max-width: none;
+    min-width: 0;
+  }
+  .goal-hub-header .connection-status summary {
+    padding-inline: 0;
+  }
+  .goal-hub-header .header-utilities {
+    gap: 2px;
+  }
+  .connection-status time {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .goal-hub-header .connection-status summary {
+    min-width: 28px;
+    justify-content: center;
+  }
+}
+.source-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-size: 10px;
+}
+.connection-status summary {
+  gap: 10px;
+}
+@media (max-width: 1250px) {
+  .source-summary > span:last-child {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .goal-hub-header > .goal-search {
+    flex-basis: 0;
+  }
+}

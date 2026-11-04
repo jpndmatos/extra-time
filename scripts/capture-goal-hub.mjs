@@ -15,12 +15,14 @@ try {
   );
   await page.goto(base);
   const data = await (await pending).json();
-  const index = data.goals.findIndex((goal) => goal.media?.kind === "resolve");
+  await expect(page.locator(".goal-row").first()).toBeVisible();
+  const visibleIds = await page.locator(".goal-row").evaluateAll(rows => rows.map(row => row.dataset.goalId));
+  const index = data.goals.findIndex((goal) => visibleIds.includes(goal.id) && goal.media?.kind === "resolve");
   if (index < 0)
     throw new Error(
       "No native-playback goal is available in the current feed. Capture is not fabricated.",
     );
-  await page.locator(".goal-row").nth(index).click();
+  await page.locator(".goal-row").nth(visibleIds.indexOf(data.goals[index].id)).click();
   const reveal = page.getByRole("button", { name: "Reveal goal", exact: true });
   if (await reveal.isVisible()) await reveal.click();
   await expect(

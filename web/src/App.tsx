@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Check,
@@ -18,6 +18,12 @@ import {
 } from "lucide-react";
 import ClipPlayback, { warmClip } from "./ClipPlayback";
 import TeamCrest from "./TeamCrest";
+import {
+  categories,
+  goalCategory,
+  clubCrest,
+  type Category,
+} from "./goalCategories";
 import { adjacentGoal, searchGoals } from "./goalNavigation";
 import { useCompactPlayer } from "./useCompactPlayer";
 import { useLiveFeed } from "./useLiveFeed";
@@ -72,18 +78,44 @@ export default function App() {
   const [mobilePlayer, setMobilePlayer] = useState(false);
   const [cinema, setCinema] = useState(false);
   const [query, setQuery] = useState((initial.get("q") || "").slice(0, 100));
+  const [category, setCategory] = useState<Category>(() =>
+    categories.some(([id]) => id === initial.get("category"))
+      ? (initial.get("category") as Category)
+      : "main",
+  );
   const [unwatched, setUnwatched] = useState(false);
   const [revealed, setRevealed] = useState<string[]>([]);
   const [newCount, setNewCount] = useState(0);
   const known = useRef<Set<string> | null>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLDivElement>(null);
+  const connections = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const dismiss = (event: PointerEvent | KeyboardEvent) => {
+      const panel = connections.current;
+      if (!panel?.open) return;
+      if (event instanceof KeyboardEvent) {
+        if (event.key !== "Escape") return;
+        panel.open = false;
+        panel.querySelector("summary")?.focus();
+      } else if (!panel.contains(event.target as Node)) panel.open = false;
+    };
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", dismiss);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("keydown", dismiss);
+    };
+  }, []);
 
   const live = useLiveFeed(day, sample, (next) => {
     if (known.current) {
       const matching = searchGoals(
         next.goals.filter(
-          (goal) => !unwatched || !latest.current.watched.includes(goal.id),
+          (goal) =>
+            goalCategory(goal, next) === category &&
+            (!unwatched || !latest.current.watched.includes(goal.id)),
         ),
         next.teams,
         query,
@@ -105,12 +137,13 @@ export default function App() {
     if (sample) params.set("sample", "true");
     if (sample && !followingToday) params.set("day", day);
     if (query.trim()) params.set("q", query.trim());
+    if (category !== "main") params.set("category", category);
     history.replaceState(
       null,
       "",
       `${location.pathname}${params.size ? `?${params}` : ""}`,
     );
-  }, [sample, day, followingToday, query]);
+  }, [sample, day, followingToday, query, category]);
   useEffect(() => {
     if (sample) return;
     const controller = new AbortController();
@@ -191,10 +224,23 @@ export default function App() {
     setNewCount(0);
     markSeen(goal);
   }
+  const goalGroups = useMemo(
+    () =>
+      new Map(data?.goals.map((goal) => [goal.id, goalCategory(goal, data)])),
+    [data],
+  );
+  const counts = useMemo(() => {
+    const result = new Map<Category, number>();
+    for (const group of goalGroups.values())
+      result.set(group, (result.get(group) || 0) + 1);
+    return result;
+  }, [goalGroups]);
   const goals = data
     ? searchGoals(
         data.goals.filter(
-          (goal) => !unwatched || !prefs.watched.includes(goal.id),
+          (goal) =>
+            goalGroups.get(goal.id) === category &&
+            (!unwatched || !prefs.watched.includes(goal.id)),
         ),
         data.teams,
         query,
@@ -203,7 +249,9 @@ export default function App() {
       )
     : [];
   const selected =
-    data?.goals.find((goal) => goal.id === selectedId) || goals[0];
+    data?.goals.find(
+      (goal) => goal.id === selectedId && goalGroups.get(goal.id) === category,
+    ) || goals[0];
   const hideScore = !!(
     prefs.spoilers &&
     selected &&
@@ -267,6 +315,24 @@ export default function App() {
           </svg>
           <span>touchline</span>
         </a>
+        <nav className="goal-categories" aria-label="Goal categories">
+          {categories.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-current={category === id ? "page" : undefined}
+              onClick={() => {
+                setCategory(id);
+                setSelectedId(null);
+                setMobilePlayer(false);
+                setNewCount(0);
+              }}
+            >
+              {label}
+              <span>{data ? counts.get(id) || 0 : "—"}</span>
+            </button>
+          ))}
+        </nav>
         <label className="goal-search">
           <Search size={15} aria-hidden="true" />
           <input
@@ -299,6 +365,93 @@ export default function App() {
           )}
         </label>
         <div className="header-utilities">
+          <details className="connection-status" ref={connections}>
+            <summary aria-label="Connections and refresh status">
+              {sample ? (
+                <span className="connection-label">Sample</span>
+              ) : (
+                data?.sources.map((source) => (
+                  <span
+                    className="source-summary"
+                    key={source.name}
+                    title={`${source.name}: ${source.state}`}
+                  >
+                    <span
+                      className="connection-dot"
+                      data-state={
+                        live.state === "offline"
+                          ? "offline"
+                          : /partial|unavailable/i.test(source.message)
+                            ? "waiting"
+                            : source.state
+                      }
+                    />
+                    <span>
+                      {source.name === "Reddit"
+                        ? /RSS|public feed/i.test(source.message)
+                          ? "Reddit RSS"
+                          : "Reddit API"
+                        : "Fixtures"}
+                    </span>
+                  </span>
+                ))
+              )}
+              <time dateTime={data?.updatedAt}>
+                {data
+                  ? new Date(data.updatedAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "…"}
+              </time>
+            </summary>
+            <div className="connection-panel">
+              <strong>Connections</strong>
+              {data?.sources.map((source) => {
+                const publicFeed = /RSS|public feed/i.test(source.message);
+                return (
+                  <div className="connection-source" key={source.name}>
+                    <div>
+                      <span
+                        className="connection-dot"
+                        data-state={source.state}
+                      />
+                      <b>
+                        {source.name === "Reddit"
+                          ? publicFeed
+                            ? "Reddit · public feed"
+                            : "Reddit API"
+                          : "Football-data API"}
+                      </b>
+                      <span>
+                        {sample
+                          ? "Sample"
+                          : /partial|unavailable/i.test(source.message) &&
+                              source.state === "connected"
+                            ? "partial"
+                            : source.state}
+                      </span>
+                    </div>
+                    <p>{source.message}</p>
+                    {source.name === "Reddit" && publicFeed && (
+                      <p>OAuth API is not connected.</p>
+                    )}
+                    <small>
+                      {source.updatedAt
+                        ? `Last fetched ${new Date(source.updatedAt).toLocaleTimeString()}`
+                        : "No successful fetch yet"}
+                    </small>
+                  </div>
+                );
+              })}
+              <small>
+                Hub {live.state} ·{" "}
+                {data
+                  ? `Updated ${new Date(data.updatedAt).toLocaleTimeString()}`
+                  : "Connecting…"}
+              </small>
+            </div>
+          </details>
           <div className="heading-actions">
             <button
               type="button"
@@ -463,6 +616,7 @@ export default function App() {
                     <button
                       type="button"
                       key={goal.id}
+                      data-goal-id={goal.id}
                       className={`goal-row${selected?.id === goal.id ? " selected" : ""}${watched ? " watched" : ""}`}
                       onClick={() => select(goal)}
                       onPointerEnter={() => {
@@ -481,7 +635,14 @@ export default function App() {
                         <span className="goal-matchup">
                           {[goal.homeId, goal.awayId].map((id, side) => (
                             <span className="goal-team" key={`${side}-${id}`}>
-                              <TeamCrest team={club(id)} />
+                              <TeamCrest
+                                team={club(id)}
+                                src={clubCrest(
+                                  club(id),
+                                  data?.teams || [],
+                                  name(id),
+                                )}
+                              />
                               <span className="goal-team-name" title={name(id)}>
                                 {name(id)}
                               </span>

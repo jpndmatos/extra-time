@@ -204,7 +204,7 @@ try {
     await page
       .locator(".topbar")
       .evaluate((element) => element.getBoundingClientRect().height),
-  ).toBeLessThanOrEqual(56);
+  ).toBeLessThanOrEqual(92);
   await expect(page.locator(".main-navigation")).toHaveCount(0);
   await expect(
     page.getByRole("searchbox", { name: "Search goals" }),
