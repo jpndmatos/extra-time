@@ -48,9 +48,9 @@ const sampleDefaults: Preferences = {
 };
 type View = "goals" | "teams" | "sources";
 const tabs: { id: View; label: string }[] = [
-  { id: "goals", label: "Goal room" },
-  { id: "teams", label: "Your teams" },
-  { id: "sources", label: "Sources" },
+  { id: "goals", label: "Dashboard" },
+  { id: "teams", label: "Favourite teams" },
+  { id: "sources", label: "Connections" },
 ];
 function loadSample(): Preferences {
   try {
@@ -582,7 +582,7 @@ export default function App() {
         </a>
         <nav aria-label="Main navigation">
           {tabs
-            .filter((tab) => tab.id !== "sources")
+            .filter((tab) => tab.id === "goals")
             .map((tab) => (
               <button
                 type="button"
@@ -597,14 +597,15 @@ export default function App() {
         <button
           type="button"
           className="source-status"
-          aria-current={view === "sources" ? "page" : undefined}
+          aria-label="Settings"
+          aria-current={view !== "goals" ? "page" : undefined}
           title={
             sample ? "Sample workspace" : `${connected}/2 sources connected`
           }
-          onClick={() => navigate("sources")}
+          onClick={() => navigate("teams")}
         >
           <Settings2 size={16} />
-          Sources
+          Settings
         </button>
       </header>
       {sample && (
@@ -624,7 +625,9 @@ export default function App() {
             <h1 ref={heading} tabIndex={-1}>
               {importing
                 ? "Add a goal clip"
-                : tabs.find((t) => t.id === view)?.label}
+                : view === "goals"
+                  ? "Dashboard"
+                  : "Settings"}
             </h1>
             <p>
               {view === "goals"
@@ -636,6 +639,22 @@ export default function App() {
           </div>
           {(view !== "goals" || importing) && workspaceActions}
         </div>
+        {view !== "goals" && !importing && (
+          <nav className="settings-navigation" aria-label="Settings sections">
+            {tabs
+              .filter((tab) => tab.id !== "goals")
+              .map((tab) => (
+                <button
+                  type="button"
+                  key={tab.id}
+                  aria-current={view === tab.id ? "page" : undefined}
+                  onClick={() => navigate(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+          </nav>
+        )}
         {pendingWrites > 0 && (
           <span role="status" className="sr-only">
             Saving favourites…
@@ -769,35 +788,6 @@ export default function App() {
                     >
                       <Star size={14} />
                       Ones to watch
-                    </button>
-                  </div>
-                  <div
-                    className={`club-filters ${prefs.teams.length ? "has-clubs" : ""}`}
-                  >
-                    {data?.teams
-                      .filter((t) => prefs.teams.includes(t.id))
-                      .map((t) => (
-                        <button
-                          type="button"
-                          key={t.id}
-                          aria-pressed={team === t.id}
-                          onClick={() => {
-                            setTeam(team === t.id ? "" : t.id);
-                            setMatch("");
-                          }}
-                        >
-                          <TeamCrest team={t} />
-                          {t.name}
-                        </button>
-                      ))}
-                    <button
-                      type="button"
-                      className="add-team"
-                      aria-label="Choose favourite teams"
-                      onClick={() => navigate("teams")}
-                    >
-                      <Star size={15} />
-                      <span>Teams</span>
                     </button>
                   </div>
                 </div>

@@ -10,7 +10,7 @@ try {
     viewport: { width: 1280, height: 800 },
   });
   await page.goto(base);
-  await page.getByRole("button", { name: "Your teams", exact: true }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   for (const name of [
     "Portsmouth",
     "Swansea",
@@ -47,9 +47,7 @@ try {
     route.fulfill({ status: 404, body: "Controlled missing SVG" }),
   );
   await fallback.goto(base);
-  await fallback
-    .getByRole("button", { name: "Your teams", exact: true })
-    .click();
+  await fallback.getByRole("button", { name: "Settings", exact: true }).click();
   await fallback
     .getByRole("searchbox", { name: "Search teams" })
     .fill("SC Braga");

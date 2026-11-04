@@ -58,6 +58,15 @@ try {
     });
     await page.goto(`${base}/?sample=true`);
     await expect(page.locator(".goal-row")).toHaveCount(4);
+    await expect(
+      page
+        .getByRole("navigation", { name: "Main navigation" })
+        .getByRole("button"),
+    ).toHaveCount(1);
+    await expect(
+      page.getByRole("button", { name: "Dashboard", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(page.locator(".club-filters")).toHaveCount(0);
     await fits(page, `Goal room ${width}`);
     if (width === 1440 || width === 390)
       await accessible(page, `Sample goal room ${width}`);
@@ -94,7 +103,13 @@ try {
         ),
       });
     }
-    await page.getByRole("button", { name: "Your teams", exact: true }).click();
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await expect(
+      page.getByRole("navigation", { name: "Settings sections" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Favourite teams", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
     await page
       .getByRole("searchbox", { name: "Search teams" })
       .fill("Sporting");
@@ -110,7 +125,7 @@ try {
     ).toHaveAttribute("aria-pressed", "true");
     if (width === 1440 || width === 390)
       await accessible(page, `Teams ${width}`);
-    await page.getByRole("button", { name: "Goal room", exact: true }).click();
+    await page.getByRole("button", { name: "Dashboard", exact: true }).click();
     if (width <= 1120)
       await page.getByRole("button", { name: /^Matches/ }).click();
     await page
@@ -131,7 +146,10 @@ try {
       await page
         .getByRole("button", { name: "Close matches sidebar", exact: true })
         .click();
-    await page.getByRole("button", { name: "Sources", exact: true }).click();
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Connections", exact: true })
+      .click();
     await expect(
       page.getByRole("heading", { name: "Reddit goal feed" }),
     ).toBeVisible();
