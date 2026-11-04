@@ -106,7 +106,10 @@ try {
       ).pathname.replace(/^\/(\w:)/, "$1"),
       fullPage: true,
     });
-    await page.locator(".goal-row").first().click();
+    const firstGoal = page.locator('[data-goal-id="sample-1"]');
+    if (!(await firstGoal.isVisible()))
+      await page.locator(".seen-goals > summary").click();
+    await firstGoal.click();
     await expect(
       page.getByRole("heading", { name: "67 minutes. In the net." }),
     ).toBeVisible();

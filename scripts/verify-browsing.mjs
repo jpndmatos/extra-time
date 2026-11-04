@@ -6,6 +6,14 @@ import {
 import AxeBuilder from "../../relay/web/node_modules/@axe-core/playwright/dist/index.mjs";
 const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
 const browser = await chromium.launch();
+async function openSeen(page) {
+  const accordion = page.locator(".seen-goals");
+  if (
+    (await accordion.count()) &&
+    (await accordion.getAttribute("open")) === null
+  )
+    await accordion.locator("summary").click();
+}
 try {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
@@ -98,6 +106,7 @@ try {
     page.locator(".topbar").getByRole("searchbox", { name: "Search goals" }),
   ).toBeVisible();
   await expect(page.locator(".goal-queue .goal-search")).toHaveCount(0);
+  await openSeen(page);
   await page.locator(".goal-row.selected").click();
   await expect(page.locator("iframe")).toHaveCount(1);
   expect(loads).toBe(1);
@@ -137,6 +146,7 @@ try {
     page.getByRole("heading", { name: "João Félix", exact: true }),
   ).toBeVisible();
   await page.locator(".goal-list").focus();
+  await openSeen(page);
   await page.locator(".goal-list").press("ArrowDown");
   await expect(page.locator(".goal-row").first()).toBeFocused();
   await expect(
@@ -213,6 +223,7 @@ try {
     .getByRole("button", { name: "Back to goals", exact: true })
     .click();
   await expect(page.locator("iframe")).toHaveCount(0);
+  await openSeen(page);
   await page.locator(".goal-row").first().click();
   await expect(page.locator("iframe")).toHaveCount(1);
   await page
@@ -260,6 +271,8 @@ try {
   await expect(page.locator(".goal-row")).toHaveCount(20);
   for (let index = 0; index < 12; index++)
     await page.getByRole("button", { name: "Next goal", exact: true }).click();
+  await openSeen(page);
+  await page.locator(".goal-row.selected").scrollIntoViewIfNeeded();
   const queuePosition = await page.locator(".goal-list").evaluate((list) => {
     const active = list
       .querySelector(".goal-row.selected")
@@ -274,6 +287,7 @@ try {
   expect(queuePosition.top && queuePosition.bottom).toBe(true);
   expect(queuePosition.scrollTop).toBeGreaterThan(0);
   const loadCount = loads;
+  await openSeen(page);
   await page.locator(".goal-row.selected").click();
   expect(loads).toBe(loadCount);
   prefs = { ...prefs, watched: [], spoilers: true };
@@ -291,24 +305,20 @@ try {
     .click();
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
   await expect.poll(() => prefs.watched.includes("long0")).toBe(false);
+  await openSeen(page);
   await page.locator(".goal-row.selected").click();
   await expect(page.locator(".goal-row.selected")).toHaveClass(/watched/);
-  await page
-    .getByRole("combobox", { name: "Viewing history" })
-    .selectOption("unseen");
-  await expect(page.locator(".goal-row")).toHaveCount(19);
   await expect(
-    page.getByRole("heading", { name: "Queue scorer 0", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("combobox", { name: "Viewing history" })
-    .selectOption("seen");
-  await expect(page.locator(".goal-row")).toHaveCount(1);
-  await expect(page.locator(".goal-row")).toHaveClass(/watched/);
-  await page
-    .getByRole("combobox", { name: "Viewing history" })
-    .selectOption("all");
-  await expect(page.locator(".goal-row")).toHaveCount(20);
+    page.getByRole("combobox", { name: "Viewing history" }),
+  ).toHaveCount(0);
+  await expect(page.locator(".goal-list > .goal-row")).toHaveCount(19);
+  await expect(page.locator(".seen-goals .goal-row")).toHaveCount(1);
+  await page.locator(".seen-goals").evaluate((node) => (node.open = false));
+  await expect(page.locator(".seen-goals .goal-row")).not.toBeVisible();
+  const beforeCollapse = loads;
+  await page.locator(".seen-goals > summary").click();
+  await expect(page.locator(".seen-goals .goal-row")).toBeVisible();
+  expect(loads).toBe(beforeCollapse);
   expect(errors).toEqual([]);
   console.log(
     "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, previous/next, keyboard browsing and visible mobile search.",

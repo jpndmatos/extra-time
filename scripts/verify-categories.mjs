@@ -48,25 +48,16 @@ try {
   for (const width of [1440, 1024, 390, 320]) {
     await page.setViewportSize({ width, height: width < 760 ? 844 : 900 });
     await page.goto("http://127.0.0.1:5195/?sample=true");
-    await expect(page.locator(".goal-row")).toHaveCount(1);
+    await expect(page.locator(".goal-row")).toHaveCount(6);
     await expect(
-      page.locator('.goal-categories button[aria-current="page"]'),
-    ).toContainText("Main");
-    for (const label of [
-      "U19",
-      "U21",
-      "Women",
-      "Other youth",
-      "Reserves",
-      "Main",
-    ]) {
-      await page
-        .getByRole("button", { name: new RegExp("^" + label + "(?:\\s*1)?$") })
-        .click();
-      await expect(page.locator(".goal-row")).toHaveCount(1);
-      await expect(
-        page.locator('.goal-categories button[aria-current="page"]'),
-      ).toContainText(label);
+      page.getByRole("navigation", { name: "Goal categories" }),
+    ).toHaveCount(0);
+    await expect(page.getByRole("combobox")).toHaveCount(0);
+    const history = page.locator(".seen-goals");
+    if (width >= 760) {
+      await expect(history).toHaveCount(1);
+      await expect(history).not.toHaveAttribute("open");
+      await expect(history.locator(".goal-row")).toHaveCount(1);
     }
     const crest = page.locator(".goal-row img").first();
     await expect(crest).toHaveAttribute(
@@ -97,7 +88,7 @@ try {
     if (width === 390)
       await page.screenshot({ path: "docs/categories-mobile.png" });
     console.log(
-      `PASS ${width}: senior default, category routing, parent crests, source status and accessibility`,
+      `PASS ${width}: all goal categories, in-list history, parent crests, source status and accessibility`,
     );
   }
 } finally {

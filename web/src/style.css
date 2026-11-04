@@ -2573,27 +2573,6 @@ summary:focus-visible {
   background: var(--color-green-selected);
   color: var(--color-green-ink);
 }
-.seen-filter {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 6px;
-}
-.seen-filter select {
-  font: inherit;
-  font-size: 11px;
-  color: var(--color-ink);
-  color-scheme: dark;
-  background: transparent;
-  border: 0;
-  min-height: 36px;
-  max-width: 90px;
-  padding: 0 4px;
-  cursor: pointer;
-}
-.seen-filter select:focus-visible {
-  outline: 1px solid var(--color-green-signal);
-  outline-offset: 1px;
-}
 @media (max-width: 1600px) {
   .goal-categories button span {
     display: none;
@@ -2666,7 +2645,69 @@ summary:focus-visible {
   }
 }
 
-.goal-queue .seen-filter {
+/* Viewing history sits in the feed and stays collapsed until requested. */
+.seen-goals {
+  background: #171a18;
+  border-top: 1px solid #333b36;
+}
+.seen-goals > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+.seen-goals > summary::-webkit-details-marker {
+  display: none;
+}
+.seen-goals[open] > summary {
+  color: var(--color-ink);
+}
+.seen-goals[open] > summary svg {
+  transform: rotate(90deg);
+}
+.seen-count {
   margin-left: auto;
-  flex-shrink: 0;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.seen-goals > summary:focus-visible {
+  outline: 1px solid var(--color-green-signal);
+  outline-offset: -2px;
+}
+.caught-up {
+  margin: 0;
+  padding: 16px 12px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+/* The global bar contains only the mark, search and utility controls. */
+.goal-hub-header {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 26vw) minmax(0, 1fr);
+  min-height: 54px;
+  padding: 6px 16px;
+}
+.header-browse {
+  display: flex;
+  align-items: center;
+}
+.goal-hub-header .brand {
+  min-width: 32px;
+  min-height: 36px;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+}
+@media (max-width: 760px) {
+  .goal-hub-header {
+    grid-template-columns: minmax(0, 1fr) minmax(110px, 38vw) minmax(0, 1fr);
+    min-height: 52px;
+    padding: 4px 8px;
+    gap: 4px;
+  }
 }
