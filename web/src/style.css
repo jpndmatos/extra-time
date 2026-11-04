@@ -3325,3 +3325,11 @@ summary:focus-visible {
     width: 200px;
   }
 }
+
+/* Watched goals stay readable; the playing goal keeps its green priority. */
+.goal-row.watched:not(.selected) {
+  background: var(--color-seen-surface);
+}
+.goal-row.watched:not(.selected):hover {
+  background: var(--color-seen-hover);
+}

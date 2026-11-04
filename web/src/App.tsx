@@ -994,7 +994,7 @@ export default function App() {
                               <button
                                 type="button"
                                 key={goal.id}
-                                className={`goal-row ${selected?.id === goal.id ? "selected" : ""}`}
+                                className={`goal-row ${selected?.id === goal.id ? "selected" : ""}${prefs.watched.includes(goal.id) ? " watched" : ""}`}
                                 onClick={() => select(goal)}
                                 onPointerEnter={() => {
                                   if (
