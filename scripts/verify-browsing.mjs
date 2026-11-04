@@ -92,6 +92,9 @@ try {
     page.frameLocator("iframe").getByText("Browsing test player"),
   ).toBeVisible();
   expect(loads).toBe(1);
+  await page.locator(".goal-row.selected").click();
+  await expect(page.locator("iframe")).toHaveCount(1);
+  expect(loads).toBe(1);
   await page.getByRole("searchbox", { name: "Search goals" }).fill("joao");
   await expect(page.locator(".goal-row")).toHaveCount(1);
   await expect(
@@ -231,6 +234,38 @@ try {
       })),
     })),
   ).toEqual([]);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const longGoals = Array.from({ length: 20 }, (_, index) =>
+    make(`long${index}`, `Queue scorer ${index}`, "benfica", "porto"),
+  );
+  await page.route("**/api/dashboard?*", async (route) => {
+    const response = await route.fetch();
+    const dashboard = await response.json();
+    await route.fulfill({
+      response,
+      json: { ...dashboard, teams, goals: longGoals },
+    });
+  });
+  await page.goto(base);
+  await expect(page.locator(".goal-row")).toHaveCount(20);
+  for (let index = 0; index < 12; index++)
+    await page.getByRole("button", { name: "Next goal", exact: true }).click();
+  const queuePosition = await page.locator(".goal-list").evaluate((list) => {
+    const active = list
+      .querySelector(".goal-row.selected")
+      .getBoundingClientRect();
+    const bounds = list.getBoundingClientRect();
+    return {
+      top: active.top >= bounds.top - 1,
+      bottom: active.bottom <= bounds.bottom + 1,
+      scrollTop: list.scrollTop,
+    };
+  });
+  expect(queuePosition.top && queuePosition.bottom).toBe(true);
+  expect(queuePosition.scrollTop).toBeGreaterThan(0);
+  const loadCount = loads;
+  await page.locator(".goal-row.selected").click();
+  expect(loads).toBe(loadCount);
   expect(errors).toEqual([]);
   console.log(
     "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, previous/next, keyboard browsing and visible mobile feed choices.",

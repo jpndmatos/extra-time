@@ -94,6 +94,7 @@ export default function App() {
     (initial.get("q") || "").slice(0, 100),
   );
   const goalSearchInput = useRef<HTMLInputElement>(null);
+  const goalList = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<Dashboard | null>(null);
   const [prefs, setPrefs] = useState<Preferences>(sample ? loadSample : empty);
   const [loading, setLoading] = useState(true);
@@ -296,10 +297,11 @@ export default function App() {
   }
   function select(goal: Goal) {
     setNewGoalCount(0);
+    setMobilePlayer(true);
+    if (goal.id === selectedId && playing) return;
     setSelectedId(goal.id);
     setPlaybackAttempt((value) => value + 1);
     setPlaying(true);
-    setMobilePlayer(true);
   }
   function name(id: string) {
     return data?.teams.find((t) => t.id === id)?.name || id;
@@ -332,6 +334,17 @@ export default function App() {
   const selectedIndex = visibleGoals.findIndex(
     (goal) => goal.id === selected?.id,
   );
+  useEffect(() => {
+    if (view !== "goals") return;
+    const list = goalList.current;
+    const row = list?.querySelector<HTMLElement>(".goal-row.selected");
+    if (!list || !row || !list.clientHeight) return;
+    const bounds = list.getBoundingClientRect();
+    const item = row.getBoundingClientRect();
+    if (item.top < bounds.top) list.scrollTop += item.top - bounds.top;
+    else if (item.bottom > bounds.bottom)
+      list.scrollTop += item.bottom - bounds.bottom;
+  }, [selected?.id, mobilePlayer, view]);
   const previousGoal = adjacentGoal(visibleGoals, selected?.id, -1);
   const nextGoal = adjacentGoal(visibleGoals, selected?.id, 1);
   useEffect(() => {
@@ -957,6 +970,7 @@ export default function App() {
                         )}
                         <div
                           className="goal-list scroll-region"
+                          ref={goalList}
                           tabIndex={0}
                           aria-label="Recent goal clips"
                           aria-describedby="goal-keyboard-help"
@@ -1331,6 +1345,11 @@ export default function App() {
                                   <button
                                     type="button"
                                     className="icon-button cinema-toggle"
+                                    title={
+                                      cinema
+                                        ? "Exit cinema view (Esc)"
+                                        : "Expand player"
+                                    }
                                     aria-label={
                                       cinema
                                         ? "Exit cinema view"
@@ -1350,6 +1369,11 @@ export default function App() {
                                     className="icon-button"
                                     onClick={() =>
                                       toggle("watched", selected.id)
+                                    }
+                                    title={
+                                      prefs.watched.includes(selected.id)
+                                        ? "Mark as unwatched"
+                                        : "Mark as watched"
                                     }
                                     aria-label={
                                       prefs.watched.includes(selected.id)
@@ -1399,6 +1423,7 @@ export default function App() {
                                     type="button"
                                     className="icon-button"
                                     aria-label="Previous goal"
+                                    title="Previous goal (Left arrow)"
                                     disabled={!previousGoal}
                                     onClick={() =>
                                       previousGoal && select(previousGoal)
@@ -1415,6 +1440,7 @@ export default function App() {
                                     type="button"
                                     className="icon-button"
                                     aria-label="Next goal"
+                                    title="Next goal (Right arrow)"
                                     disabled={!nextGoal}
                                     onClick={() => nextGoal && select(nextGoal)}
                                   >
