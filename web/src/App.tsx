@@ -573,11 +573,6 @@ export default function App() {
             className={`goal-workspace${compact && mobilePlayer && selected ? " player-open" : ""}${cinema ? " cinema" : ""}`}
           >
             <section className="goal-queue" aria-label="Goal feed">
-              <div className="section-bar">
-                <h2>
-                  Recent goals <span>{goals.length}</span>
-                </h2>
-              </div>
               {newCount > 0 && (
                 <button
                   type="button"
