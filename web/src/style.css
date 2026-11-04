@@ -1,9 +1,12 @@
-/* Hallmark v2.0.0 · theme: kiln ember, dealt 3/3 · genre: atmospheric · shape: app screen · scope: app · signature: goal queue beside video stage and matchday rail. */
-/* Critique: compact source status, named spoiler controls and consistent spacing. First-screen review: in-thread, 3 findings resolved. Finish review: in-thread. */
+/* Hallmark v2.0.0 · theme: brand (kiln ember retained) · genre: atmospheric · shape: app screen · scope: app · redesign: full · signature: named-team goal queue beside uninterrupted video and matches. */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V3 · weakest: V, existing shell retained; removed duplicated Sources chrome and lifted playback help off the footage. Finish review: in-thread, fix, 3 findings resolved (duplicate chrome, video overlays, scroll footer). */
 /* Hallmark · waive 39b · Goal rows exceed 52px · Each selectable goal contains minute, score, scorer and watch state; the entire row is a touch target rather than a toolbar button. */
 /* Hallmark · dismissed 3 · The goal row side rule marks the selected clip and changes with selection, rather than decorating unrelated content. */
+/* Hallmark · reworded "Keep watching in the meantime" to "Your clip links" · 19 and 69 replace vague filler with the actual task. */
+/* Hallmark · dismissed 28a · The lazy image is a 22px team crest, not the LCP; the goal video owns the stage and preloads its media. */
 /* Hallmark · answered F25 · The match rail is reachable through the Matches drawer on phones, and selecting a goal opens its player with Back to goals. The subtitle repeats the screen purpose. */
 @import "./tokens.css";
+@import "./base.css";
 * {
   box-sizing: border-box;
 }
@@ -50,7 +53,7 @@ a:hover {
   outline-offset: 3px;
 }
 button:disabled {
-  opacity: 0.45;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 input {
@@ -60,9 +63,9 @@ input {
 input:not([type="checkbox"]) {
   color: var(--color-ink);
   background: var(--color-paper);
-  border: 1px solid var(--color-rule);
+  border: 1px solid var(--color-muted);
   border-radius: var(--radius-input);
-  padding: 8px 12px;
+  padding: var(--space-xs) var(--space-sm);
   min-height: 44px;
 }
 input::placeholder {
@@ -122,7 +125,7 @@ small {
   z-index: 10;
   background: var(--color-ink);
   color: var(--color-paper);
-  padding: 8px 16px;
+  padding: var(--space-xs) var(--space-md);
 }
 .skip-link:focus {
   top: 8px;
@@ -138,16 +141,16 @@ small {
 }
 .topbar {
   min-height: 64px;
-  padding: 8px var(--gutter);
+  padding: var(--space-xs) var(--gutter);
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: var(--space-xl);
   border-bottom: 1px solid var(--color-rule);
   flex: none;
 }
 .brand {
   display: inline-flex;
-  gap: 8px;
+  gap: var(--space-xs);
   align-items: center;
   text-decoration: none;
   color: var(--color-ink);
@@ -156,11 +159,11 @@ small {
 .topbar nav {
   display: flex;
   align-self: stretch;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 .topbar nav button {
   min-height: 44px;
-  padding: 4px 16px;
+  padding: var(--space-2xs) var(--space-md);
   font-size: var(--text-sm);
   color: var(--color-muted);
   border-radius: var(--radius-input);
@@ -176,7 +179,7 @@ small {
 .source-status {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-xs);
   margin-left: auto;
   min-height: 44px;
   color: var(--color-muted);
@@ -189,7 +192,7 @@ small {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 24px var(--gutter) 12px;
+  padding: var(--space-lg) var(--gutter) var(--space-sm);
   overflow: hidden;
 }
 .page-heading {
@@ -200,13 +203,13 @@ small {
   flex: none;
 }
 .page-heading p {
-  margin-top: 8px;
+  margin-top: var(--space-xs);
   color: var(--color-muted);
   font-size: var(--text-sm);
 }
 .heading-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-xs);
   flex: none;
 }
 .primary,
@@ -215,9 +218,9 @@ small {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-xs);
   border-radius: var(--radius-input);
-  padding: 8px 16px;
+  padding: var(--space-xs) var(--space-md);
   font-size: var(--text-sm);
   font-weight: 600;
   text-decoration: none;
@@ -254,24 +257,24 @@ small {
 }
 .workspace-toolbar {
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm);
   align-items: center;
   border-bottom: 1px solid var(--color-rule);
   flex: none;
 }
 .team-filters {
   display: flex;
-  gap: 8px;
+  gap: var(--space-xs);
   align-items: center;
   overflow-x: auto;
   min-width: 0;
   flex: 1;
-  padding-bottom: 8px;
+  padding-bottom: var(--space-xs);
 }
 .team-filters button {
   white-space: nowrap;
   min-height: 44px;
-  padding: 8px 16px;
+  padding: var(--space-xs) var(--space-md);
   color: var(--color-muted);
   font-size: var(--text-sm);
   border-radius: var(--radius-input);
@@ -281,18 +284,18 @@ small {
   color: var(--color-paper);
 }
 .team-filters .add-team {
-  padding: 8px 12px;
+  padding: var(--space-xs) var(--space-sm);
   border: 1px dashed var(--color-rule);
 }
 .refresh {
-  margin-bottom: 8px;
+  margin-bottom: var(--space-xs);
 }
 .goal-workspace {
   flex: 1;
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(256px, 18fr) minmax(0, 58fr) minmax(248px, 20fr);
-  gap: 16px;
+  gap: var(--space-md);
 }
 .goal-queue,
 .match-rail {
@@ -308,8 +311,8 @@ small {
   justify-content: space-between;
   align-items: center;
   min-height: 58px;
-  padding: 8px 16px;
-  gap: 12px;
+  padding: var(--space-xs) var(--space-md);
+  gap: var(--space-sm);
   border-bottom: 1px solid var(--color-rule);
   flex: none;
 }
@@ -324,7 +327,7 @@ small {
   display: flex;
   align-items: center;
   min-height: 36px;
-  gap: 8px;
+  gap: var(--space-xs);
   cursor: pointer;
 }
 .scroll-region {
@@ -341,8 +344,8 @@ small {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 16px;
+  gap: var(--space-sm);
+  padding: 20px var(--space-md);
   text-align: left;
   border-bottom: 1px solid var(--color-rule);
   border-left: 3px solid var(--color-clear);
@@ -370,7 +373,7 @@ small {
   color: var(--color-muted);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-2xs);
   white-space: nowrap;
 }
 .goal-copy .team-crest {
@@ -389,18 +392,18 @@ small {
   font-size: var(--text-sm);
   font-weight: 500;
   display: block;
-  margin: 8px 0 4px;
+  margin: var(--space-xs) 0 var(--space-2xs);
   overflow-wrap: anywhere;
 }
 .goal-copy small {
   display: block;
 }
 .queue-footer {
-  padding: 8px 16px;
+  padding: var(--space-xs) var(--space-md);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 4px;
+  gap: var(--space-2xs);
   font-size: var(--text-xs);
   color: var(--color-muted);
   border-top: 1px solid var(--color-rule);
@@ -410,13 +413,13 @@ small {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-md);
 }
 .player-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-xs);
   min-height: 44px;
   font-size: var(--text-sm);
   flex: none;
@@ -426,7 +429,7 @@ small {
   overflow-wrap: anywhere;
 }
 .player-header .muted {
-  padding-inline: 8px;
+  padding-inline: var(--space-xs);
 }
 .video-stage {
   background: var(--color-stage);
@@ -463,13 +466,13 @@ small {
 }
 .stage-message h2 {
   font-size: var(--text-title);
-  margin-top: 24px;
+  margin-top: var(--space-lg);
   font-weight: 500;
 }
 .stage-message p {
   color: var(--color-muted);
   font-size: var(--text-sm);
-  margin: 8px auto 24px;
+  margin: var(--space-xs) auto var(--space-lg);
   max-width: 34ch;
 }
 .stage-message .primary {
@@ -479,7 +482,7 @@ small {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 24px;
+  gap: var(--space-lg);
 }
 .scoreline > span {
   font-size: var(--text-sm);
@@ -494,15 +497,15 @@ small {
 .scoreline i {
   font-style: normal;
   color: var(--color-rule);
-  padding-inline: 12px;
+  padding-inline: var(--space-sm);
 }
 .clip-details {
   display: flex;
   justify-content: space-between;
   align-items: start;
-  gap: 16px;
+  gap: var(--space-md);
   flex: none;
-  padding-bottom: 16px;
+  padding-bottom: var(--space-md);
 }
 .clip-details h2 {
   font-size: var(--text-lg);
@@ -511,7 +514,7 @@ small {
 .clip-details p {
   color: var(--color-muted);
   font-size: var(--text-sm);
-  margin-top: 8px;
+  margin-top: var(--space-xs);
   max-width: 60ch;
   overflow-wrap: anywhere;
 }
@@ -524,19 +527,19 @@ small {
 }
 .alternates {
   border-top: 1px solid var(--color-rule);
-  padding-top: 12px;
+  padding-top: var(--space-sm);
 }
 .alternates h3 {
   font-size: var(--text-sm);
-  margin-bottom: 8px;
+  margin-bottom: var(--space-xs);
 }
 .alternates a {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-xs);
   font-size: var(--text-sm);
   min-height: 44px;
-  margin-right: 16px;
+  margin-right: var(--space-md);
 }
 .match-list {
   min-height: 0;
@@ -546,7 +549,7 @@ small {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-xs);
   font-size: var(--text-xs);
   flex: none;
 }
@@ -566,26 +569,26 @@ small {
   line-height: 1.2;
 }
 .match-rail > .date-control {
-  padding: 8px 8px;
+  padding: var(--space-xs) var(--space-xs);
   border-bottom: 1px solid var(--color-rule);
 }
 .fixture {
-  padding: 16px 16px;
+  padding: var(--space-md) var(--space-md);
   border-bottom: 1px solid var(--color-rule);
 }
 .fixture-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-xs);
   color: var(--color-muted);
   font-size: var(--text-xs);
 }
 .fixture-body {
   display: flex;
-  gap: 4px;
+  gap: var(--space-2xs);
   align-items: center;
-  margin-top: 8px;
+  margin-top: var(--space-xs);
 }
 .fixture-teams {
   min-height: 52px;
@@ -598,7 +601,7 @@ small {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 .fixture-teams b {
   font-weight: 500;
@@ -611,29 +614,29 @@ small {
   color: var(--color-ink);
 }
 .rail-note {
-  padding: 12px 16px;
+  padding: var(--space-sm) var(--space-md);
   color: var(--color-muted);
   font-size: var(--text-xs);
   border-top: 1px solid var(--color-rule);
 }
 .empty {
   text-align: center;
-  padding: 32px 16px;
+  padding: 32px var(--space-md);
   color: var(--color-muted);
   font-size: var(--text-sm);
 }
 .empty h3 {
   color: var(--color-ink);
   font-size: var(--text-lg);
-  margin: 12px 0 8px;
+  margin: var(--space-sm) 0 var(--space-xs);
 }
 .empty .quiet {
-  margin-top: 16px;
+  margin-top: var(--space-md);
 }
 .player-welcome {
   margin: auto;
   text-align: center;
-  padding: 24px;
+  padding: var(--space-lg);
 }
 .player-welcome .wordmark {
   font: 400 var(--text-heading)/1 var(--font-display);
@@ -641,7 +644,7 @@ small {
 }
 .player-welcome h2 {
   font: 400 54px/1.1 var(--font-display);
-  margin: 32px 0 16px;
+  margin: 32px 0 var(--space-md);
 }
 .player-welcome p {
   color: var(--color-muted);
@@ -649,18 +652,18 @@ small {
   margin: auto;
 }
 .player-welcome .primary {
-  margin: 28px auto 16px;
+  margin: 28px auto var(--space-md);
 }
 .player-welcome > a:not(.primary) {
   display: block;
   font-size: var(--text-sm);
-  padding-block: 8px;
+  padding-block: var(--space-xs);
 }
 .app-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px var(--gutter) 16px;
+  padding: var(--space-xs) var(--gutter) var(--space-md);
   font-size: var(--text-xs);
   color: var(--color-muted);
   flex: none;
@@ -668,13 +671,13 @@ small {
 .sample-banner,
 .notice {
   background: var(--color-paper-3);
-  padding: 8px 16px;
+  padding: var(--space-xs) var(--space-md);
   color: var(--color-ink-2);
   font-size: var(--text-sm);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-md);
 }
 .sample-banner {
   padding-inline: var(--gutter);
@@ -703,7 +706,7 @@ small {
   align-items: center;
   justify-content: space-between;
   font-size: var(--text-xs);
-  padding-inline: 16px;
+  padding-inline: var(--space-md);
   background: var(--color-paper-3);
 }
 .active-filter button {
@@ -732,8 +735,8 @@ small {
 .team-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
+  gap: var(--space-md);
+  padding: var(--space-md);
   border-bottom: 1px solid var(--color-rule);
 }
 .club-code {
@@ -754,7 +757,7 @@ small {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-xs);
   margin-left: auto;
   min-height: 44px;
   min-width: 118px;
@@ -769,7 +772,7 @@ small {
 }
 .search-input {
   display: flex;
-  gap: 8px;
+  gap: var(--space-xs);
   align-items: center;
   color: var(--color-muted);
   max-width: 340px;
@@ -778,13 +781,13 @@ small {
   width: 100%;
 }
 .panel-note {
-  padding: 12px 16px;
+  padding: var(--space-sm) var(--space-md);
   color: var(--color-muted);
   font-size: var(--text-xs);
   flex: none;
 }
 .matchday-list .fixture {
-  padding: 20px 16px;
+  padding: 20px var(--space-md);
 }
 .matchday-list .fixture-teams {
   max-width: 600px;
@@ -805,11 +808,11 @@ small {
   align-items: start;
   justify-content: space-between;
   gap: 20px;
-  padding: 24px 0;
+  padding: var(--space-lg) 0;
   border-bottom: 1px solid var(--color-rule);
 }
 .source-row h2 {
-  margin-bottom: 8px;
+  margin-bottom: var(--space-xs);
 }
 .source-row p {
   color: var(--color-muted);
@@ -818,12 +821,12 @@ small {
 }
 .source-row small {
   display: block;
-  margin-top: 8px;
+  margin-top: var(--space-xs);
 }
 .connection-label {
   flex: none;
   background: var(--color-paper-3);
-  padding: 8px 8px;
+  padding: var(--space-xs) var(--space-xs);
   border-radius: var(--radius-input);
   font-size: var(--text-xs);
 }
@@ -838,19 +841,19 @@ small {
 }
 .setup-notes p {
   font-size: var(--text-sm);
-  margin-top: 12px;
+  margin-top: var(--space-sm);
   color: var(--color-muted);
 }
 .setup-notes a {
   min-height: 44px;
   display: inline-flex;
-  gap: 8px;
+  gap: var(--space-xs);
   align-items: center;
   font-size: var(--text-sm);
-  margin-top: 8px;
+  margin-top: var(--space-xs);
 }
 .setup-notes button {
-  margin-top: 16px;
+  margin-top: var(--space-md);
 }
 code {
   font: var(--text-xs)/1.5 var(--font-mono);
@@ -866,7 +869,7 @@ code {
   max-width: 1100px;
   width: 100%;
   align-self: center;
-  padding-top: 24px;
+  padding-top: var(--space-lg);
 }
 .form-intro h2 {
   font: 400 40px/1.15 var(--font-display);
@@ -875,12 +878,12 @@ code {
   color: var(--color-muted);
   font-size: var(--text-sm);
   max-width: 38ch;
-  margin-top: 16px;
+  margin-top: var(--space-md);
 }
 form label {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
   font-size: var(--text-sm);
   margin-bottom: 20px;
 }
@@ -896,7 +899,7 @@ form .notice {
   flex: 1;
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr) 258px;
-  gap: 16px;
+  gap: var(--space-md);
   position: relative;
 }
 .loading-view > div {
@@ -923,10 +926,10 @@ form .notice {
     display: none;
   }
   .topbar {
-    gap: 24px;
+    gap: var(--space-lg);
   }
   .topbar nav button {
-    padding-inline: 8px;
+    padding-inline: var(--space-xs);
   }
 }
 @media (max-width: 760px) {
@@ -936,8 +939,8 @@ form .notice {
   .topbar {
     display: grid;
     grid-template-columns: 1fr auto;
-    padding: 8px var(--gutter) 0;
-    gap: 4px 12px;
+    padding: var(--space-xs) var(--gutter) 0;
+    gap: var(--space-2xs) var(--space-sm);
   }
   .brand {
     font-size: 25px;
@@ -946,7 +949,7 @@ form .notice {
     grid-column: 2;
     grid-row: 1;
     font-size: var(--text-xs);
-    gap: 8px;
+    gap: var(--space-xs);
   }
   .source-status svg {
     display: none;
@@ -959,15 +962,15 @@ form .notice {
   }
   .topbar nav button {
     font-size: var(--text-xs);
-    padding: 8px 4px;
+    padding: var(--space-xs) var(--space-2xs);
     border-radius: var(--radius-input) var(--radius-input) 0 0;
   }
   .main {
-    padding-top: 16px;
-    gap: 16px;
+    padding-top: var(--space-md);
+    gap: var(--space-md);
   }
   .page-heading {
-    gap: 8px;
+    gap: var(--space-xs);
   }
   h1 {
     font-size: var(--text-title);
@@ -976,31 +979,31 @@ form .notice {
     display: none;
   }
   .heading-actions {
-    gap: 8px;
+    gap: var(--space-xs);
   }
   .heading-actions .quiet {
     min-width: 44px;
-    padding: 8px;
+    padding: var(--space-xs);
   }
   .heading-actions .quiet span {
     display: none;
   }
   .heading-actions .primary {
-    padding-inline: 8px;
+    padding-inline: var(--space-xs);
   }
   .workspace-toolbar {
-    gap: 8px;
+    gap: var(--space-xs);
   }
   .team-filters {
-    gap: 4px;
-    padding-bottom: 8px;
+    gap: var(--space-2xs);
+    padding-bottom: var(--space-xs);
   }
   .team-filters button {
-    padding-inline: 12px;
+    padding-inline: var(--space-sm);
     font-size: var(--text-xs);
   }
   .refresh {
-    margin-bottom: 8px;
+    margin-bottom: var(--space-xs);
   }
   .goal-workspace,
   .loading-view {
@@ -1015,13 +1018,13 @@ form .notice {
   }
   .goal-workspace.player-open .player-column {
     display: flex;
-    gap: 8px;
+    gap: var(--space-xs);
   }
   .mobile-back {
     display: inline-flex;
     align-self: start;
     min-height: 36px;
-    padding-block: 4px;
+    padding-block: var(--space-2xs);
   }
   .video-stage {
     min-height: 180px;
@@ -1031,26 +1034,26 @@ form .notice {
     min-height: 180px;
   }
   .stage-message {
-    padding: 20px 16px;
+    padding: 20px var(--space-md);
   }
   .scoreline {
-    gap: 16px;
+    gap: var(--space-md);
   }
   .scoreline strong {
     font-size: 42px;
   }
   .stage-message h2 {
     font-size: var(--text-lg);
-    margin-top: 16px;
+    margin-top: var(--space-md);
   }
   .stage-message p {
     font-size: var(--text-xs);
-    margin-bottom: 16px;
+    margin-bottom: var(--space-md);
   }
   .clip-details {
     flex-direction: column;
-    gap: 8px;
-    padding-bottom: 8px;
+    gap: var(--space-xs);
+    padding-bottom: var(--space-xs);
   }
   .clip-details h2 {
     font-size: var(--text-md);
@@ -1065,14 +1068,14 @@ form .notice {
     min-height: 36px;
   }
   .sample-banner {
-    padding-block: 8px;
+    padding-block: var(--space-xs);
     font-size: var(--text-xs);
-    gap: 8px;
+    gap: var(--space-xs);
     line-height: 1.4;
   }
   .app-footer {
     font-size: var(--text-xs);
-    padding-block: 8px;
+    padding-block: var(--space-xs);
   }
   .app-footer > span:first-child {
     display: inline-flex;
@@ -1087,21 +1090,21 @@ form .notice {
     flex-direction: column;
     align-items: stretch;
     padding-inline: 0;
-    gap: 8px;
+    gap: var(--space-xs);
   }
   .search-input {
     max-width: none;
   }
   .team-row {
     padding-inline: 0px;
-    gap: 12px;
+    gap: var(--space-sm);
   }
   .team-row h3 {
     font-size: var(--text-sm);
   }
   .follow-button {
     min-width: 44px;
-    padding: 8px;
+    padding: var(--space-xs);
   }
   .follow-button span {
     display: none;
@@ -1114,36 +1117,36 @@ form .notice {
   }
   .source-row {
     flex-direction: column;
-    gap: 12px;
-    padding-block: 16px;
+    gap: var(--space-sm);
+    padding-block: var(--space-md);
   }
   .setup-notes {
     grid-template-columns: minmax(0, 1fr);
     gap: 28px;
-    padding-block: 24px;
+    padding-block: var(--space-lg);
   }
   .notice {
     flex-direction: column;
     align-items: start;
-    gap: 8px;
-    padding: 12px;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
   }
   .import-panel {
     grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-    padding-top: 8px;
+    gap: var(--space-lg);
+    padding-top: var(--space-xs);
   }
   .form-intro h2 {
     font-size: 30px;
   }
   .form-intro p {
-    margin-top: 12px;
+    margin-top: var(--space-sm);
   }
   form input {
     font-size: 16px;
   }
   .player-welcome {
-    padding: 20px 8px;
+    padding: 20px var(--space-xs);
   }
   .player-welcome h2 {
     font-size: 40px;
@@ -1151,20 +1154,20 @@ form .notice {
 }
 @media (max-height: 680px) {
   .main {
-    padding-top: 12px;
-    gap: 8px;
+    padding-top: var(--space-sm);
+    gap: var(--space-xs);
   }
   .page-heading p {
     display: none;
   }
   .stage-message {
-    padding-block: 16px;
+    padding-block: var(--space-md);
   }
   .stage-message h2 {
-    margin-top: 12px;
+    margin-top: var(--space-sm);
   }
   .stage-message p {
-    margin-bottom: 12px;
+    margin-bottom: var(--space-sm);
   }
   .video-stage {
     min-height: 180px;
@@ -1230,13 +1233,13 @@ input {
 .live-status {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-sm);
 }
 .live-status button {
   color: var(--color-ink);
   text-decoration: underline;
   min-height: 32px;
-  padding-inline: 8px;
+  padding-inline: var(--space-xs);
 }
 @media (max-width: 760px) {
   .cinema-toggle {
@@ -1266,20 +1269,20 @@ input {
 .crest-fallback {
   font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   color: var(--color-muted);
   border: 1px solid var(--color-rule);
   border-radius: 4px;
-  padding: 3px 2px;
+  padding: var(--space-2xs) var(--space-3xs);
 }
 .team-crest.large .crest-fallback {
   font-size: 11px;
-  padding: 8px 4px;
+  padding: var(--space-xs) var(--space-2xs);
 }
 .fixture-teams > span {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--space-xs);
 }
 .fixture-name {
   flex: 1;
@@ -1294,7 +1297,7 @@ input {
 .player-header > span:first-child {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 .autoplay-retry {
   position: absolute;
@@ -1309,11 +1312,11 @@ input {
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #141311ed;
+  gap: var(--space-sm);
+  background: var(--color-stage);
   border: 1px solid var(--color-rule);
   border-radius: 7px;
-  padding: 5px 9px;
+  padding: var(--space-2xs) var(--space-xs);
   font-size: var(--text-xs);
   color: var(--color-ink-2);
 }
@@ -1333,7 +1336,7 @@ input {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 .playback-exhausted {
   overflow-y: auto;
@@ -1353,12 +1356,12 @@ input {
     display: flex;
     position: fixed;
     inset: 12px 12px 12px auto;
-    width: min(360px, calc(100vw - 24px));
+    width: min(360px, calc(100% - 24px));
     z-index: 51;
     background: var(--color-paper-2);
     border: 1px solid var(--color-rule);
-    box-shadow: -16px 0 80px #0008;
-    padding: 16px;
+
+    padding: var(--space-md);
   }
   .matches-open .matches-close {
     display: inline-flex;
@@ -1372,8 +1375,387 @@ input {
     position: fixed;
     inset: 0;
     z-index: 50;
-    background: #0009;
+    background: var(--color-scrim);
     border: 0;
     border-radius: 0;
   }
+}
+
+/* The workbench keeps its existing full-width behaviour by the user's request. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-body);
+}
+.topbar {
+  min-height: 60px;
+  gap: 32px;
+}
+.topbar nav button {
+  border-radius: 4px;
+}
+.source-status {
+  padding: 0 var(--space-sm);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-input);
+}
+.source-status[aria-current="page"] {
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+}
+.main {
+  padding-top: var(--space-md);
+  gap: var(--space-sm);
+}
+.workspace-heading h1 {
+  font-size: var(--text-lg);
+  font-weight: 500;
+}
+.workspace-heading > div:first-child > p {
+  display: none;
+}
+.workspace-heading .heading-actions {
+  gap: var(--space-xs);
+}
+.heading-actions .add-clip-action {
+  color: var(--color-ink-2);
+}
+.workspace-toolbar {
+  padding-bottom: var(--space-xs);
+}
+.team-filters {
+  gap: var(--space-2xs);
+  padding-bottom: 0;
+}
+.team-filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 40px;
+  padding: var(--space-xs) var(--space-sm);
+}
+.team-filters button:nth-child(2) {
+  margin-right: var(--space-xs);
+}
+.team-filters .add-team {
+  border: 0;
+  padding-inline: var(--space-xs);
+}
+.team-filters .team-crest {
+  width: 18px;
+  height: 20px;
+  flex-basis: 18px;
+}
+.refresh {
+  margin-bottom: 0;
+}
+.goal-workspace {
+  grid-template-columns: minmax(280px, 20fr) minmax(0, 56fr) minmax(248px, 20fr);
+  gap: 20px;
+}
+.goal-queue,
+.match-rail {
+  border-radius: 6px;
+}
+.section-bar {
+  min-height: 48px;
+  padding: var(--space-2xs) var(--space-sm);
+}
+.goal-row {
+  padding: var(--space-sm);
+  gap: var(--space-xs);
+}
+.goal-minute {
+  width: 32px;
+  font-size: var(--text-sm);
+}
+.goal-copy .goal-matchup {
+  display: grid;
+  gap: var(--space-3xs);
+}
+.goal-team {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.goal-team-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.goal-copy strong {
+  margin: var(--space-2xs) 0;
+  font-size: var(--text-xs);
+  color: var(--color-ink-2);
+}
+.goal-copy small {
+  font-size: var(--text-xs);
+}
+.player-column {
+  padding-inline: 0;
+}
+.player-header {
+  min-height: 40px;
+  gap: var(--space-2xs);
+  font-size: var(--text-sm);
+}
+.video-stage {
+  border-radius: 6px;
+}
+.clip-playback {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+}
+.playback-frame {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.playback-frame iframe {
+  min-height: 0;
+}
+.playback-tools {
+  position: static;
+  flex: none;
+  gap: var(--space-xs);
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--color-rule);
+  padding: 0 var(--space-sm);
+  min-height: 36px;
+  background: var(--color-paper);
+}
+.playback-tools > span {
+  margin-right: auto;
+}
+.playback-tools button,
+.playback-tools a {
+  min-height: 32px;
+}
+.clip-details {
+  padding-top: var(--space-sm);
+  gap: var(--space-sm);
+}
+.clip-details p {
+  max-width: 65ch;
+}
+.playback-help {
+  margin-top: var(--space-xs);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+.playback-help summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.playback-help summary::before {
+  content: "+";
+  margin-right: var(--space-xs);
+}
+.playback-help[open] summary::before {
+  content: "−";
+}
+.playback-help p {
+  margin: var(--space-2xs) 0 var(--space-sm);
+}
+.fixture {
+  padding: var(--space-sm);
+}
+.fixture-meta {
+  margin-bottom: var(--space-xs);
+}
+.fixture-teams {
+  font-size: var(--text-sm);
+}
+.teams-view {
+  max-width: 880px;
+}
+.teams-view > .section-bar {
+  min-height: 56px;
+}
+.team-list {
+  overflow-y: auto;
+}
+.panel-note {
+  position: relative;
+  background: var(--color-paper);
+}
+.team-row {
+  padding: var(--space-sm) var(--space-md);
+}
+.sources-view {
+  max-width: 1040px;
+  padding-bottom: var(--space-md);
+}
+.source-row {
+  padding: var(--space-md) 0;
+}
+.setup-notes {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  padding: var(--space-lg) 0;
+}
+.setup-notes > section:last-child {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--color-rule);
+  padding-top: 20px;
+}
+.setup-disclosure {
+  margin-top: var(--space-sm);
+}
+.setup-disclosure summary,
+.storage-details summary {
+  min-height: 44px;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-ink-2);
+}
+.setup-disclosure summary::before,
+.storage-details summary::before {
+  content: "+";
+}
+.setup-disclosure[open] summary::before,
+.storage-details[open] summary::before {
+  content: "−";
+}
+.storage-details {
+  border-top: 1px solid var(--color-rule);
+  padding-top: var(--space-xs);
+}
+.storage-details p {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  margin-bottom: var(--space-sm);
+}
+.setup-notes a {
+  max-width: 100%;
+}
+summary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+@media (max-width: 1120px) {
+  .goal-workspace {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .topbar {
+    padding-block: var(--space-xs);
+    min-height: 92px;
+    row-gap: var(--space-2xs);
+  }
+  .topbar nav {
+    display: flex;
+    grid-column: 1 / -1;
+    gap: var(--space-xs);
+  }
+  .topbar nav button {
+    min-height: 36px;
+    padding-inline: var(--space-sm);
+  }
+  .source-status svg {
+    display: block;
+  }
+  .main {
+    padding-top: var(--space-sm);
+  }
+  .page-heading {
+    gap: var(--space-xs);
+  }
+  .workspace-heading {
+    align-items: center;
+  }
+  .workspace-heading h1 {
+    font-size: var(--text-md);
+    white-space: nowrap;
+  }
+  .heading-actions {
+    gap: var(--space-2xs);
+  }
+  .workspace-heading .heading-actions {
+    gap: var(--space-2xs);
+  }
+  .heading-actions button {
+    min-width: 36px;
+    padding-inline: var(--space-xs);
+  }
+  .matches-trigger span {
+    display: none;
+  }
+  .team-filters button {
+    min-height: 40px;
+    padding: var(--space-xs) var(--space-sm);
+  }
+  .team-filters .add-team span {
+    display: none;
+  }
+  .goal-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .goal-row {
+    padding: var(--space-sm);
+  }
+  .goal-minute {
+    width: 36px;
+  }
+  .player-header > span:first-child {
+    gap: var(--space-2xs);
+  }
+  .player-header .muted {
+    padding-inline: 0;
+  }
+  .player-header .team-crest {
+    display: none;
+  }
+  .playback-tools {
+    padding-inline: var(--space-xs);
+    font-size: var(--text-xs);
+  }
+  .setup-notes {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-lg);
+  }
+  .setup-notes > section:last-child {
+    grid-column: auto;
+  }
+  .search-input {
+    max-width: 180px;
+  }
+}
+
+.catalog-note {
+  flex: none;
+  padding: 0 var(--space-sm);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+.catalog-note summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.catalog-note .panel-note {
+  padding: var(--space-xs) 0;
+}
+.app-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-paper);
 }

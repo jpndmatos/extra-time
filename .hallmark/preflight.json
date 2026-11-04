@@ -1,27 +1,47 @@
 {
+  "scanned": "2026-11-04",
+  "mode": "redesign",
+  "depth": "full",
   "scope": "app",
-  "preserved": [],
-  "introduced": [
-    ".NET provider backend",
-    "React goal room",
-    "favourites",
-    "matchday",
-    "source setup"
+  "findings": {
+    "brand": "docs/design.md:3; web/src/tokens.css:3-24",
+    "framework": "web/package.json: React, TypeScript, Vite; .NET API",
+    "product": "http://127.0.0.1:5195/",
+    "before": "6 Floor failures, 6 Reflex findings"
+  },
+  "preserve": [
+    "warm dark palette",
+    "Georgia wordmark and native UI type",
+    "routes and live data",
+    "full viewport as explicitly requested previously",
+    "clip recovery"
+  ],
+  "introduce": [
+    "quieter navigation and import",
+    "denser named-team queue",
+    "playback controls below footage",
+    "progressive setup disclosures"
   ],
   "material": {
     "real": [
-      "team names",
-      "Reddit and football-data integration contracts"
+      "current r/soccer videos",
+      "official crests",
+      "football-data fixtures"
     ],
     "sample": [
-      "fictional fixtures and goal metadata"
+      "explicit fictional metadata"
     ],
     "absent": [
-      "API credentials",
-      "footage",
-      "crests"
+      "testimonials",
+      "marketing claims",
+      "invented metrics"
     ]
   },
-  "theme": "kiln",
-  "deal": "3/3"
+  "files": [
+    "web/src/App.tsx",
+    "web/src/ClipPlayback.tsx",
+    "web/src/style.css",
+    "web/src/tokens.css",
+    "web/src/base.css"
+  ]
 }

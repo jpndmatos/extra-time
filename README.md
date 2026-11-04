@@ -2,7 +2,9 @@
 
 A personal goal room: follow football clubs and individual fixtures, then watch their goal clips together. Built with .NET 10, React, TypeScript and SQLite.
 
-![Touchline goal room](docs/workspace.png)
+![Touchline goal room](docs/goal-room-live.png)
+
+Read the [project case study](docs/case-study.md) for the UX decisions, implementation and verified limits.
 
 ## Run locally
 

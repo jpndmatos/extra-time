@@ -1,1 +1,26 @@
-{"scope":"app","theme":"kiln","signature":"goal queue beside video stage and matchday rail","review":"in-thread","sweep":"0 FAIL, 0 REFLEX; 1 documented row-height waiver"}
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "theme": "brand (kiln ember retained)",
+  "shape": "app screen",
+  "signature": "named-team queue beside uninterrupted video and matches",
+  "nav": "single Sources utility, goal room and teams",
+  "footer": "persistent update state",
+  "imagery": "actual provider videos and official club crests",
+  "prompt": "streamline the personal goal hub for a portfolio-quality project",
+  "waived": [
+   "39b selectable goal rows"
+  ],
+  "review": "in-thread, 3 findings resolved",
+  "sweep": "0 Floor failures, 0 unresolved Reflex findings, 0 warnings",
+  "kept": {
+   "links": "16/16",
+   "fields": "5/5",
+   "handlers": "48/48",
+   "figures": "3/3"
+  },
+  "date": "2026-11-04"
+ }
+]

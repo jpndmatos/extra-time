@@ -117,7 +117,7 @@ try {
       .getByText("Working mirror of the same goal - controlled test"),
   ).toBeVisible();
   await expect(
-    state.page.getByRole("status").filter({ hasText: "Backup · Source 2/2" }),
+    state.page.getByRole("status").filter({ hasText: "Backup, Source 2/2" }),
   ).toBeVisible();
   expect(
     await state.page

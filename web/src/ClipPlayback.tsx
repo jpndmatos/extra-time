@@ -75,6 +75,7 @@ export default function ClipPlayback({
         </p>
         <div className="playback-actions">
           <button
+            type="button"
             className="primary"
             onClick={() => {
               sources.forEach((source) => metadata.delete(source.media.url));
@@ -114,17 +115,19 @@ export default function ClipPlayback({
     );
   const number = sources.indexOf(current) + 1;
   return (
-    <>
-      <PlayerAttempt
-        key={`${current.media.url}-${retry}`}
-        media={current.media}
-        title={title}
-        onFailure={fail}
-        refresh={retry > 0}
-      />
+    <div className="clip-playback">
+      <div className="playback-frame">
+        <PlayerAttempt
+          key={`${current.media.url}-${retry}`}
+          media={current.media}
+          title={title}
+          onFailure={fail}
+          refresh={retry > 0}
+        />
+      </div>
       <div className="playback-tools">
         <span role="status">
-          {failed.length ? "Backup · " : ""}Source {number}/{sources.length}
+          {failed.length ? "Backup, " : ""}Source {number}/{sources.length}
         </span>
         <a
           href={current.sourceUrl}
@@ -135,12 +138,13 @@ export default function ClipPlayback({
           <ExternalLink size={13} />
         </a>
         <button
+          type="button"
           onClick={() => fail("Playback did not work in this host’s player.")}
         >
           {sources.length > number ? "Try next source" : "Clip not playing?"}
         </button>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -159,6 +163,12 @@ function PlayerAttempt({
     media.kind === "resolve" ? null : media,
   );
   const [needsPlay, setNeedsPlay] = useState(false);
+  const [poster] = useState(() => {
+    const background = getComputedStyle(document.documentElement)
+      .getPropertyValue("--color-stage")
+      .trim();
+    return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><rect width="1280" height="720" fill="${background}"/></svg>`)}`;
+  });
   const [renew, setRenew] = useState(0);
   const renewed = useRef(false);
   const handlingFailure = useRef(false);
@@ -254,6 +264,7 @@ function PlayerAttempt({
           muted
           playsInline
           preload="auto"
+          poster={poster}
           aria-label={title}
           src={resolved.url}
           onError={() =>
@@ -282,6 +293,7 @@ function PlayerAttempt({
         />
         {needsPlay && (
           <button
+            type="button"
             className="primary autoplay-retry"
             onClick={() =>
               video.current

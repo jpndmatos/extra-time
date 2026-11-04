@@ -396,6 +396,7 @@ export default function App() {
         </div>
         <div className="fixture-body">
           <button
+            type="button"
             className="fixture-teams"
             onClick={() => {
               setMatch(fixture.id);
@@ -424,6 +425,7 @@ export default function App() {
             </span>
           </button>
           <button
+            type="button"
             className="icon-button"
             aria-label={`${followed ? "Unfollow" : "Follow"} match: ${fixture.homeName} versus ${fixture.awayName}`}
             aria-pressed={followed}
@@ -448,19 +450,30 @@ export default function App() {
           <span>touchline</span>
         </a>
         <nav aria-label="Main navigation">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              aria-current={view === tab.id ? "page" : undefined}
-              onClick={() => navigate(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs
+            .filter((tab) => tab.id !== "sources")
+            .map((tab) => (
+              <button
+                type="button"
+                key={tab.id}
+                aria-current={view === tab.id ? "page" : undefined}
+                onClick={() => navigate(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
         </nav>
-        <button className="source-status" onClick={() => navigate("sources")}>
+        <button
+          type="button"
+          className="source-status"
+          aria-current={view === "sources" ? "page" : undefined}
+          title={
+            sample ? "Sample workspace" : `${connected}/2 sources connected`
+          }
+          onClick={() => navigate("sources")}
+        >
           <Settings2 size={16} />
-          {sample ? "Sample workspace" : `${connected}/2 sources connected`}
+          Sources
         </button>
       </header>
       {sample && (
@@ -473,7 +486,9 @@ export default function App() {
         </div>
       )}
       <main id="main" tabIndex={-1} className={`main view-${view}`}>
-        <div className="page-heading">
+        <div
+          className={`page-heading ${view === "goals" && !importing ? "workspace-heading" : ""}`}
+        >
           <div>
             <h1 ref={heading} tabIndex={-1}>
               {importing
@@ -491,6 +506,7 @@ export default function App() {
           <div className="heading-actions">
             {view === "goals" && (
               <button
+                type="button"
                 ref={matchesTrigger}
                 className="quiet matches-trigger"
                 aria-expanded={matchesOpen}
@@ -501,6 +517,7 @@ export default function App() {
               </button>
             )}
             <button
+              type="button"
               className="quiet"
               aria-label={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
               aria-pressed={prefs.spoilers}
@@ -515,7 +532,8 @@ export default function App() {
               </span>
             </button>
             <button
-              className="primary"
+              type="button"
+              className="quiet add-clip-action"
               onClick={() => {
                 setImporting(!importing);
                 setImportError("");
@@ -531,6 +549,7 @@ export default function App() {
           <div className="notice error" role="alert">
             {writeError}
             <button
+              type="button"
               onClick={() =>
                 ready ? save(latest.current) : setPreferencesRetry((v) => v + 1)
               }
@@ -542,7 +561,9 @@ export default function App() {
         {error && (
           <div className="notice error" role="alert">
             {error}
-            <button onClick={() => setRefresh((v) => v + 1)}>Try again</button>
+            <button type="button" onClick={() => setRefresh((v) => v + 1)}>
+              Try again
+            </button>
           </div>
         )}
         {!ready && !sample && !writeError && (
@@ -613,6 +634,7 @@ export default function App() {
               <div className="workspace-toolbar">
                 <div className="team-filters" aria-label="Filter by team">
                   <button
+                    type="button"
                     aria-pressed={feed === "all" && !team && !match}
                     onClick={() => {
                       setFeed("all");
@@ -623,6 +645,7 @@ export default function App() {
                     All r/soccer
                   </button>
                   <button
+                    type="button"
                     aria-pressed={feed === "following" && !team && !match}
                     onClick={() => {
                       setFeed("following");
@@ -636,6 +659,7 @@ export default function App() {
                     .filter((t) => prefs.teams.includes(t.id))
                     .map((t) => (
                       <button
+                        type="button"
                         key={t.id}
                         aria-pressed={team === t.id}
                         onClick={() => {
@@ -643,18 +667,22 @@ export default function App() {
                           setMatch("");
                         }}
                       >
+                        <TeamCrest team={t} />
                         {t.name}
                       </button>
                     ))}
                   <button
+                    type="button"
                     className="add-team"
                     aria-label="Choose favourite teams"
                     onClick={() => navigate("teams")}
                   >
-                    <Plus size={15} />
+                    <Star size={15} />
+                    <span>Teams</span>
                   </button>
                 </div>
                 <button
+                  type="button"
                   className="icon-button refresh"
                   aria-label="Refresh sources"
                   onClick={() => setRefresh((v) => v + 1)}
@@ -700,6 +728,7 @@ export default function App() {
                           <div className="active-filter">
                             <span>Selected match</span>
                             <button
+                              type="button"
                               onClick={() => setMatch("")}
                               aria-label="Clear match filter"
                             >
@@ -715,6 +744,7 @@ export default function App() {
                           {visibleGoals.length ? (
                             visibleGoals.map((goal) => (
                               <button
+                                type="button"
                                 key={goal.id}
                                 className={`goal-row ${selected?.id === goal.id ? "selected" : ""}`}
                                 onClick={() => select(goal)}
@@ -748,25 +778,39 @@ export default function App() {
                                   )}
                                 </span>
                                 <span className="goal-copy">
-                                  <span>
-                                    <TeamCrest
-                                      team={data.teams.find(
-                                        (t) => t.id === goal.homeId,
-                                      )}
-                                    />
-                                    {short(goal.homeId)}
-                                    <b>
-                                      {prefs.spoilers &&
-                                      !revealed.includes(goal.id)
-                                        ? "Goal"
-                                        : `${goal.homeScore} – ${goal.awayScore}`}
-                                    </b>
-                                    {short(goal.awayId)}
-                                    <TeamCrest
-                                      team={data.teams.find(
-                                        (t) => t.id === goal.awayId,
-                                      )}
-                                    />
+                                  <span className="goal-matchup">
+                                    <span className="goal-team">
+                                      <TeamCrest
+                                        team={data.teams.find(
+                                          (t) => t.id === goal.homeId,
+                                        )}
+                                      />
+                                      <span className="goal-team-name">
+                                        {name(goal.homeId)}
+                                      </span>
+                                      <b>
+                                        {prefs.spoilers &&
+                                        !revealed.includes(goal.id)
+                                          ? "—"
+                                          : goal.homeScore}
+                                      </b>
+                                    </span>
+                                    <span className="goal-team">
+                                      <TeamCrest
+                                        team={data.teams.find(
+                                          (t) => t.id === goal.awayId,
+                                        )}
+                                      />
+                                      <span className="goal-team-name">
+                                        {name(goal.awayId)}
+                                      </span>
+                                      <b>
+                                        {prefs.spoilers &&
+                                        !revealed.includes(goal.id)
+                                          ? "—"
+                                          : goal.awayScore}
+                                      </b>
+                                    </span>
                                   </span>
                                   <strong>
                                     {prefs.spoilers &&
@@ -777,7 +821,10 @@ export default function App() {
                                   <small>
                                     {goal.sample
                                       ? "Sample goal"
-                                      : "Reddit goal post"}
+                                      : new Intl.DateTimeFormat(undefined, {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        }).format(new Date(goal.publishedAt))}
                                     {prefs.watched.includes(goal.id)
                                       ? " / Watched"
                                       : ""}
@@ -807,6 +854,7 @@ export default function App() {
                                       : "Follow a club to keep its goals close."}
                               </p>
                               <button
+                                type="button"
                                 className="quiet"
                                 onClick={() =>
                                   unwatched
@@ -844,6 +892,7 @@ export default function App() {
                         aria-label="Goal player"
                       >
                         <button
+                          type="button"
                           className="mobile-back quiet"
                           onClick={() => setMobilePlayer(false)}
                         >
@@ -869,6 +918,7 @@ export default function App() {
                                 />
                               </span>
                               <button
+                                type="button"
                                 className="icon-button cinema-toggle"
                                 aria-label={
                                   cinema ? "Exit cinema view" : "Expand player"
@@ -883,6 +933,7 @@ export default function App() {
                                 )}
                               </button>
                               <button
+                                type="button"
                                 className="icon-button"
                                 onClick={() => toggle("watched", selected.id)}
                                 aria-label={
@@ -908,6 +959,7 @@ export default function App() {
                                   <h2>A goal worth waiting for.</h2>
                                   <p>Reveal this goal when you’re ready.</p>
                                   <button
+                                    type="button"
                                     className="primary"
                                     onClick={() => (
                                       setRevealed([...revealed, selected.id]),
@@ -950,6 +1002,7 @@ export default function App() {
                                   </p>
                                   {selected.media ? (
                                     <button
+                                      type="button"
                                       className="primary"
                                       onClick={() => {
                                         setSelectedId(selected.id);
@@ -1015,11 +1068,14 @@ export default function App() {
                               )}
                             </div>
                             {playing && (
-                              <p className="playback-note">
-                                Starts muted. Use the player controls for sound.
-                                Removed or restricted clip? Check the Reddit
-                                thread for mirrors.
-                              </p>
+                              <details className="playback-help">
+                                <summary>Playback help</summary>
+                                <p className="playback-note">
+                                  Starts muted. Use the player controls for
+                                  sound. Removed or restricted clip? Check the
+                                  Reddit thread for mirrors.
+                                </p>
+                              </details>
                             )}
                             {!!selected.alternatives.length && (
                               <div className="alternates">
@@ -1050,6 +1106,7 @@ export default function App() {
                               Follow your clubs, pick a match, keep the moments.
                             </p>
                             <button
+                              type="button"
                               className="primary"
                               onClick={() => navigate("teams")}
                             >
@@ -1066,6 +1123,7 @@ export default function App() {
                       </section>
                       {matchesOpen && (
                         <button
+                          type="button"
                           className="matches-scrim"
                           aria-label="Close matches"
                           onClick={() => {
@@ -1085,6 +1143,7 @@ export default function App() {
                         <div className="section-bar">
                           <h2>Matchday</h2>
                           <button
+                            type="button"
                             ref={matchesClose}
                             className="icon-button matches-close"
                             aria-label="Close matches sidebar"
@@ -1115,6 +1174,7 @@ export default function App() {
                                   : "Connect match data to see kickoffs and scores."}
                               </p>
                               <button
+                                type="button"
                                 className="quiet"
                                 onClick={() => navigate("sources")}
                               >
@@ -1146,6 +1206,13 @@ export default function App() {
                           />
                         </label>
                       </div>
+                      <details className="catalog-note">
+                        <summary>{data.teams.length} clubs available</summary>
+                        <p className="panel-note">
+                          {data.teams.length} clubs available from the
+                          catalogue, fixtures and current r/soccer goal posts.
+                        </p>
+                      </details>
                       <div
                         className="team-list scroll-region"
                         tabIndex={0}
@@ -1159,6 +1226,7 @@ export default function App() {
                               <p>{t.country}</p>
                             </div>
                             <button
+                              type="button"
                               className="follow-button"
                               aria-pressed={prefs.teams.includes(t.id)}
                               aria-label={`${prefs.teams.includes(t.id) ? "Unfollow" : "Follow"} ${t.name}`}
@@ -1186,6 +1254,7 @@ export default function App() {
                             <h3>No club found</h3>
                             <p>Try the club name or its country.</p>
                             <button
+                              type="button"
                               className="quiet"
                               onClick={() => setSearch("")}
                             >
@@ -1194,10 +1263,6 @@ export default function App() {
                           </div>
                         )}
                       </div>
-                      <p className="panel-note">
-                        {data.teams.length} clubs available from the catalogue,
-                        fixtures and current r/soccer goal posts.
-                      </p>
                     </section>
                   )}
                   {view === "sources" && (
@@ -1237,27 +1302,30 @@ export default function App() {
                       <div className="setup-notes">
                         <section>
                           <h2>Connect fixtures</h2>
-                          <p>
-                            Create a football-data.org account, then set{" "}
-                            <code>FootballData:Token</code> using .NET user
-                            secrets. Restart the backend after changing
-                            settings.
-                          </p>
-                          <a
-                            href="https://www.football-data.org/client/register"
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Get a fixture key
-                            <ExternalLink size={14} />
-                          </a>
+                          <details className="setup-disclosure">
+                            <summary>Configure fixture access</summary>
+                            <p>
+                              Create a football-data.org account, then set{" "}
+                              <code>FootballData:Token</code> using .NET user
+                              secrets. Restart the backend after changing
+                              settings.
+                            </p>
+                            <a
+                              href="https://www.football-data.org/client/register"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Get a fixture key
+                              <ExternalLink size={14} />
+                            </a>
+                            <p>
+                              Run <code>./scripts/configure-provider.ps1</code>{" "}
+                              to enter your key privately on this computer.
+                            </p>
+                          </details>
                           <p>
                             Free-plan scores are delayed. Match coverage and
                             freshness depend on your provider plan.
-                          </p>
-                          <p>
-                            Run <code>./scripts/configure-provider.ps1</code> to
-                            enter your key privately on this computer.
                           </p>
                           <p>
                             <a
@@ -1265,8 +1333,7 @@ export default function App() {
                               target="_blank"
                               rel="noreferrer"
                             >
-                              Football data provided by the Football-Data.org
-                              API
+                              Football-data.org
                             </a>
                           </p>
                         </section>
@@ -1286,32 +1353,36 @@ export default function App() {
                             Reddit’s RSS announcement
                             <ExternalLink size={14} />
                           </a>
-                          <p>
-                            A Reddit login does not establish API approval. Only
-                            enable the connector if you already have an approved
-                            app. Credentials belong in server-side user secrets.
-                          </p>
-                          <p>
-                            New public Data API access requests are closed.
-                            Reddit’s app-registration page is for existing API
-                            apps; it does not issue a new API key.
-                          </p>
-                          <p>
-                            Set <code>Reddit:Enabled</code> and either an OAuth
-                            access token or your approved app’s client ID and
-                            secret. The README has the commands.
-                          </p>
-                          <a
-                            href="https://developers.reddit.com/app-registration"
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Reddit developer access
-                            <ExternalLink size={14} />
-                          </a>
+                          <details className="setup-disclosure">
+                            <summary>Approved API access</summary>
+                            <p>
+                              A Reddit login does not establish API approval.
+                              Only enable the connector if you already have an
+                              approved app. Credentials belong in server-side
+                              user secrets.
+                            </p>
+                            <p>
+                              New public Data API access requests are closed.
+                              Reddit’s app-registration page is for existing API
+                              apps; it does not issue a new API key.
+                            </p>
+                            <p>
+                              Set <code>Reddit:Enabled</code> and either an
+                              OAuth access token or your approved app’s client
+                              ID and secret. The README has the commands.
+                            </p>
+                            <a
+                              href="https://developers.reddit.com/app-registration"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Reddit developer access
+                              <ExternalLink size={14} />
+                            </a>
+                          </details>
                         </section>
                         <section>
-                          <h2>Keep watching in the meantime</h2>
+                          <h2>Your clip links</h2>
                           <p>
                             Add a Reddit goal post and its clip URL yourself.
                             Streamable, Streamain, Streamin and YouTube can play
@@ -1319,6 +1390,7 @@ export default function App() {
                             downloaded or rehosted.
                           </p>
                           <button
+                            type="button"
                             className="quiet"
                             onClick={() => setImporting(true)}
                             disabled={sample}
@@ -1328,7 +1400,8 @@ export default function App() {
                           </button>
                         </section>
                       </div>
-                      <div className="notice">
+                      <details className="storage-details">
+                        <summary>Local storage and sample workspace</summary>
                         <p>
                           This is a single-user local workspace. Your follows
                           and added clips are stored in its SQLite database.
@@ -1336,7 +1409,7 @@ export default function App() {
                         {!sample && (
                           <a href="?sample=true">Try the sample workspace</a>
                         )}
-                      </div>
+                      </details>
                     </section>
                   )}
                 </>
@@ -1370,6 +1443,7 @@ export default function App() {
                     : "Connecting to updates…"}
           {newGoalCount > 0 && (
             <button
+              type="button"
               onClick={() => {
                 setNewGoalCount(0);
                 setSelectedId(visibleGoals[0]?.id || null);
@@ -1396,6 +1470,7 @@ export default function App() {
     return (
       <div className="date-control">
         <button
+          type="button"
           className="icon-button"
           aria-label="Previous day"
           onClick={() => dateChange(-1)}
@@ -1404,6 +1479,7 @@ export default function App() {
           <ChevronLeft size={16} />
         </button>
         <button
+          type="button"
           className="today-control"
           aria-label="Go to today"
           aria-pressed={matchday.followingToday}
@@ -1420,6 +1496,7 @@ export default function App() {
           <small>{matchday.followingToday ? "Today" : "Go to today"}</small>
         </button>
         <button
+          type="button"
           className="icon-button"
           aria-label="Next day"
           onClick={() => dateChange(1)}
