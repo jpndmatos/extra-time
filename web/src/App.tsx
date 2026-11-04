@@ -441,93 +441,6 @@ export default function App() {
               <RefreshCw size={16} />
             </button>
           </div>
-          <details className="connection-status" ref={connections}>
-            <summary aria-label="Connections and refresh status">
-              {sample ? (
-                <span className="connection-label">Sample</span>
-              ) : (
-                data?.sources.map((source) => (
-                  <span
-                    className="source-summary"
-                    key={source.name}
-                    title={`${source.name}: ${source.state}`}
-                  >
-                    <span
-                      className="connection-dot"
-                      data-state={
-                        live.state === "offline"
-                          ? "offline"
-                          : /partial|unavailable/i.test(source.message)
-                            ? "waiting"
-                            : source.state
-                      }
-                    />
-                    <span>
-                      {source.name === "Reddit"
-                        ? /RSS|public feed/i.test(source.message)
-                          ? "Reddit RSS"
-                          : "Reddit API"
-                        : "Fixtures"}
-                    </span>
-                  </span>
-                ))
-              )}
-              <time dateTime={data?.updatedAt}>
-                {data
-                  ? new Date(data.updatedAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "…"}
-              </time>
-            </summary>
-            <div className="connection-panel">
-              <strong>Connections</strong>
-              {data?.sources.map((source) => {
-                const publicFeed = /RSS|public feed/i.test(source.message);
-                return (
-                  <div className="connection-source" key={source.name}>
-                    <div>
-                      <span
-                        className="connection-dot"
-                        data-state={source.state}
-                      />
-                      <b>
-                        {source.name === "Reddit"
-                          ? publicFeed
-                            ? "Reddit · public feed"
-                            : "Reddit API"
-                          : "Football-data API"}
-                      </b>
-                      <span>
-                        {sample
-                          ? "Sample"
-                          : /partial|unavailable/i.test(source.message) &&
-                              source.state === "connected"
-                            ? "partial"
-                            : source.state}
-                      </span>
-                    </div>
-                    <p>{source.message}</p>
-                    {source.name === "Reddit" && publicFeed && (
-                      <p>OAuth API is not connected.</p>
-                    )}
-                    <small>
-                      {source.updatedAt
-                        ? `Last fetched ${new Date(source.updatedAt).toLocaleTimeString()}`
-                        : "No successful fetch yet"}
-                    </small>
-                  </div>
-                );
-              })}
-              <small>
-                Hub {live.state} ·{" "}
-                {data
-                  ? `Updated ${new Date(data.updatedAt).toLocaleTimeString()}`
-                  : "Connecting…"}
-              </small>
-            </div>
-          </details>
         </div>
       </header>
       {sample && (
@@ -691,6 +604,103 @@ export default function App() {
                   Refreshing…
                 </div>
               )}
+              <details className="connection-status" ref={connections}>
+                <summary aria-label="Connections and refresh status">
+                  {sample ? (
+                    <span className="connection-label">Sample</span>
+                  ) : (
+                    data?.sources.map((source) => (
+                      <span
+                        className="source-summary"
+                        key={source.name}
+                        title={`${source.name}: ${source.state}`}
+                      >
+                        <span
+                          className="connection-dot"
+                          data-state={
+                            live.state === "offline"
+                              ? "offline"
+                              : /partial|unavailable/i.test(source.message)
+                                ? "waiting"
+                                : source.state
+                          }
+                        />
+                        <span>
+                          {source.name === "Reddit"
+                            ? /RSS|public feed/i.test(source.message)
+                              ? "Reddit RSS"
+                              : "Reddit API"
+                            : "Fixtures"}
+                        </span>
+                        <time dateTime={source.updatedAt || undefined}>
+                          {source.updatedAt
+                            ? new Date(source.updatedAt).toLocaleTimeString(
+                                [],
+                                { hour: "2-digit", minute: "2-digit" },
+                              )
+                            : "—"}
+                        </time>
+                      </span>
+                    ))
+                  )}
+                  {sample && (
+                    <time dateTime={data?.updatedAt}>
+                      {data
+                        ? new Date(data.updatedAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "…"}
+                    </time>
+                  )}
+                </summary>
+                <div className="connection-panel">
+                  <strong>Connections</strong>
+                  {data?.sources.map((source) => {
+                    const publicFeed = /RSS|public feed/i.test(source.message);
+                    return (
+                      <div className="connection-source" key={source.name}>
+                        <div>
+                          <span
+                            className="connection-dot"
+                            data-state={source.state}
+                          />
+                          <b>
+                            {source.name === "Reddit"
+                              ? publicFeed
+                                ? "Reddit · public feed"
+                                : "Reddit API"
+                              : "Football-data API"}
+                          </b>
+                          <span>
+                            {sample
+                              ? "Sample"
+                              : /partial|unavailable/i.test(source.message) &&
+                                  source.state === "connected"
+                                ? "partial"
+                                : source.state}
+                          </span>
+                        </div>
+                        <p>{source.message}</p>
+                        {source.name === "Reddit" && publicFeed && (
+                          <p>OAuth API is not connected.</p>
+                        )}
+                        <small>
+                          {source.updatedAt
+                            ? `Last fetched ${new Date(source.updatedAt).toLocaleTimeString()}`
+                            : "No successful fetch yet"}
+                        </small>
+                      </div>
+                    );
+                  })}
+                  <small>
+                    Hub {live.state} ·{" "}
+                    {data
+                      ? `Updated ${new Date(data.updatedAt).toLocaleTimeString()}`
+                      : "Connecting…"}
+                  </small>
+                </div>
+              </details>
             </section>
             <section
               className="player-column scroll-region"

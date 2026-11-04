@@ -21,7 +21,7 @@ For development, run `dotnet run --project src/Touchline.Api` and `npm --prefix 
 ## What works without keys
 
 - Browse every available r/soccer goal in the fetched feed, without choosing clubs or fixtures.
-- Check individual Reddit and fixture source states and last fetch times from the top-right connection panel.
+- Check individual Reddit and fixture source states and last fetch times from the bottom-left connection panel.
 - Search by team, alias or scorer. Old favourite and match URL parameters cannot filter the hub.
 - Play supported clips muted, with source recovery and alternate links. Reselecting the active goal preserves playback.
 - Mark goals seen immediately when opened; expand Seen inside the goal list to revisit viewing history, or mark one unwatched again.
