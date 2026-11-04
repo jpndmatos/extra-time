@@ -1,4 +1,4 @@
-/* Hallmark v2.0.0 · theme: custom (graphite broadcast desk) · genre: atmospheric · shape: app screen · scope: app · redesign: full · signature: machined score strip, lime selection key and uninterrupted goal footage. */
+/* Hallmark v2.0.0 · theme: custom (neutral graphite desk) · genre: atmospheric · shape: app screen · scope: app · redesign: full · signature: machined score strip, white selection key and uninterrupted goal footage. */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V3 · weakest: V, existing shell retained; removed duplicated Sources chrome and lifted playback help off the footage. Finish review: in-thread, fix, 3 findings resolved (duplicate chrome, video overlays, scroll footer). */
 /* Hallmark · waive 39b · Goal rows exceed 52px · Each selectable goal contains minute, score, scorer and watch state; the entire row is a touch target rather than a toolbar button. */
 /* Hallmark · dismissed 3 · The goal row side rule marks the selected clip and changes with selection, rather than decorating unrelated content. */
@@ -2124,8 +2124,8 @@ summary:focus-visible {
   border-bottom-color: var(--color-rule);
 }
 .topbar .brand {
-  font: 800 28px/1 var(--font-body);
-  letter-spacing: -1.2px;
+  font: 700 26px/1 var(--font-body);
+  letter-spacing: -0.6px;
 }
 .topbar nav button {
   border-radius: 0;
@@ -2138,7 +2138,7 @@ summary:focus-visible {
 }
 .workspace-heading h1 {
   font-size: 20px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.5px;
 }
 .quiet,
@@ -2168,7 +2168,7 @@ summary:focus-visible {
   background: var(--color-accent);
   color: var(--color-accent-ink);
   border: 1px solid var(--color-accent);
-  font-weight: 650;
+  font-weight: 600;
 }
 .primary:hover {
   background: var(--color-focus);
@@ -2216,7 +2216,7 @@ summary:focus-visible {
   padding-left: var(--space-sm);
 }
 .section-bar h2 {
-  font-weight: 650;
+  font-weight: 600;
 }
 .section-bar h2 > span {
   font-variant-numeric: tabular-nums;
@@ -2302,7 +2302,7 @@ summary:focus-visible {
   border-top: 1px solid var(--color-rule);
 }
 .clip-details h2 {
-  font: 650 clamp(23px, 2vw, 30px)/1.15 var(--font-body);
+  font: 600 clamp(23px, 2vw, 30px)/1.15 var(--font-body);
   letter-spacing: -0.6px;
 }
 .clip-navigation {
@@ -2668,4 +2668,36 @@ summary:focus-visible {
 .fixture:hover,
 .fixture.selected {
   background: var(--color-match-selected);
+}
+
+/* One type family and neutral tonal steps keep the dense workspace consistent. */
+.topbar .brand {
+  font-weight: 700;
+}
+.scoreboard-result,
+.goal-minute {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.4px;
+}
+.scoreboard-result {
+  font-weight: 600;
+}
+.goal-minute {
+  font-size: 14px;
+}
+.goal-team,
+.fixture-teams {
+  font-weight: 400;
+}
+.goal-copy strong {
+  font-weight: 500;
+}
+.clip-details h2 {
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+@media (max-width: 760px) {
+  .topbar .brand {
+    font-size: 20px;
+  }
 }
