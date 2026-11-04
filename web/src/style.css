@@ -2640,3 +2640,32 @@ summary:focus-visible {
     grid-template-columns: minmax(224px, 25%) minmax(0, 1fr);
   }
 }
+
+/* Quiet colour fields distinguish the three content groups without extra frames. */
+.goal-queue,
+.goal-queue .section-bar {
+  background: var(--color-feed-surface);
+  color: var(--color-ink);
+}
+.goal-row:hover,
+.goal-row.selected {
+  background: var(--color-feed-selected);
+}
+.player-column,
+.player-header,
+.playback-tools {
+  background: var(--color-player-surface);
+  color: var(--color-ink);
+}
+.match-rail,
+.match-rail .section-bar,
+.match-rail > .date-control,
+.match-group-heading,
+.fixture {
+  background: var(--color-matches-surface);
+  color: var(--color-ink);
+}
+.fixture:hover,
+.fixture.selected {
+  background: var(--color-match-selected);
+}

@@ -15,6 +15,11 @@
   --color-clear: transparent;
   --color-surface-edge: #535c61;
   --color-inset: #080a0b;
+  --color-feed-surface: #18232a;
+  --color-feed-selected: #2a3b44;
+  --color-player-surface: #1b1e22;
+  --color-matches-surface: #22271c;
+  --color-match-selected: #333e27;
   --font-body: "Segoe UI", Arial, sans-serif;
   --font-display: "Arial Black", "Segoe UI", Arial, sans-serif;
   --font-mono: Consolas, ui-monospace, monospace;
