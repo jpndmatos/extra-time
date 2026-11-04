@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLiveFeed } from "./useLiveFeed";
+import { useMatchday } from "./useMatchday";
 import {
   ArrowLeft,
   ArrowRight,
@@ -74,7 +75,8 @@ export default function App() {
       ? (initial.get("view") as View)
       : "goals",
   );
-  const [day, setDay] = useState(initial.get("day") || localDay(new Date()));
+  const matchday = useMatchday(initial.get("day"));
+  const day = matchday.day;
   const [team, setTeam] = useState(initial.get("team") || "");
   const [match, setMatch] = useState(initial.get("match") || "");
   const [data, setData] = useState<Dashboard | null>(null);
@@ -134,9 +136,9 @@ export default function App() {
     if (sample) params.set("sample", "true");
     if (team) params.set("team", team);
     if (match) params.set("match", match);
-    params.set("day", day);
+    if (!matchday.followingToday) params.set("day", day);
     history.replaceState(null, "", `${location.pathname}?${params}`);
-  }, [view, sample, day, team, match]);
+  }, [view, sample, day, team, match, matchday.followingToday]);
 
   useEffect(() => {
     if (sample) return;
@@ -221,9 +223,7 @@ export default function App() {
     window.setTimeout(() => heading.current?.focus(), 0);
   }
   function dateChange(delta: number) {
-    const date = new Date(day + "T12:00:00");
-    date.setDate(date.getDate() + delta);
-    setDay(localDay(date));
+    matchday.move(delta);
     setMatch("");
   }
   function select(goal: Goal) {
@@ -1142,6 +1142,20 @@ export default function App() {
                             Free-plan scores are delayed. Match coverage and
                             freshness depend on your provider plan.
                           </p>
+                          <p>
+                            Run <code>./scripts/configure-provider.ps1</code> to
+                            enter your key privately on this computer.
+                          </p>
+                          <p>
+                            <a
+                              href="https://www.football-data.org"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Football data provided by the Football-Data.org
+                              API
+                            </a>
+                          </p>
                         </section>
                         <section>
                           <h2>Check Reddit access first</h2>
@@ -1149,6 +1163,11 @@ export default function App() {
                             A Reddit login does not establish API approval. Only
                             enable the connector if you already have an approved
                             app. Credentials belong in server-side user secrets.
+                          </p>
+                          <p>
+                            New public Data API access requests are closed.
+                            Reddit’s app-registration page is for existing API
+                            apps; it does not issue a new API key.
                           </p>
                           <p>
                             Set <code>Reddit:Enabled</code> and either an OAuth
@@ -1257,12 +1276,22 @@ export default function App() {
         >
           <ChevronLeft size={16} />
         </button>
-        <span>
+        <button
+          className="today-control"
+          aria-label="Go to today"
+          aria-pressed={matchday.followingToday}
+          onClick={() => {
+            matchday.today();
+            setMatch("");
+          }}
+          title="Follow today automatically"
+        >
           {new Intl.DateTimeFormat(undefined, {
             month: "short",
             day: "numeric",
           }).format(selectedDate)}
-        </span>
+          <small>{matchday.followingToday ? "Today" : "Go to today"}</small>
+        </button>
         <button
           className="icon-button"
           aria-label="Next day"

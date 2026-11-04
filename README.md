@@ -28,7 +28,9 @@ Automatic fixtures and automatic Reddit goal discovery require your own provider
 
 ## Connect fixtures
 
-Register at [football-data.org](https://www.football-data.org/client/register). From this project directory, configure the backend with .NET user secrets:
+Register at [football-data.org](https://www.football-data.org/client/register). Once your key is issued, run `./scripts/configure-provider.ps1` in PowerShell 7. The prompt masks your key and sends it to .NET user secrets through stdin, avoiding command history and process arguments. Restart the backend afterwards. Pass `-DotNet /path/to/dotnet` if the SDK is outside PATH.
+
+For an alternative manual setup, configure .NET user secrets from this project directory:
 
 ```powershell
 dotnet user-secrets set 'FootballData:Token' '<your-key>' --project src/Touchline.Api
@@ -87,3 +89,5 @@ Sources: [football-data match documentation](https://docs.football-data.org/gene
 `/api/live?day=YYYY-MM-DD` sends a server-sent event stream. The browser receives changed dashboard snapshots without REST polling. Content hashes suppress identical snapshots; heartbeats keep the connection alive. Local clip changes are detected within two seconds. The browser reconnects after interruptions and pauses its connection while hidden or offline. The selected video remains mounted as other goals arrive.
 
 This transport does not change the upstream providers’ delay or create access. Actual goals require approved Reddit credentials and actual fixtures require a football-data key. Free-plan scores can be delayed. Sample mode remains fictional and does not subscribe to the live feed. Source failures retain existing content and are visible in Sources.
+
+The matchday date has a Today action. Today follows local midnight and foregrounding automatically, and does not pin a stale date into the URL. Deliberately browsed dates remain bookmarked until Today is selected again. Run `node scripts/verify-matchday.mjs` to check the rollover and explicit-date behavior.
