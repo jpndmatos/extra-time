@@ -36,7 +36,7 @@ The workflow takes the repository base path from `configure-pages`, builds `web/
 
 ## Railway API service
 
-The repository includes an API-only Dockerfile and `railway.json` with a health check and one continuously running instance. Deploy from the repository root. Mount a persistent volume at `/data`, configure `Hosting__AllowedOrigins__0=https://jpndmatos.github.io`, and set `RAILWAY_RUN_UID=0` for Railway's root-owned volume. Public read-only mode and `/data/touchline.db` are already container defaults. Keep the service awake to collect goals without viewers. The frontend is deployed separately through Pages.
+The repository includes a Dockerfile and `railway.json` with a health check and one continuously running instance. The container serves the frontend too, as a fallback if Pages is unavailable; its build uses browser-local preferences without a separate API origin. Deploy from the repository root. Mount a persistent volume at `/data`, configure `Hosting__AllowedOrigins__0=https://jpndmatos.github.io`, and set `RAILWAY_RUN_UID=0` for Railway's root-owned volume. Public read-only mode and `/data/touchline.db` are already container defaults. Keep the service awake to collect goals without viewers. The primary frontend can be deployed separately through Pages.
 
 Generate an HTTPS service domain, verify `/api/health`, then save that origin as `TOUCHLINE_API_URL` in the GitHub repository and run the Pages workflow. RSS discovery works without provider secrets, subject to its stated limits. Credentials for optional providers must be configured only through the host's secret settings.
 

@@ -1,9 +1,18 @@
+FROM node:22-alpine AS frontend
+WORKDIR /source/web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+COPY web/ ./
+ENV VITE_BROWSER_PREFERENCES=true
+RUN npm run build
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /source
 COPY Directory.Build.props ./
 COPY src/Touchline.Api/Touchline.Api.csproj src/Touchline.Api/
 RUN dotnet restore src/Touchline.Api/Touchline.Api.csproj
 COPY src/Touchline.Api/ src/Touchline.Api/
+COPY --from=frontend /source/web/dist/ web/dist/
 RUN dotnet publish src/Touchline.Api/Touchline.Api.csproj -c Release --no-restore -o /publish -p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
