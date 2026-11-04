@@ -142,6 +142,11 @@ try {
   await page
     .getByRole("button", { name: "Hide spoilers", exact: true })
     .click();
+  await expect(page.locator(".scoreboard-result")).toHaveAttribute(
+    "aria-label",
+    "Score hidden",
+  );
+  await expect(page.locator(".post-details")).toHaveCount(0);
   await page.getByRole("searchbox", { name: "Search goals" }).fill("Felix");
   await expect(page.locator(".goal-row")).toHaveCount(0);
   await page.getByRole("searchbox", { name: "Search goals" }).fill("Atleti");
@@ -163,6 +168,19 @@ try {
         .analyze()
     ).violations.map((item) => item.id),
   ).toEqual([]);
+  expect(
+    await page
+      .locator(".match-scoreboard")
+      .evaluate((element) => getComputedStyle(element).display),
+  ).toBe("grid");
+  await expect(page.locator(".scoreboard-result")).toHaveAttribute(
+    "aria-label",
+    "Score at this goal: 1 to 0",
+  );
+  await page.getByText("Original post", { exact: true }).click();
+  await expect(
+    page.getByText("Controlled goal - João Félix", { exact: true }),
+  ).toBeVisible();
   await page.setViewportSize({ width: 320, height: 568 });
   for (const name of ["All r/soccer", "Following", "Ones to watch"])
     await expect(

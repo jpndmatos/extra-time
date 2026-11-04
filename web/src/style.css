@@ -1930,3 +1930,189 @@ summary:focus-visible {
   bottom: 0;
   background: var(--color-paper);
 }
+
+/* A football desk: a quiet index, a score strip and an open viewing stage. */
+.topbar .brand {
+  font-size: 31px;
+  letter-spacing: -1px;
+}
+.topbar .brand > svg {
+  display: none;
+}
+.topbar nav button {
+  border-radius: 0;
+  border-bottom: 2px solid var(--color-clear);
+}
+.topbar nav button[aria-current="page"] {
+  background: var(--color-clear);
+  border-bottom-color: var(--color-accent);
+}
+.feed-tabs > button {
+  border-radius: 0;
+  border-bottom: 2px solid var(--color-clear);
+}
+.feed-tabs > button[aria-pressed="true"] {
+  color: var(--color-ink);
+  background: var(--color-clear);
+  border-bottom-color: var(--color-accent);
+}
+.goal-queue {
+  background: var(--color-paper);
+  border-radius: 0;
+  border-right: 1px solid var(--color-rule);
+}
+.goal-queue .section-bar {
+  padding-left: var(--space-xs);
+}
+.goal-search {
+  margin-left: var(--space-xs);
+}
+.goal-search input {
+  border-color: var(--color-rule);
+  background: var(--color-paper-2);
+}
+.goal-row {
+  padding-block: var(--space-md);
+}
+.goal-minute {
+  align-self: flex-start;
+  padding-top: var(--space-3xs);
+  font: 400 20px/1.2 var(--font-display);
+  width: 38px;
+}
+.goal-row.selected .goal-minute {
+  color: var(--color-accent);
+}
+.goal-row:not(.selected) .queue-play {
+  color: var(--color-muted);
+}
+.queue-play {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--color-accent);
+  flex: none;
+}
+.goal-copy strong {
+  margin-top: var(--space-xs);
+}
+.goal-copy small {
+  column-gap: var(--space-xs);
+}
+.watched-note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+}
+.match-rail {
+  border-radius: 0;
+  background: var(--color-paper);
+  border-left: 1px solid var(--color-rule);
+}
+.match-rail .section-bar,
+.match-group-heading,
+.match-rail > .date-control {
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+.fixture-meta {
+  font-size: 11px;
+}
+.player-header {
+  min-height: 58px;
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--color-rule);
+}
+.player-header > .match-scoreboard:first-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: var(--space-md);
+}
+.scoreboard-team {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--space-xs);
+}
+.scoreboard-team.home {
+  justify-content: flex-end;
+}
+.scoreboard-team.home > .team-crest {
+  order: 1;
+}
+.scoreboard-team > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scoreboard-result {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.scoreboard-result > span {
+  color: var(--color-muted);
+  font-weight: 400;
+}
+.clip-details h2 {
+  font: 400 clamp(24px, 2.1vw, 32px)/1.15 var(--font-display);
+  text-wrap: initial;
+}
+.clip-details p {
+  margin-top: var(--space-xs);
+}
+.post-details {
+  margin-top: var(--space-xs);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+.post-details summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.post-details summary::before {
+  content: "+";
+}
+.post-details[open] summary::before {
+  content: "−";
+}
+.post-details p {
+  font-size: var(--text-xs);
+}
+.watch-reason {
+  margin-top: var(--space-xs);
+}
+@media (max-width: 760px) {
+  .goal-queue {
+    border-right: 0;
+  }
+  .player-header {
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    min-height: 58px;
+  }
+  .player-header > .match-scoreboard:first-child {
+    flex: 1 1 100%;
+    gap: var(--space-xs);
+  }
+  .player-header .icon-button {
+    min-height: 32px;
+  }
+  .scoreboard-team {
+    font-size: var(--text-xs);
+  }
+  .scoreboard-result {
+    font-size: 23px;
+  }
+  .clip-details h2 {
+    font-size: 28px;
+  }
+}

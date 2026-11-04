@@ -1032,15 +1032,27 @@ export default function App() {
                                           hour: "2-digit",
                                           minute: "2-digit",
                                         }).format(new Date(goal.publishedAt))}
-                                    {prefs.watched.includes(goal.id)
-                                      ? " / Watched"
-                                      : ""}
+                                    {prefs.watched.includes(goal.id) && (
+                                      <span className="watched-note">
+                                        <Check size={12} aria-hidden="true" />
+                                        Watched
+                                      </span>
+                                    )}
                                     {goal.alternatives.length
                                       ? ` / ${goal.alternatives.length} alternate`
                                       : ""}
                                   </small>
                                 </span>
-                                <Play size={14} />
+                                <span className="queue-play" aria-hidden="true">
+                                  <Play
+                                    size={13}
+                                    fill={
+                                      selected?.id === goal.id
+                                        ? "currentColor"
+                                        : "none"
+                                    }
+                                  />
+                                </span>
                               </button>
                             ))
                           ) : (
@@ -1130,20 +1142,45 @@ export default function App() {
                         {selected ? (
                           <>
                             <div className="player-header">
-                              <span>
-                                <TeamCrest
-                                  team={data.teams.find(
-                                    (t) => t.id === selected.homeId,
+                              <span className="match-scoreboard">
+                                <span className="scoreboard-team home">
+                                  <TeamCrest
+                                    team={data.teams.find(
+                                      (t) => t.id === selected.homeId,
+                                    )}
+                                  />
+                                  <span title={name(selected.homeId)}>
+                                    {name(selected.homeId)}
+                                  </span>
+                                </span>
+                                <strong
+                                  className="scoreboard-result"
+                                  aria-label={
+                                    hideScore
+                                      ? "Score hidden"
+                                      : `Score at this goal: ${selected.homeScore} to ${selected.awayScore}`
+                                  }
+                                >
+                                  {hideScore ? (
+                                    <EyeOff size={18} />
+                                  ) : (
+                                    <>
+                                      {selected.homeScore}
+                                      <span>:</span>
+                                      {selected.awayScore}
+                                    </>
                                   )}
-                                />
-                                {name(selected.homeId)}{" "}
-                                <span className="muted">vs</span>{" "}
-                                {name(selected.awayId)}
-                                <TeamCrest
-                                  team={data.teams.find(
-                                    (t) => t.id === selected.awayId,
-                                  )}
-                                />
+                                </strong>
+                                <span className="scoreboard-team away">
+                                  <TeamCrest
+                                    team={data.teams.find(
+                                      (t) => t.id === selected.awayId,
+                                    )}
+                                  />
+                                  <span title={name(selected.awayId)}>
+                                    {name(selected.awayId)}
+                                  </span>
+                                </span>
                               </span>
                               <button
                                 type="button"
@@ -1276,7 +1313,7 @@ export default function App() {
                                     ? "Scores and scorers stay hidden until you reveal this goal."
                                     : selected.sample
                                       ? "Fictional goal metadata for the sample workspace."
-                                      : selected.title}
+                                      : `${selected.minute}′ / ${name(selected.homeId)} vs ${name(selected.awayId)}`}
                                 </p>
                                 {selected.watchReason && (
                                   <a
@@ -1293,10 +1330,17 @@ export default function App() {
                                     <ExternalLink size={12} />
                                   </a>
                                 )}
-                                {selected.author && (
-                                  <p>
-                                    Posted to r/soccer by u/{selected.author}
-                                  </p>
+                                {!hideScore && !selected.sample && (
+                                  <details className="post-details">
+                                    <summary>Original post</summary>
+                                    <p>{selected.title}</p>
+                                    {selected.author && (
+                                      <p>
+                                        Posted to r/soccer by u/
+                                        {selected.author}
+                                      </p>
+                                    )}
+                                  </details>
                                 )}
                               </div>
                               <div className="clip-actions">
