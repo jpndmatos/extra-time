@@ -94,7 +94,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const problem = await response.json().catch(() => ({}));
     throw new Error(
-      typeof problem.detail === "string" && problem.detail.trim()
+      typeof problem?.detail === "string" && problem.detail.trim()
         ? problem.detail.slice(0, 500)
         : "Touchline could not complete the request. Try again.",
     );

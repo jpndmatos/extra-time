@@ -23,6 +23,37 @@ jobs:
       - run: npm --prefix web test
       - run: npm --prefix web run build
       - run: dotnet test Touchline.sln --configuration Release --nologo
+      - name: Install browser verification tools
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Start isolated UI verification host
+        env:
+          DatabasePath: ${{ runner.temp }}/touchline-ui.db
+          Reddit__PublicFeedEnabled: "false"
+          Reddit__Enabled: "false"
+          FootballData__Token: ""
+          Logging__LogLevel__Default: Warning
+        run: |
+          dotnet run --project src/Touchline.Api --configuration Release --no-build --no-launch-profile --urls http://127.0.0.1:5195 > "$RUNNER_TEMP/touchline-ui.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:5195/api/health; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:5195/api/health
+      - name: Verify responsive UI, accessibility and playback recovery
+        run: npm run test:browser
+      - name: Save browser verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-verification
+          path: |
+            docs/workspace.png
+            docs/mobile.png
+            docs/viewport-*.png
+            ${{ runner.temp }}/touchline-ui.log
+          retention-days: 7
       - name: Build API container
         run: docker build -t touchline-api .
       - name: Verify API container

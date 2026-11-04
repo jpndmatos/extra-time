@@ -1,13 +1,8 @@
-import {
-  chromium,
-  devices,
-  expect,
-} from "../../relay/web/node_modules/@playwright/test/index.mjs";
-import AxeBuilder from "../../relay/web/node_modules/@axe-core/playwright/dist/index.mjs";
+import { chromium, devices, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
 const browser = await chromium.launch();
-const api = await browser.newContext();
 await mkdir(new URL("../docs/", import.meta.url), { recursive: true });
 async function fits(page, label) {
   const size = await page.evaluate(() => ({
@@ -40,6 +35,7 @@ try {
     [1440, 900],
     [1280, 800],
     [1024, 768],
+    [844, 390],
     [390, 844],
     [375, 812],
     [320, 568],
@@ -115,21 +111,28 @@ try {
       await page.locator(".seen-goals > summary").click();
     await firstGoal.click();
     await expect(
-      page.getByRole("heading", { name: "67 minutes. In the net." }),
+      page.getByRole("heading", { name: "Sample goal" }),
     ).toBeVisible();
     await page
       .getByRole("button", { name: "Hide spoilers", exact: true })
       .click();
     await expect(
-      page.getByRole("heading", { name: "A goal worth waiting for." }),
+      page.getByRole("heading", { name: "Goal hidden" }),
     ).toBeVisible();
     await page
       .getByRole("button", { name: "Reveal goal", exact: true })
       .click();
     await expect(
-      page.getByRole("heading", { name: "67 minutes. In the net." }),
+      page.getByRole("heading", { name: "Sample goal" }),
     ).toBeVisible();
     await fits(page, `Player ${width}`);
+    const controlBounds = await page
+      .locator(".clip-actions")
+      .evaluate((node) => node.getBoundingClientRect().bottom);
+    expect(
+      controlBounds,
+      "Playback controls fit the viewport",
+    ).toBeLessThanOrEqual(height);
     if (width === 390) {
       await accessible(page, "Mobile player");
       await page.screenshot({
@@ -184,63 +187,6 @@ try {
       `PASS ${width}x${height}: all goals, search, spoilers, seen state, player and viewport.`,
     );
   }
-
-  // Run only against a disposable local database: this branch exercises real API writes.
-  if (process.env.TOUCHLINE_ALLOW_WRITES === "1") {
-    const context = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
-    });
-    const page = await context.newPage();
-    const original = await (
-      await page.request.get(`${base}/api/preferences`)
-    ).json();
-    let goal;
-    try {
-      await page.route("https://streamable.com/e/testclip*", (route) =>
-        route.fulfill({
-          contentType: "text/html",
-          body: "<!doctype html><title>Test clip host</title><main>Isolated playback test</main>",
-        }),
-      );
-      await page.goto(base);
-      await page.getByRole("button", { name: "Add clip", exact: true }).click();
-      await page
-        .getByLabel("Reddit post title")
-        .fill("Benfica [1]-0 FC Porto - Test player 18'");
-      await page
-        .getByLabel("Reddit thread URL")
-        .fill("https://www.reddit.com/r/soccer/comments/touchlinetest/goal/");
-      await page.getByLabel("Clip URL").fill("https://streamable.com/testclip");
-      await page
-        .getByRole("button", { name: "Add to goal room", exact: true })
-        .click();
-      await expect(
-        page.getByRole("heading", { name: "Test player", exact: true }),
-      ).toBeVisible();
-
-      await expect(
-        page.frameLocator("iframe").getByText("Isolated playback test"),
-      ).toBeVisible();
-      const data = await (
-        await page.request.get(`${base}/api/dashboard`)
-      ).json();
-      goal = data.goals.find((g) => g.sourceUrl.includes("touchlinetest"));
-      expect(goal.media.url).toBe("https://streamable.com/e/testclip");
-      await page.reload();
-      await expect(
-        page.getByRole("heading", { name: "Test player", exact: true }),
-      ).toBeVisible();
-      await accessible(page, "Real mode manual goal");
-      console.log(
-        "PASS real mode: manual goal import, SQLite persistence and isolated iframe playback.",
-      );
-    } finally {
-      if (goal) await page.request.delete(`${base}/api/clips/${goal.id}`);
-      await page.request.put(`${base}/api/preferences`, { data: original });
-      await context.close();
-    }
-  }
 } finally {
-  await api.close();
   await browser.close();
 }

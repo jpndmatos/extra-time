@@ -861,12 +861,8 @@ form .notice {
   }
 }
 @media (max-height: 450px) {
-  .main {
-    overflow: auto;
-  }
-  .goal-workspace {
-    flex: none;
-    min-height: 400px;
+  .video-stage {
+    min-height: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2765,6 +2761,14 @@ summary:focus-visible {
   color: #df874d;
   background: #223b2d;
 }
+.refresh[aria-busy="true"] svg {
+  animation: refresh-turn 900ms linear infinite;
+}
+@keyframes refresh-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .goal-hub-header .header-tools .spoiler-toggle[aria-pressed="true"] {
   color: #f0aa79;
   background: #244b37;
@@ -3008,4 +3012,46 @@ summary:focus-visible {
 .goal-queue .connection-status > summary:focus-visible {
   outline: 1px solid var(--color-green-signal);
   outline-offset: 2px;
+}
+
+/* Short windows reserve space for controls instead of forcing a 400px workspace. */
+@media (max-height: 500px) {
+  .video-stage {
+    min-height: 0;
+    overflow: auto;
+  }
+  .video-stage iframe {
+    min-height: 0;
+  }
+  .stage-message {
+    padding: 10px 16px;
+  }
+  .stage-message h2 {
+    font-size: 18px;
+    margin-top: 6px;
+  }
+  .stage-message p {
+    font-size: 11px;
+    margin-block: 6px;
+  }
+  .scoreline strong {
+    font-size: 32px;
+  }
+  .match-goals > button {
+    min-height: 44px;
+    padding-block: 4px;
+  }
+}
+@media (max-height: 500px) and (min-width: 761px) {
+  .goal-info {
+    grid-template-columns: minmax(190px, 0.9fr) minmax(0, 1.1fr);
+    gap: 12px;
+    padding-block: 7px;
+  }
+  .goal-info .scorer-heading {
+    font-size: 16px;
+  }
+  .match-scoreline {
+    gap: 6px;
+  }
 }

@@ -1,8 +1,8 @@
 import {
   chromium,
   expect,
-} from "../../relay/web/node_modules/@playwright/test/index.mjs";
-import AxeBuilder from "../../relay/web/node_modules/@axe-core/playwright/dist/index.mjs";
+} from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 const browser = await chromium.launch();
 try {
   const context = await browser.newContext();

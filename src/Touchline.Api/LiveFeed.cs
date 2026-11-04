@@ -1,11 +1,8 @@
-using System.Security.Cryptography;
-using System.Text.Json;
-
 namespace Touchline;
 
 public static class LiveFeed
 {
-    public static async Task Stream(HttpContext context, Providers providers, Store store, TimeProvider clock)
+    public static async Task Stream(HttpContext context, LiveSnapshots snapshots, TimeProvider clock)
     {
         var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
         var day = today;
@@ -27,16 +24,13 @@ public static class LiveFeed
         {
             while (!ct.IsCancellationRequested)
             {
-                var dashboard = await providers.Dashboard(day, store, ct);
+                var snapshot = await snapshots.Get(day, ct);
                 // Transport heartbeats must not cause React to replace an unchanged
                 // dashboard or reload the currently playing third-party iframe.
-                var content = JsonSerializer.Serialize(new { dashboard.Teams, dashboard.Matches, dashboard.Goals, dashboard.Sources }, JsonDefaults.Options);
-                var version = Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(content)));
-                if (version != lastVersion)
+                if (snapshot.Version != lastVersion)
                 {
-                    var json = JsonSerializer.Serialize(dashboard, JsonDefaults.Options);
-                    await context.Response.WriteAsync($"id: {version}\nevent: dashboard\ndata: {json}\n\n", ct);
-                    lastVersion = version;
+                    await context.Response.WriteAsync($"id: {snapshot.Version}\nevent: dashboard\ndata: {snapshot.Json}\n\n", ct);
+                    lastVersion = snapshot.Version;
                 }
                 await context.Response.WriteAsync($"event: heartbeat\ndata: {clock.GetUtcNow():O}\n\n", ct);
                 await context.Response.Body.FlushAsync(ct);

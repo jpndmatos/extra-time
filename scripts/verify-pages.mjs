@@ -2,7 +2,7 @@
 import {
   chromium,
   expect,
-} from "../../relay/web/node_modules/@playwright/test/index.mjs";
+} from "@playwright/test";
 const browser = await chromium.launch();
 try {
   const context = await browser.newContext({

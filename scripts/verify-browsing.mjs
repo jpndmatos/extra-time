@@ -2,8 +2,8 @@
 import {
   chromium,
   expect,
-} from "../../relay/web/node_modules/@playwright/test/index.mjs";
-import AxeBuilder from "../../relay/web/node_modules/@axe-core/playwright/dist/index.mjs";
+} from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
 const browser = await chromium.launch();
 async function openSeen(page) {

@@ -2,7 +2,7 @@
 import {
   chromium,
   expect,
-} from "../../relay/web/node_modules/@playwright/test/index.mjs";
+} from "@playwright/test";
 if (process.env.TOUCHLINE_ALLOW_WRITES !== "1" || !process.env.TOUCHLINE_URL)
   throw new Error(
     "Set TOUCHLINE_URL to a disposable host and TOUCHLINE_ALLOW_WRITES=1.",

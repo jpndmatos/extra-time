@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ArrowLeft,
   Check,
@@ -16,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 import ClipPlayback, { warmClip } from "./ClipPlayback";
+import GoalRow from "./GoalRow";
 import TeamCrest from "./TeamCrest";
 import { appBase, browserPreferences } from "./api";
 import { clubCrest } from "./goalCategories";
@@ -77,6 +85,7 @@ export default function App() {
   const [mobilePlayer, setMobilePlayer] = useState(false);
   const [cinema, setCinema] = useState(false);
   const [query, setQuery] = useState((initial.get("q") || "").slice(0, 100));
+  const searchQuery = useDeferredValue(query);
   const [revealed, setRevealed] = useState<string[]>([]);
   const [newCount, setNewCount] = useState(0);
   const known = useRef<Set<string> | null>(null);
@@ -223,31 +232,62 @@ export default function App() {
       }
     });
   }
-  function markSeen(goal: Goal) {
-    if (
-      !ready ||
-      (latest.current.spoilers && !revealed.includes(goal.id)) ||
-      latest.current.watched.includes(goal.id)
-    )
-      return;
-    save({
-      ...latest.current,
-      watched: [...latest.current.watched, goal.id].slice(-1000),
-    });
-  }
-  function select(goal: Goal) {
-    if (latest.current.watched.includes(goal.id) && seenAccordion.current)
-      seenAccordion.current.open = true;
-    setSelectedId(goal.id);
-    setMobilePlayer(true);
-    setNewCount(0);
-    markSeen(goal);
-  }
-  const goals = data
-    ? searchGoals(data.goals, data.teams, query, prefs.spoilers, revealed)
-    : [];
-  const unseenGoals = goals.filter((goal) => !prefs.watched.includes(goal.id));
-  const seenGoals = goals.filter((goal) => prefs.watched.includes(goal.id));
+  const markSeen = useCallback(
+    (goal: Goal) => {
+      if (
+        !ready ||
+        (latest.current.spoilers && !revealed.includes(goal.id)) ||
+        latest.current.watched.includes(goal.id)
+      )
+        return;
+      save({
+        ...latest.current,
+        watched: [...latest.current.watched, goal.id].slice(-1000),
+      });
+    },
+    [ready, revealed],
+  );
+  const select = useCallback(
+    (goal: Goal) => {
+      if (latest.current.watched.includes(goal.id) && seenAccordion.current)
+        seenAccordion.current.open = true;
+      setSelectedId(goal.id);
+      setMobilePlayer(true);
+      setNewCount(0);
+      markSeen(goal);
+    },
+    [markSeen],
+  );
+  const chooseRow = useCallback(
+    (goal: Goal, keyboard: boolean) => {
+      if (keyboard) list.current?.focus();
+      select(goal);
+    },
+    [select],
+  );
+  const goals = useMemo(
+    () =>
+      data
+        ? searchGoals(
+            data.goals,
+            data.teams,
+            searchQuery,
+            prefs.spoilers,
+            revealed,
+          )
+        : [],
+    [data, searchQuery, prefs.spoilers, revealed],
+  );
+  const watched = useMemo(() => new Set(prefs.watched), [prefs.watched]);
+  const visibleDetails = useMemo(() => new Set(revealed), [revealed]);
+  const unseenGoals = useMemo(
+    () => goals.filter((goal) => !watched.has(goal.id)),
+    [goals, watched],
+  );
+  const seenGoals = useMemo(
+    () => goals.filter((goal) => watched.has(goal.id)),
+    [goals, watched],
+  );
   const selected =
     data?.goals.find((goal) => goal.id === selectedId) || goals[0];
   const hideScore = !!(
@@ -255,7 +295,7 @@ export default function App() {
     selected &&
     !revealed.includes(selected.id)
   );
-  const match = matchGoals(data, selected);
+  const match = useMemo(() => matchGoals(data, selected), [data, selected]);
   useEffect(() => {
     if (!selectedId && selected) setSelectedId(selected.id);
   }, [selectedId, selected?.id]);
@@ -286,89 +326,47 @@ export default function App() {
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [cinema]);
-  const club = (id: string) => data?.teams.find((team) => team.id === id);
-  const name = (id: string) =>
-    club(id)?.name ||
-    data?.goals.find((goal) => goal.homeId === id)?.homeName ||
-    data?.goals.find((goal) => goal.awayId === id)?.awayName ||
-    id;
+  const clubs = useMemo(
+    () => new Map(data?.teams.map((team) => [team.id, team])),
+    [data?.teams],
+  );
+  const crests = useMemo(
+    () =>
+      new Map(
+        data?.teams.map((team) => [team.id, clubCrest(team, data.teams)]),
+      ),
+    [data?.teams],
+  );
+  const names = useMemo(() => {
+    const index = new Map(data?.teams.map((team) => [team.id, team.name]));
+    for (const goal of data?.goals || []) {
+      if (goal.homeName && !index.has(goal.homeId))
+        index.set(goal.homeId, goal.homeName);
+      if (goal.awayName && !index.has(goal.awayId))
+        index.set(goal.awayId, goal.awayName);
+    }
+    return index;
+  }, [data?.teams, data?.goals]);
+  const club = (id: string) => clubs.get(id);
+  const name = (id: string) => names.get(id) || id;
   const minute = (goal: Goal) => (goal.minute ? `${goal.minute}′` : "Goal");
 
   function renderGoal(goal: Goal) {
-    const hidden = prefs.spoilers && !revealed.includes(goal.id),
-      watched = prefs.watched.includes(goal.id);
     return (
-      <button
-        type="button"
+      <GoalRow
         key={goal.id}
-        data-goal-id={goal.id}
-        className={`goal-row${selected?.id === goal.id ? " selected" : ""}${watched ? " watched" : ""}`}
-        onClick={(event) => {
-          if (event.detail === 0) list.current?.focus();
-          select(goal);
-        }}
-        onPointerEnter={() => {
-          if (!hidden) void warmClip(goal.media).catch(() => {});
-        }}
-        onFocus={() => {
-          if (!hidden) void warmClip(goal.media).catch(() => {});
-        }}
-        aria-pressed={selected?.id === goal.id}
-        aria-label={`${name(goal.homeId)} ${hidden ? "versus" : `${goal.homeScore}–${goal.awayScore}`} ${name(goal.awayId)}${hidden ? ", reveal goal" : `, ${goal.minute || "unknown"} minutes`}${watched ? ", watched" : ""}`}
-      >
-        <span className="goal-minute">
-          {hidden ? <EyeOff size={15} /> : minute(goal)}
-        </span>
-        <span className="goal-copy">
-          <span className="goal-matchup">
-            {[goal.homeId, goal.awayId].map((id, side) => (
-              <span className="goal-team" key={`${side}-${id}`}>
-                <TeamCrest
-                  team={club(id)}
-                  src={clubCrest(club(id), data?.teams || [], name(id))}
-                />
-                <span className="goal-team-name" title={name(id)}>
-                  {name(id)}
-                </span>
-                <b>
-                  {hidden ? "—" : side === 0 ? goal.homeScore : goal.awayScore}
-                </b>
-              </span>
-            ))}
-          </span>
-          <strong>{hidden ? "Goal details hidden" : goal.scorer}</strong>
-          {!hidden && (goal.watchReason || goal.alternatives.length > 0) && (
-            <small>
-              {goal.watchReason && (
-                <span
-                  className="watch-tag"
-                  title="Label from a Reddit post title"
-                >
-                  <Star size={11} />
-                  {goal.watchReason}
-                </span>
-              )}
-              {goal.alternatives.length > 0 && (
-                <span>{goal.alternatives.length} alternate</span>
-              )}
-            </small>
-          )}
-        </span>
-        <span
-          className="queue-play"
-          aria-hidden="true"
-          title={watched ? "Watched" : "Unwatched"}
-        >
-          {watched && selected?.id !== goal.id ? (
-            <Check size={13} />
-          ) : (
-            <Play
-              size={13}
-              fill={selected?.id === goal.id ? "currentColor" : "none"}
-            />
-          )}
-        </span>
-      </button>
+        goal={goal}
+        home={club(goal.homeId)}
+        away={club(goal.awayId)}
+        homeName={name(goal.homeId)}
+        awayName={name(goal.awayId)}
+        homeCrest={crests.get(goal.homeId)}
+        awayCrest={crests.get(goal.awayId)}
+        selected={selected?.id === goal.id}
+        watched={watched.has(goal.id)}
+        hidden={prefs.spoilers && !visibleDetails.has(goal.id)}
+        onSelect={chooseRow}
+      />
     );
   }
 
@@ -442,6 +440,7 @@ export default function App() {
               className="icon-button refresh"
               title="Refresh goals"
               aria-label="Refresh goals"
+              aria-busy={loading}
               disabled={loading}
               onClick={() => setRefresh((value) => value + 1)}
             >
@@ -606,11 +605,6 @@ export default function App() {
                   </div>
                 )}
               </div>
-              {loading && (
-                <div className="queue-footer" role="status">
-                  Refreshing…
-                </div>
-              )}
               <details className="connection-status" ref={connections}>
                 <summary aria-label="Connections and refresh status">
                   {sample ? (
@@ -731,8 +725,8 @@ export default function App() {
                     {hideScore ? (
                       <div className="stage-message">
                         <EyeOff size={30} />
-                        <h2>A goal worth waiting for.</h2>
-                        <p>Reveal this goal when you’re ready.</p>
+                        <h2>Goal hidden</h2>
+                        <p>Reveal the clip, score and scorer.</p>
                         <button
                           type="button"
                           className="primary"
@@ -754,25 +748,9 @@ export default function App() {
                       />
                     ) : (
                       <div className="stage-message">
-                        <div className="scoreline">
-                          <span>
-                            {club(selected.homeId)?.shortName ||
-                              name(selected.homeId)}
-                          </span>
-                          <strong>
-                            {selected.homeScore}
-                            <i>:</i>
-                            {selected.awayScore}
-                          </strong>
-                          <span>
-                            {club(selected.awayId)?.shortName ||
-                              name(selected.awayId)}
-                          </span>
-                        </div>
+                        <GoalIcon size={26} aria-hidden="true" />
                         <h2>
-                          {selected.minute
-                            ? `${selected.minute} minutes. In the net.`
-                            : "In the net."}
+                          {selected.sample ? "Sample goal" : "Clip unavailable"}
                         </h2>
                         <p>
                           {selected.sample

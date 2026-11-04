@@ -13,6 +13,12 @@ builder.Services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<Store>();
 builder.Services.AddSingleton<Providers>();
+builder.Services.AddSingleton(services =>
+{
+    var providers = services.GetRequiredService<Providers>();
+    var store = services.GetRequiredService<Store>();
+    return new LiveSnapshots((day, ct) => providers.Dashboard(day, store, ct), services.GetRequiredService<TimeProvider>());
+});
 builder.Services.AddHostedService<GoalCollector>();
 builder.Services.AddSingleton<ClipMedia>();
 builder.Services.AddHttpClient("providers", client => { client.Timeout = TimeSpan.FromSeconds(12); client.MaxResponseContentBufferSize = 3_000_000; });

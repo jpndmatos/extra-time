@@ -2,7 +2,7 @@
 import {
   chromium,
   expect,
-} from "../../relay/web/node_modules/@playwright/test/index.mjs";
+} from "@playwright/test";
 const browser = await chromium.launch();
 const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
 try {

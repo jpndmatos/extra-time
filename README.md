@@ -72,24 +72,30 @@ Streamin playback shares one metadata request across simultaneous viewers, limit
 
 This is a **single-user local application**, bound to loopback by default. Its SQLite file is `src/Touchline.Api/data/touchline.db` when launched normally. Set `DatabasePath` to choose another file. Seen state, spoiler preferences and previously added clips persist there. Legacy favourite fields and API endpoints remain compatible but do not filter the hub. Sample preferences use the separate `touchline.sample` browser-storage key.
 
-It has no multi-user login or public deployment configuration. Keep it local; an internet service would need accounts, per-user storage and an approved long-term clip provider. The provider boundary is separate from the UI so a supported source can replace Reddit later.
+The public deployment serves a read-only feed and keeps each visitor's viewing history in their own browser. It does not expose the local preference or manual-import endpoints. See the deployment guide for the API origin and persistent volume setup. The provider boundary is separate from the UI so a supported source can replace Reddit later.
 
-The layout fills the full viewport. Cinema view expands the player; Escape restores the feed. Longer lists scroll inside keyboard-focusable panels. On phones, selecting a goal opens its player with Back to goals. The UI has no catalogue, favourites, fixture pages or navigation tabs. Very short landscape windows permit workspace scrolling.
+The layout fills the full viewport. Cinema view expands the player; Escape restores the feed. Longer lists scroll inside keyboard-focusable panels. On phones, selecting a goal opens its player with Back to goals. Short landscape windows reserve space for playback controls. The UI has no catalogue, favourites, fixture pages or navigation tabs.
+
+Live updates use an event stream with a 45-second heartbeat deadline. If the stream fails, the visible tab polls every 30 seconds while reconnecting with backoff. Hidden/offline tabs stop requests. Event snapshots share their database read and serialization across viewers of the same day. Ordinary API reads avoid a cross-origin preflight.
 
 ## Checks
 
 ```powershell
 dotnet test tests/Touchline.Tests
 npm --prefix web test
-npm --prefix web run build
-node scripts/verify-browser.mjs
-node scripts/verify-playback.mjs
-node scripts/verify-browsing.mjs
+```
+
+Browser verification uses this repository's own tools. Start the local app, then run:
+
+```sh
+npm ci
+npx playwright install chromium
+npm run test:browser
 # Optional: against a disposable host with TOUCHLINE_ALLOW_WRITES=1
 node scripts/verify-live.mjs
 ```
 
-The browser check uses the installed Playwright and axe dependencies from the sibling Relay workspace. It covers 320×568 through 1440×900, all-goal coverage, search, seen state, spoilers, reload persistence and accessibility. Set `TOUCHLINE_URL` to choose a host. The default browser run does not write real preferences or clips. The iframe test intercepts the clip host and never presents a fabricated video as real footage.
+The browser checks use the repository's pinned Playwright and axe dependencies. CI runs them against an isolated host without provider credentials. Coverage includes 320×568 through 1440×900, short landscape screens, search, keyboard browsing, seen state, spoilers, reload persistence, accessibility, playback recovery and offline expiry. Set `TOUCHLINE_URL` to choose a host. The default browser run does not write real preferences or clips. The iframe test intercepts the clip host and never presents fabricated footage as real.
 
 Provider and API tests use temporary SQLite databases and mocked HTTP responses. They cover goal matching, URL allowlists, duplicate grouping, error backoff, API validation, persistence and cross-site write rejection.
 
