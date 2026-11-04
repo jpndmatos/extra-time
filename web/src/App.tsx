@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import ClipPlayback, { warmClip } from "./ClipPlayback";
 import TeamCrest from "./TeamCrest";
+import { appBase, browserPreferences } from "./api";
 import { clubCrest } from "./goalCategories";
 import { searchGoals } from "./goalNavigation";
 import { matchGoals } from "./matchGoals";
@@ -31,11 +32,9 @@ const empty: Preferences = {
   watched: [],
   spoilers: false,
 };
-function samplePreferences(): Preferences {
+function storedPreferences(key: string): Preferences {
   try {
-    const value = JSON.parse(
-      localStorage.getItem("touchline.sample") || "null",
-    );
+    const value = JSON.parse(localStorage.getItem(key) || "null");
     if (
       value &&
       Array.isArray(value.watched) &&
@@ -58,11 +57,16 @@ export default function App() {
   const compact = useCompactPlayer();
   const [data, setData] = useState<Dashboard | null>(null);
   const [prefs, setPrefs] = useState<Preferences>(
-    sample ? samplePreferences : empty,
+    sample || browserPreferences
+      ? () =>
+          storedPreferences(
+            sample ? "touchline.sample" : "touchline.preferences",
+          )
+      : empty,
   );
   const latest = useRef(prefs);
   latest.current = prefs;
-  const [ready, setReady] = useState(sample);
+  const [ready, setReady] = useState(sample || browserPreferences);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [writeError, setWriteError] = useState("");
@@ -155,7 +159,7 @@ export default function App() {
     );
   }, [sample, day, followingToday, query]);
   useEffect(() => {
-    if (sample) return;
+    if (sample || browserPreferences) return;
     const controller = new AbortController();
     request<Preferences>("/api/preferences", { signal: controller.signal })
       .then((value) => {
@@ -191,9 +195,12 @@ export default function App() {
     setPrefs(next);
     latest.current = next;
     setWriteError("");
-    if (sample) {
+    if (sample || browserPreferences) {
       try {
-        localStorage.setItem("touchline.sample", JSON.stringify(next));
+        localStorage.setItem(
+          sample ? "touchline.sample" : "touchline.preferences",
+          JSON.stringify(next),
+        );
       } catch {
         setWriteError(
           "Browser storage is unavailable. Seen goals will last for this visit.",
@@ -372,10 +379,10 @@ export default function App() {
       </a>
       <header className="topbar goal-hub-header">
         <div className="header-browse">
-          <a className="brand" href="/" aria-label="Touchline home">
+          <a className="brand" href={appBase} aria-label="Touchline home">
             <img
               className="brand-mark"
-              src="/icon.svg"
+              src={`${appBase}icon.svg`}
               width="32"
               height="32"
               alt=""
@@ -448,7 +455,7 @@ export default function App() {
           <span>
             Sample workspace. Fictional goal details; no footage supplied.
           </span>
-          <a href="/">Exit sample</a>
+          <a href={appBase}>Exit sample</a>
         </div>
       )}
       <main id="main" className="main view-goals" tabIndex={-1}>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Dashboard } from "./types";
+import { apiUrl } from "./api";
 
 export type LiveState =
   "connecting" | "connected" | "reconnecting" | "paused" | "offline" | "sample";
@@ -35,7 +36,9 @@ export function useLiveFeed(
         return;
       }
       setState("connecting");
-      stream = new EventSource(`/api/live?day=${encodeURIComponent(day)}`);
+      stream = new EventSource(
+        apiUrl(`/api/live?day=${encodeURIComponent(day)}`),
+      );
       stream.onopen = () => setState("connected");
       stream.addEventListener("dashboard", (event) => {
         try {

@@ -1,3 +1,5 @@
+import { apiUrl } from "./api";
+
 export type Team = {
   id: string;
   name: string;
@@ -67,7 +69,7 @@ export type Dashboard = {
 };
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
   });

@@ -4,7 +4,7 @@ A focused r/soccer goal hub: open it, browse the latest available clips, and wat
 
 ![Touchline goal hub playing a real clip](docs/goal-room-live.png)
 
-Read the [project case study](docs/case-study.md) for the UX decisions, implementation and verified limits.
+Read the [project case study](docs/case-study.md) for the UX decisions, implementation and verified limits. For a public frontend with a separately hosted API, follow [GitHub Pages deployment](docs/github-pages.md).
 
 ## Run locally
 

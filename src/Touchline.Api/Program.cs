@@ -6,6 +6,10 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     WebRootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 });
 builder.Configuration.AddUserSecrets<Program>(optional: true).AddEnvironmentVariables().AddCommandLine(args);
+builder.Services.AddCors();
+builder.Services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>().Configure<IConfiguration>((options, config) =>
+    options.AddDefaultPolicy(policy => policy.WithOrigins(config.GetSection("Hosting:AllowedOrigins").Get<string[]>() ?? [])
+        .WithMethods("GET", "POST").WithHeaders("Content-Type")));
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<Store>();
 builder.Services.AddSingleton<Providers>();
@@ -16,19 +20,25 @@ builder.Services.AddHttpClient("clip-metadata", client => { client.Timeout = Tim
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddProblemDetails();
 var app = builder.Build();
+var allowedOrigins = app.Configuration.GetSection("Hosting:AllowedOrigins").Get<string[]>() ?? [];
 app.UseExceptionHandler();
+app.UseCors();
 app.Use(async (ctx, next) =>
 {
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://crests.football-data.org; frame-src https://streamable.com https://www.youtube-nocookie.com https://streamain.com; media-src 'self' https://*.streamin.top; connect-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
     if (ctx.Request.Path.StartsWithSegments("/api")) ctx.Response.Headers.CacheControl = "no-store";
+    if (app.Configuration.GetValue<bool>("Hosting:PublicReadOnly") &&
+        (ctx.Request.Path.StartsWithSegments("/api/preferences") || ctx.Request.Path.StartsWithSegments("/api/clips")))
+    { ctx.Response.StatusCode = 404; return; }
     // This is a single-user localhost app. Cross-site writes must not change it.
     if (ctx.Request.Method is "POST" or "PUT" or "DELETE" && ctx.Request.Headers.Origin.FirstOrDefault() is { } origin)
     {
         var sameOrigin = Uri.TryCreate(origin, UriKind.Absolute, out var uri) && uri.Scheme == ctx.Request.Scheme && uri.Host == ctx.Request.Host.Host && uri.Port == (ctx.Request.Host.Port ?? 80);
         var localDev = origin is "http://127.0.0.1:5194" or "http://localhost:5194";
-        if (!sameOrigin && !localDev) { ctx.Response.StatusCode = 403; return; }
+        var publicMedia = app.Configuration.GetValue<bool>("Hosting:PublicReadOnly") && ctx.Request.Path == "/api/media" && allowedOrigins.Contains(origin);
+        if (!sameOrigin && !localDev && !publicMedia) { ctx.Response.StatusCode = 403; return; }
     }
     await next();
 });

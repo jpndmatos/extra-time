@@ -90,5 +90,30 @@ public class ApiTests : IDisposable
         message.Headers.Add("Origin", "https://other-site.test");
         Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(message)).StatusCode);
     }
+    [Fact]
+    public async Task PublicHostingAllowsConfiguredFrontendButDoesNotExposePersonalState()
+    {
+        using var hosted = factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) =>
+            config.AddInMemoryCollection(new Dictionary<string, string?> {
+                ["Hosting:PublicReadOnly"] = "true", ["Hosting:AllowedOrigins:0"] = "https://pages.example.test",
+            })));
+        using var client = hosted.CreateClient();
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/preferences")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PutAsJsonAsync("/api/preferences", Preferences.Empty)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/clips", new ClipInput("title", "url", null))).StatusCode);
+        using var preflight = new HttpRequestMessage(HttpMethod.Options, "/api/media");
+        preflight.Headers.Add("Origin", "https://pages.example.test");
+        preflight.Headers.Add("Access-Control-Request-Method", "POST");
+        preflight.Headers.Add("Access-Control-Request-Headers", "content-type");
+        using var allowed = await client.SendAsync(preflight);
+        Assert.Equal(HttpStatusCode.NoContent, allowed.StatusCode);
+        Assert.Equal("https://pages.example.test", Assert.Single(allowed.Headers.GetValues("Access-Control-Allow-Origin")));
+        using var media = new HttpRequestMessage(HttpMethod.Post, "/api/media") { Content = JsonContent.Create(new { url = "https://not-a-clip.example.test/" }) };
+        media.Headers.Add("Origin", "https://pages.example.test");
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await client.SendAsync(media)).StatusCode);
+        using var blocked = new HttpRequestMessage(HttpMethod.Post, "/api/media") { Content = JsonContent.Create(new { url = "https://not-a-clip.example.test/" }) };
+        blocked.Headers.Add("Origin", "https://unapproved.example.test");
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(blocked)).StatusCode);
+    }
     public void Dispose() { factory.Dispose(); Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); if (File.Exists(database)) File.Delete(database); }
 }
