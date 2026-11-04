@@ -2501,7 +2501,10 @@ summary:focus-visible {
 }
 @media (min-width: 1121px) {
   .goal-workspace {
-    grid-template-columns: 260px minmax(0, 1fr) 248px;
+    grid-template-columns: minmax(224px, 18fr) minmax(0, 64fr) minmax(
+        216px,
+        18fr
+      );
   }
 }
 @media (max-width: 760px) {
@@ -2554,5 +2557,86 @@ summary:focus-visible {
   }
   .player-header .icon-button {
     min-width: 32px;
+  }
+}
+
+/* Dense content, open gutters: tracks flex with the viewport rather than boxing it. */
+.view-goals {
+  padding-inline: clamp(var(--space-xs), 1.1vw, var(--space-md));
+}
+.goal-workspace {
+  gap: clamp(var(--space-sm), 1.5vw, var(--space-lg));
+}
+.goal-queue .section-bar,
+.match-rail .section-bar,
+.player-header,
+.clip-details {
+  border-bottom: 0;
+  border-top: 0;
+}
+.goal-row {
+  border-bottom: 0;
+  padding-block: var(--space-xs);
+}
+.goal-copy .goal-matchup {
+  gap: 0;
+}
+.goal-team {
+  line-height: 1.3;
+}
+.goal-copy .team-crest {
+  width: 16px;
+  height: 18px;
+  flex-basis: 16px;
+}
+.goal-copy strong {
+  line-height: 1.3;
+  margin: var(--space-2xs) 0 0;
+}
+.goal-copy small {
+  line-height: 1.3;
+}
+.goal-search {
+  margin-inline: 0;
+}
+.goal-search input {
+  border-color: var(--color-clear);
+  background: var(--color-paper-2);
+}
+.goal-queue .section-bar,
+.match-rail .section-bar {
+  padding-inline: var(--space-xs);
+}
+.match-rail > .date-control {
+  background: var(--color-paper);
+  border-bottom: 0;
+  padding-block: 0;
+}
+.match-group-heading {
+  border-bottom: 0;
+  padding-block: var(--space-xs);
+}
+.fixture {
+  border-bottom: 0;
+  padding: var(--space-xs);
+}
+.fixture-teams {
+  min-height: 44px;
+  line-height: 1.3;
+}
+.fixture .team-crest {
+  width: 18px;
+  height: 20px;
+  flex-basis: 18px;
+}
+.fixture-clips {
+  font-size: 11px;
+}
+.clip-details {
+  align-items: center;
+}
+@media (min-width: 761px) and (max-width: 1120px) {
+  .goal-workspace {
+    grid-template-columns: minmax(224px, 25%) minmax(0, 1fr);
   }
 }

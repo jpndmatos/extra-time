@@ -1077,9 +1077,12 @@ export default function App() {
                                       </span>
                                     )}
                                     {prefs.watched.includes(goal.id) && (
-                                      <span className="watched-note">
+                                      <span
+                                        className="watched-note"
+                                        title="Watched"
+                                      >
                                         <Check size={12} aria-hidden="true" />
-                                        Watched
+                                        <span className="sr-only">Watched</span>
                                       </span>
                                     )}
                                     {goal.alternatives.length
