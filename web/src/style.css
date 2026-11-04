@@ -3473,3 +3473,148 @@ summary:focus-visible {
     font-size: var(--text-md);
   }
 }
+
+/* Compact records: a shared score column, clear row boundaries and aligned names. */
+.goal-row {
+  border-bottom: 1px solid var(--color-row-rule);
+  align-items: flex-start;
+}
+.goal-minute {
+  width: 40px;
+  text-align: right;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  padding-top: 0;
+}
+.goal-team {
+  line-height: 1.25;
+}
+.goal-copy .team-crest {
+  height: 16px;
+}
+.goal-copy b {
+  min-width: 14px;
+  text-align: right;
+  font-weight: 600;
+}
+.goal-copy strong {
+  margin-top: var(--space-3xs);
+  padding-left: var(--space-lg);
+  font-weight: 500;
+  line-height: 1.25;
+}
+.goal-copy small {
+  padding-left: var(--space-lg);
+}
+.queue-play {
+  align-self: center;
+}
+.goal-row.selected {
+  border-bottom-color: var(--color-green-signal);
+}
+.goal-row.watched:not(.selected) {
+  border-bottom-color: var(--color-rule);
+}
+.view-teams,
+.view-sources,
+.view-matches {
+  gap: var(--space-sm);
+  padding-top: var(--space-md);
+}
+.view-teams .page-heading h1,
+.view-sources .page-heading h1,
+.view-matches .page-heading h1 {
+  font-size: 22px;
+  letter-spacing: -0.5px;
+}
+.view-teams .page-heading p,
+.view-sources .page-heading p,
+.view-matches .page-heading p {
+  margin-top: var(--space-2xs);
+  font-size: var(--text-sm);
+}
+.team-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: var(--space-xs);
+}
+.team-row {
+  min-width: 0;
+  padding: var(--space-xs) var(--space-sm);
+  gap: var(--space-sm);
+  background: var(--color-feed-surface);
+  color: var(--color-ink);
+  border-bottom: 1px solid var(--color-rule);
+}
+.team-row > div {
+  min-width: 0;
+}
+.team-row h3 {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.team-row .team-crest.large {
+  width: 32px;
+  height: 32px;
+  flex-basis: 32px;
+}
+.team-row .follow-button {
+  min-width: 104px;
+  flex: none;
+}
+.team-row:has(.follow-button[aria-pressed="true"]) {
+  background: var(--color-green-selected);
+}
+.matches-view .fixture {
+  border: 1px solid var(--color-rule);
+}
+.fixture-meta > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fixture-meta > span:last-child {
+  white-space: nowrap;
+  flex: none;
+}
+.source-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-md);
+  padding: var(--space-sm);
+  background: var(--color-feed-surface);
+  color: var(--color-ink);
+}
+.source-list {
+  display: grid;
+  gap: var(--space-xs);
+}
+.source-row h2 {
+  font-size: var(--text-md);
+  margin-bottom: var(--space-2xs);
+}
+.source-row .connection-label {
+  align-self: start;
+  font-size: var(--text-xs);
+}
+.source-row .connection-label[data-state="connected"] {
+  background: var(--color-green-selected);
+  color: var(--color-green-ink);
+}
+@media (max-width: 760px) {
+  .team-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .team-row .follow-button {
+    min-width: 44px;
+  }
+  .source-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-xs);
+  }
+  .source-row .connection-label {
+    justify-self: start;
+  }
+}

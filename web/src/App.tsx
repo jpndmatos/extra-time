@@ -844,7 +844,7 @@ export default function App() {
                   ? "Dashboard"
                   : view === "matches"
                     ? "Matches"
-                    : "Settings"}
+                    : tabs.find((tab) => tab.id === view)?.label}
             </h1>
             <p>
               {view === "goals"
@@ -852,8 +852,8 @@ export default function App() {
                 : view === "matches"
                   ? "Fixtures and matches with goal clips."
                   : view === "teams"
-                    ? "Pick your clubs. Their goals will find their way here."
-                    : "Choose where your fixtures and goal clips come from."}
+                    ? "Choose clubs for your Following feed."
+                    : "Manage match data and goal sources."}
             </p>
           </div>
         </div>
@@ -1090,7 +1090,10 @@ export default function App() {
                                           (t) => t.id === goal.homeId,
                                         )}
                                       />
-                                      <span className="goal-team-name">
+                                      <span
+                                        className="goal-team-name"
+                                        title={name(goal.homeId)}
+                                      >
                                         {name(goal.homeId)}
                                       </span>
                                       <b>
@@ -1106,7 +1109,10 @@ export default function App() {
                                           (t) => t.id === goal.awayId,
                                         )}
                                       />
-                                      <span className="goal-team-name">
+                                      <span
+                                        className="goal-team-name"
+                                        title={name(goal.awayId)}
+                                      >
                                         {name(goal.awayId)}
                                       </span>
                                       <b>
@@ -1704,7 +1710,10 @@ export default function App() {
                                 </small>
                               )}
                             </div>
-                            <span className="connection-label">
+                            <span
+                              className="connection-label"
+                              data-state={source.state}
+                            >
                               {source.state === "connected"
                                 ? "Connected"
                                 : source.state === "error"

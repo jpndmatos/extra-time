@@ -9,3 +9,5 @@ Use an edge-to-edge dashboard with a 4px column separation, a compact 40px list 
 Every loading region retains loading, empty, error and full states. Only scorer changes receive a short state transition, with a reduced-motion fallback. Focus is immediate, and input edges meet 3:1 contrast. No marketing sections, fabricated statistics or decorative footage overlays.
 
 Seen state updates optimistically when a goal is opened and saves in the background. The automatically opened desktop clip is included; phone selections do not count until the player opens. Spoiler-protected goals count after reveal. Marking the open goal as unwatched stays respected until it is opened again.
+
+Goal rows use a fixed minute column, shared right-aligned scores, scorer text aligned with team names, and subtle separators. Favourites uses two columns on desktop and one on phones, with followed clubs highlighted. Matches has defined card edges. Connections separates status from provider details. Screen headings name the active Settings section.
