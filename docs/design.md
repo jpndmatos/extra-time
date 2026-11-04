@@ -9,3 +9,5 @@ Opening a goal updates its seen state immediately and saves in the background. O
 Retain source attribution, metadata resolution, mirror recovery, live server events, and loading/error/empty/full states. Sample mode is explicitly fictional and supplies no footage. No banners, catalogue limits or fixture configuration block the real feed. Legacy backend preferences and import endpoints remain compatible; the UI does not expose or depend on favourites.
 
 The live feed is a rolling 48-hour collection based on Reddit publication time. Persistent discovery merges prevent goals disappearing when they leave the newest listing. The server collects without open tabs, and both server and browser expire goals at the same publication deadline. Partial backfill and rate limits remain visible in connection status rather than implying complete coverage.
+
+The content contract is individual goal clips only. Do not substitute match recaps or highlights to compensate for Reddit RSS retirement. Any independent provider must identify single-goal content and preserve accurate source attribution and publication-time expiry.
