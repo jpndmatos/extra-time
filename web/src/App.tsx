@@ -350,20 +350,13 @@ export default function App() {
       <header className="topbar goal-hub-header">
         <div className="header-browse">
           <a className="brand" href="/" aria-label="Touchline home">
-            <svg
+            <img
               className="brand-mark"
-              width="22"
-              height="24"
-              viewBox="0 0 22 24"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M3 21 10 3M12 21 19 3"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-            </svg>
+              src="/icon.svg"
+              width="32"
+              height="32"
+              alt=""
+            />
           </a>
         </div>
         <label className="goal-search">
@@ -398,30 +391,33 @@ export default function App() {
           )}
         </label>
         <div className="header-utilities">
-          <div className="heading-actions">
+          <div className="header-tools" role="group" aria-label="Goal controls">
+            <div className="heading-actions">
+              <button
+                type="button"
+                className="icon-button spoiler-toggle"
+                title={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
+                aria-label={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
+                aria-pressed={prefs.spoilers}
+                disabled={!ready}
+                onClick={() =>
+                  save({ ...latest.current, spoilers: !prefs.spoilers })
+                }
+              >
+                {prefs.spoilers ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
             <button
               type="button"
-              className="icon-button spoiler-toggle"
-              title={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
-              aria-label={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
-              aria-pressed={prefs.spoilers}
-              disabled={!ready}
-              onClick={() =>
-                save({ ...latest.current, spoilers: !prefs.spoilers })
-              }
+              className="icon-button refresh"
+              title="Refresh goals"
+              aria-label="Refresh goals"
+              disabled={loading}
+              onClick={() => setRefresh((value) => value + 1)}
             >
-              {prefs.spoilers ? <EyeOff size={16} /> : <Eye size={16} />}
+              <RefreshCw size={16} />
             </button>
           </div>
-          <button
-            type="button"
-            className="icon-button refresh"
-            aria-label="Refresh goals"
-            disabled={loading}
-            onClick={() => setRefresh((value) => value + 1)}
-          >
-            <RefreshCw size={16} />
-          </button>
           <details className="connection-status" ref={connections}>
             <summary aria-label="Connections and refresh status">
               {sample ? (

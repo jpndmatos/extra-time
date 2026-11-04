@@ -81,9 +81,10 @@ try {
       };
     });
     expect(
-      Math.abs(header.search.center - width / 2),
-      "Search stays centred",
-    ).toBeLessThan(2);
+      header.search.left - header.left.right,
+      "Search fills the space after the logo",
+    ).toBeLessThanOrEqual(16);
+    expect(header.right.left - header.search.right, "Search fills the space up to the tools").toBeLessThanOrEqual(16);
     expect(
       header.left.right,
       "Browsing does not overlap search",
