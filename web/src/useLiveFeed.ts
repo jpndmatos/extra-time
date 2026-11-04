@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { Dashboard } from "./types";
-import { apiUrl } from "./api";
+import { connectLiveFeed } from "./liveConnection";
 
 export type LiveState =
-  "connecting" | "connected" | "reconnecting" | "paused" | "offline" | "sample";
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "polling"
+  | "paused"
+  | "offline"
+  | "sample";
 
 export function useLiveFeed(
   day: string,
@@ -21,11 +27,11 @@ export function useLiveFeed(
       setState("sample");
       return;
     }
-    let stream: EventSource | null = null;
+    let disconnect: (() => void) | undefined;
     let disposed = false;
     function connect() {
-      stream?.close();
-      stream = null;
+      disconnect?.();
+      disconnect = undefined;
       if (disposed) return;
       if (!navigator.onLine) {
         setState("offline");
@@ -35,32 +41,12 @@ export function useLiveFeed(
         setState("paused");
         return;
       }
-      setState("connecting");
-      stream = new EventSource(
-        apiUrl(`/api/live?day=${encodeURIComponent(day)}`),
+      disconnect = connectLiveFeed(
+        day,
+        (data) => callback.current(data),
+        setState,
+        setReceivedAt,
       );
-      stream.onopen = () => setState("connected");
-      stream.addEventListener("dashboard", (event) => {
-        try {
-          const next = JSON.parse((event as MessageEvent).data) as Dashboard;
-          if (
-            next.sample ||
-            !Array.isArray(next.goals) ||
-            !Array.isArray(next.matches)
-          )
-            return;
-          callback.current(next);
-          setReceivedAt(Date.now());
-          setState("connected");
-        } catch {
-          setState("reconnecting");
-        }
-      });
-      stream.addEventListener("heartbeat", () => setState("connected"));
-      // EventSource performs bounded server-directed reconnects automatically.
-      stream.onerror = () => {
-        if (!disposed) setState(navigator.onLine ? "reconnecting" : "offline");
-      };
     }
     connect();
     document.addEventListener("visibilitychange", connect);
@@ -68,7 +54,7 @@ export function useLiveFeed(
     window.addEventListener("offline", connect);
     return () => {
       disposed = true;
-      stream?.close();
+      disconnect?.();
       document.removeEventListener("visibilitychange", connect);
       window.removeEventListener("online", connect);
       window.removeEventListener("offline", connect);

@@ -487,7 +487,7 @@ export default function App() {
           </div>
         )}
         <p
-          className="live-status hub-status"
+          className={`live-status hub-status${live.state !== "offline" ? " sr-only" : ""}`}
           role="status"
           data-state={live.state}
         >
@@ -701,7 +701,10 @@ export default function App() {
                     );
                   })}
                   <small>
-                    Hub {live.state} ·{" "}
+                    {live.state === "polling"
+                      ? "Checking for updates every 30 seconds"
+                      : `Hub ${live.state}`}{" "}
+                    ·{" "}
                     {data
                       ? `Updated ${new Date(data.updatedAt).toLocaleTimeString()}`
                       : "Connecting…"}
