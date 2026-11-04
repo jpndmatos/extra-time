@@ -181,7 +181,27 @@ try {
   await expect(
     page.getByText("Controlled goal - João Félix", { exact: true }),
   ).toBeVisible();
+  await page.getByText("Original post", { exact: true }).click();
+  const density = await page.evaluate(() => ({
+    controlsY: document
+      .querySelector(".workspace-toolbar .heading-actions")
+      .getBoundingClientRect().y,
+    feedsY: document.querySelector(".feed-tabs").getBoundingClientRect().y,
+    rowHeight: document.querySelector(".goal-row").getBoundingClientRect()
+      .height,
+    playerHeight: document.querySelector(".video-stage").getBoundingClientRect()
+      .height,
+  }));
+  expect(Math.abs(density.controlsY - density.feedsY)).toBeLessThan(8);
+  expect(density.rowHeight).toBeLessThan(100);
+  expect(density.playerHeight).toBeGreaterThan(500);
+  await expect(page.locator(".app-footer")).toHaveCount(0);
   await page.setViewportSize({ width: 320, height: 568 });
+  expect(
+    await page
+      .locator(".topbar")
+      .evaluate((element) => element.getBoundingClientRect().height),
+  ).toBeLessThanOrEqual(56);
   for (const name of ["All r/soccer", "Following", "Ones to watch"])
     await expect(
       page.getByRole("button", { name, exact: true }),

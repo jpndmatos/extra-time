@@ -530,6 +530,46 @@ export default function App() {
     );
   }
 
+  const workspaceActions = (
+    <div className="heading-actions">
+      {view === "goals" && (
+        <button
+          type="button"
+          ref={matchesTrigger}
+          className="quiet matches-trigger"
+          aria-expanded={matchesOpen}
+          aria-controls="matches-sidebar"
+          onClick={() => setMatchesOpen(!matchesOpen)}
+        >
+          Matches <span>{matchList.length}</span>
+        </button>
+      )}
+      <button
+        type="button"
+        className="quiet"
+        aria-label={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
+        aria-pressed={prefs.spoilers}
+        onClick={() => save({ ...latest.current, spoilers: !prefs.spoilers })}
+        disabled={!ready}
+      >
+        {prefs.spoilers ? <EyeOff size={16} /> : <Eye size={16} />}
+        <span>{prefs.spoilers ? "Spoilers hidden" : "Hide spoilers"}</span>
+      </button>
+      <button
+        type="button"
+        className="quiet add-clip-action"
+        onClick={() => {
+          setImporting(!importing);
+          setImportError("");
+        }}
+        disabled={sample || !ready}
+      >
+        {importing ? <X size={16} /> : <Plus size={16} />}
+        {importing ? "Close form" : "Add clip"}
+      </button>
+    </div>
+  );
+
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main">
@@ -594,48 +634,13 @@ export default function App() {
                   : "Choose where your fixtures and goal clips come from."}
             </p>
           </div>
-          <div className="heading-actions">
-            {view === "goals" && (
-              <button
-                type="button"
-                ref={matchesTrigger}
-                className="quiet matches-trigger"
-                aria-expanded={matchesOpen}
-                aria-controls="matches-sidebar"
-                onClick={() => setMatchesOpen(!matchesOpen)}
-              >
-                Matches <span>{matchList.length}</span>
-              </button>
-            )}
-            <button
-              type="button"
-              className="quiet"
-              aria-label={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
-              aria-pressed={prefs.spoilers}
-              onClick={() =>
-                save({ ...latest.current, spoilers: !prefs.spoilers })
-              }
-              disabled={!ready}
-            >
-              {prefs.spoilers ? <EyeOff size={16} /> : <Eye size={16} />}
-              <span>
-                {prefs.spoilers ? "Spoilers hidden" : "Hide spoilers"}
-              </span>
-            </button>
-            <button
-              type="button"
-              className="quiet add-clip-action"
-              onClick={() => {
-                setImporting(!importing);
-                setImportError("");
-              }}
-              disabled={sample || !ready}
-            >
-              {importing ? <X size={16} /> : <Plus size={16} />}
-              {importing ? "Close form" : "Add clip"}
-            </button>
-          </div>
+          {(view !== "goals" || importing) && workspaceActions}
         </div>
+        {pendingWrites > 0 && (
+          <span role="status" className="sr-only">
+            Saving favourites…
+          </span>
+        )}
         {writeError && (
           <div className="notice error" role="alert">
             {writeError}
@@ -805,6 +810,47 @@ export default function App() {
                 >
                   <RefreshCw size={16} />
                 </button>
+                <span
+                  className="live-status"
+                  data-state={live.state}
+                  data-ready={sample || connected > 0}
+                  title={
+                    live.receivedAt
+                      ? `Last feed change: ${new Date(live.receivedAt).toLocaleTimeString()}`
+                      : undefined
+                  }
+                >
+                  <span className="connection-label">
+                    {sample
+                      ? "Sample / auto updates off"
+                      : live.state === "connected"
+                        ? connected
+                          ? "Auto updates on"
+                          : "Waiting for source access"
+                        : live.state === "paused"
+                          ? "Updates paused while hidden"
+                          : live.state === "offline"
+                            ? "Offline / keeping your feed"
+                            : live.state === "reconnecting"
+                              ? "Reconnecting / keeping your feed"
+                              : "Connecting to updates…"}
+                  </span>
+                  {newGoalCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewGoalCount(0);
+                        setSelectedId(visibleGoals[0]?.id || null);
+                        setPlaying(false);
+                        setMobilePlayer(false);
+                      }}
+                    >
+                      {newGoalCount} new {newGoalCount === 1 ? "goal" : "goals"}
+                    </button>
+                  )}
+                </span>
+
+                {workspaceActions}
               </div>
             )}
             {loading && !data ? (
@@ -825,7 +871,11 @@ export default function App() {
                     <div
                       className={`goal-workspace ${mobilePlayer && selected ? "player-open" : ""}${cinema ? " cinema" : ""}`}
                     >
-                      <section className="goal-queue" aria-label="Goal feed">
+                      <section
+                        className="goal-queue"
+                        aria-label="Goal feed"
+                        title="Recent r/soccer goals from the last 48 hours"
+                      >
                         <div className="section-bar">
                           <h2>
                             {feed === "watch"
@@ -1026,12 +1076,6 @@ export default function App() {
                                         {goal.watchReason}
                                       </span>
                                     )}
-                                    {goal.sample
-                                      ? "Sample goal"
-                                      : new Intl.DateTimeFormat(undefined, {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                        }).format(new Date(goal.publishedAt))}
                                     {prefs.watched.includes(goal.id) && (
                                       <span className="watched-note">
                                         <Check size={12} aria-hidden="true" />
@@ -1119,12 +1163,11 @@ export default function App() {
                             </div>
                           )}
                         </div>
-                        <div className="queue-footer">
-                          {sample
-                            ? "Sample goals, no footage"
-                            : "Recent posts / last 48 hours"}
-                          {loading && <span role="status">Refreshing…</span>}
-                        </div>
+                        {loading && (
+                          <div className="queue-footer" role="status">
+                            Refreshing…
+                          </div>
+                        )}
                       </section>
                       <section
                         className="player-column scroll-region"
@@ -1313,7 +1356,7 @@ export default function App() {
                                     ? "Scores and scorers stay hidden until you reveal this goal."
                                     : selected.sample
                                       ? "Fictional goal metadata for the sample workspace."
-                                      : `${selected.minute}′ / ${name(selected.homeId)} vs ${name(selected.awayId)}`}
+                                      : `${selected.minute}′ goal`}
                                 </p>
                                 {selected.watchReason && (
                                   <a
@@ -1334,6 +1377,11 @@ export default function App() {
                                   <details className="post-details">
                                     <summary>Original post</summary>
                                     <p>{selected.title}</p>
+                                    <p>
+                                      Starts muted. Use the player controls for
+                                      sound. Check the Reddit thread for mirrors
+                                      if a clip is unavailable.
+                                    </p>
                                     {selected.author && (
                                       <p>
                                         Posted to r/soccer by u/
@@ -1400,16 +1448,6 @@ export default function App() {
                                 </nav>
                               </div>
                             </div>
-                            {playing && (
-                              <details className="playback-help">
-                                <summary>Playback help</summary>
-                                <p className="playback-note">
-                                  Starts muted. Use the player controls for
-                                  sound. Removed or restricted clip? Check the
-                                  Reddit thread for mirrors.
-                                </p>
-                              </details>
-                            )}
                             {!!selected.alternatives.length && (
                               <div className="alternates">
                                 <h3>Other posts of this goal</h3>
@@ -1553,11 +1591,6 @@ export default function App() {
                             </div>
                           )}
                         </div>
-                        <p className="rail-note">
-                          {sample
-                            ? "Fictional matchday"
-                            : "Times shown in your time zone"}
-                        </p>
                       </div>
                     </div>
                   )}
@@ -1788,57 +1821,12 @@ export default function App() {
           </>
         )}
       </main>
-      <footer className="app-footer">
-        <span
-          className="live-status"
-          data-state={live.state}
-          title={
-            live.receivedAt
-              ? `Last feed change: ${new Date(live.receivedAt).toLocaleTimeString()}`
-              : undefined
-          }
-        >
-          {sample
-            ? "Sample / auto updates off"
-            : live.state === "connected"
-              ? connected
-                ? "Auto updates on"
-                : "Waiting for source access"
-              : live.state === "paused"
-                ? "Updates paused while hidden"
-                : live.state === "offline"
-                  ? "Offline / keeping your feed"
-                  : live.state === "reconnecting"
-                    ? "Reconnecting / keeping your feed"
-                    : "Connecting to updates…"}
-          {newGoalCount > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                setNewGoalCount(0);
-                setSelectedId(visibleGoals[0]?.id || null);
-                setPlaying(false);
-                setMobilePlayer(false);
-              }}
-            >
-              {newGoalCount} new {newGoalCount === 1 ? "goal" : "goals"}
-            </button>
-          )}
-        </span>
-        <span role="status">
-          {pendingWrites
-            ? "Saving favourites…"
-            : sample
-              ? "Sample changes stay in this browser"
-              : "Local workspace"}
-        </span>
-      </footer>
     </div>
   );
 
   function dateControls() {
     return (
-      <div className="date-control">
+      <div className="date-control" title="Times shown in your time zone">
         <button
           type="button"
           className="icon-button"
