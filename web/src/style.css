@@ -2647,7 +2647,9 @@ summary:focus-visible {
   background: var(--color-feed-surface);
   color: var(--color-ink);
 }
-.goal-row:hover,
+.goal-row:hover {
+  background: var(--color-feed-hover);
+}
 .goal-row.selected {
   background: var(--color-feed-selected);
 }
@@ -2665,7 +2667,9 @@ summary:focus-visible {
   background: var(--color-matches-surface);
   color: var(--color-ink);
 }
-.fixture:hover,
+.fixture:hover {
+  background: var(--color-match-hover);
+}
 .fixture.selected {
   background: var(--color-match-selected);
 }
@@ -2699,5 +2703,70 @@ summary:focus-visible {
 @media (max-width: 760px) {
   .topbar .brand {
     font-size: 20px;
+  }
+}
+
+/* Finish: shared insets, readable emphasis and focus that survives clipping. */
+.goal-queue .section-bar,
+.match-rail .section-bar,
+.fixture {
+  padding-inline: var(--space-sm);
+}
+.goal-search {
+  margin: var(--space-2xs) var(--space-xs) var(--space-xs);
+}
+.goal-search input {
+  border: 1px solid var(--color-rule);
+}
+.goal-search input:focus-visible {
+  outline-offset: 1px;
+}
+.player-header {
+  padding-inline: var(--space-xs);
+}
+.clip-details {
+  padding: var(--space-xs);
+}
+.post-details p:last-child {
+  margin-bottom: var(--space-xs);
+}
+.clip-details h2 {
+  line-height: 1.25;
+}
+.goal-team b,
+.fixture-teams b {
+  font-weight: 500;
+}
+.goal-row:focus-visible,
+.fixture-teams:focus-visible,
+.fixture .icon-button:focus-visible {
+  outline-offset: -2px;
+}
+.goal-row.selected:focus-visible {
+  outline-width: 1px;
+}
+.topbar nav button,
+.feed-tabs > button {
+  border-bottom-width: 1px;
+}
+.quiet {
+  border-color: var(--color-rule);
+  font-weight: 500;
+}
+.quiet:hover {
+  border-color: var(--color-surface-edge);
+}
+.icon-button[aria-pressed="true"] {
+  background: var(--color-paper-3);
+}
+.clip-navigation .icon-button {
+  min-width: 36px;
+}
+@media (max-width: 760px) {
+  .clip-details {
+    align-items: flex-start;
+  }
+  .scoreboard-result {
+    gap: var(--space-2xs);
   }
 }
