@@ -3394,3 +3394,31 @@ summary:focus-visible {
     gap: var(--space-2xs);
   }
 }
+
+/* Edge-to-edge workspace with only a narrow separation between list and footage. */
+.view-goals {
+  padding: 0;
+  gap: 0;
+}
+.goal-workspace {
+  gap: var(--space-2xs);
+}
+.goal-queue .section-bar {
+  min-height: 40px;
+  padding-block: var(--space-2xs);
+}
+.goal-search {
+  margin: 0 var(--space-2xs) var(--space-2xs);
+}
+.goal-search input {
+  min-height: 36px;
+}
+.player-column,
+.goal-workspace.player-open .player-column {
+  gap: 0;
+}
+@media (max-width: 760px) {
+  .goal-search input {
+    min-height: 44px;
+  }
+}
