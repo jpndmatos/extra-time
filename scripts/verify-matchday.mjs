@@ -1,49 +1,46 @@
+// The goals-only hub follows midnight; explicit dates are a sample-only bookmark.
 import {
   chromium,
   expect,
 } from "../../relay/web/node_modules/@playwright/test/index.mjs";
-const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
 const browser = await chromium.launch();
-const context = await browser.newContext({
-  viewport: { width: 1440, height: 900 },
-  timezoneId: "Europe/Lisbon",
-});
+const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
 try {
+  const context = await browser.newContext({ timezoneId: "Europe/Lisbon" });
   const page = await context.newPage();
-  const beforeMidnight = new Date();
-  beforeMidnight.setUTCHours(23, 59, 50, 0);
-  await page.clock.install({ time: beforeMidnight });
-  await page.goto(`${base}/?sample=true&view=matchday`);
-  await expect(
-    page.getByRole("button", { name: "Go to today" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  expect(new URL(page.url()).searchParams.has("day")).toBe(false);
-  const originalLabel = await page
-    .getByRole("button", { name: "Go to today" })
-    .innerText();
-  await page.clock.fastForward(31_000);
-  await expect(
-    page.getByRole("button", { name: "Go to today" }),
-  ).not.toHaveText(originalLabel);
-  expect(new URL(page.url()).searchParams.has("day")).toBe(false);
-  await page.getByRole("button", { name: "Previous day" }).click();
-  await expect(
-    page.getByRole("button", { name: "Go to today" }),
-  ).toHaveAttribute("aria-pressed", "false");
-  const explicitDay = new URL(page.url()).searchParams.get("day");
-  expect(explicitDay).toBeTruthy();
-  await page.reload();
-  expect(new URL(page.url()).searchParams.get("day")).toBe(explicitDay);
-  await expect(
-    page.getByRole("button", { name: "Go to today" }),
-  ).toHaveAttribute("aria-pressed", "false");
-  await page.getByRole("button", { name: "Go to today" }).click();
-  await expect(
-    page.getByRole("button", { name: "Go to today" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  expect(new URL(page.url()).searchParams.has("day")).toBe(false);
+  await page.clock.install({ time: new Date("2026-11-04T23:59:50Z") });
+  const days = [];
+  await page.route("**/api/preferences", (route) =>
+    route.fulfill({
+      json: { teams: [], matches: [], watched: [], spoilers: false },
+    }),
+  );
+  await page.route("**/api/live?*", (route) => route.abort());
+  await page.route("**/api/dashboard?*", (route) => {
+    const url = new URL(route.request().url());
+    days.push(url.searchParams.get("day"));
+    return route.fulfill({
+      json: {
+        teams: [],
+        matches: [],
+        goals: [],
+        sources: [],
+        updatedAt: new Date().toISOString(),
+        sample: url.searchParams.get("sample") === "true",
+      },
+    });
+  });
+  await page.goto(base);
+  await expect.poll(() => days.at(-1)).toBe("2026-11-04");
+  await page.clock.runFor(30000);
+  await expect.poll(() => days.at(-1)).toBe("2026-11-05");
+  expect(new URL(page.url()).searchParams.get("day")).toBe(null);
+  await page.goto(`${base}/?sample=true&day=2026-11-03`);
+  await expect.poll(() => days.at(-1)).toBe("2026-11-03");
+  await page.clock.runFor(60000);
+  expect(new URL(page.url()).searchParams.get("day")).toBe("2026-11-03");
   console.log(
-    "PASS matchday: follows midnight, retains explicitly selected days, Today resumes automatic date updates.",
+    "PASS goals follow Lisbon midnight; explicit sample dates remain pinned.",
   );
 } finally {
   await browser.close();

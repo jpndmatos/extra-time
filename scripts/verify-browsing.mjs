@@ -189,8 +189,7 @@ try {
     controlsY: document
       .querySelector(".header-utilities .heading-actions")
       .getBoundingClientRect().y,
-    feedsY: document.querySelector(".main-navigation").getBoundingClientRect()
-      .y,
+    feedsY: document.querySelector(".goal-search").getBoundingClientRect().y,
     rowHeight: document.querySelector(".goal-row").getBoundingClientRect()
       .height,
     playerHeight: document.querySelector(".video-stage").getBoundingClientRect()
@@ -206,23 +205,10 @@ try {
       .locator(".topbar")
       .evaluate((element) => element.getBoundingClientRect().height),
   ).toBeLessThanOrEqual(56);
-  for (const name of ["Dashboard", "Following", "Ones to watch", "Matches"])
-    await expect(
-      page.getByRole("button", { name, exact: true }),
-    ).toBeAttached();
-  await page.getByRole("button", { name: "Matches", exact: true }).click();
+  await expect(page.locator(".main-navigation")).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Matches", exact: true }),
+    page.getByRole("searchbox", { name: "Search goals" }),
   ).toBeInViewport();
-  await expect(
-    page.getByRole("heading", { name: "Matches", exact: true }),
-  ).toBeVisible();
-  await expect(page.locator(".workspace-toolbar")).toHaveCount(0);
-  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Dashboard", exact: true }),
-  ).toBeInViewport();
-  await page.locator(".goal-row").first().click();
   await page
     .getByRole("button", { name: "Back to goals", exact: true })
     .click();
@@ -233,7 +219,7 @@ try {
     .getByRole("button", { name: "Back to goals", exact: true })
     .click();
   await expect(page.locator("iframe")).toHaveCount(0);
-  await page.getByRole("button", { name: "Search goals", exact: true }).click();
+  await page.getByRole("searchbox", { name: "Search goals" }).focus();
   await expect(
     page.getByRole("searchbox", { name: "Search goals" }),
   ).toBeFocused();
@@ -314,7 +300,7 @@ try {
   ).toBeVisible();
   expect(errors).toEqual([]);
   console.log(
-    "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, previous/next, keyboard browsing and visible mobile feed choices.",
+    "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, previous/next, keyboard browsing and visible mobile search.",
   );
 } finally {
   await browser.close();

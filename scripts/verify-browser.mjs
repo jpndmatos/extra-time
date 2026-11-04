@@ -59,14 +59,14 @@ try {
     await page.goto(`${base}/?sample=true`);
     await expect(page.locator(".goal-row")).toHaveCount(4);
     await expect(
-      page
-        .getByRole("navigation", { name: "Main navigation" })
-        .getByRole("button"),
-    ).toHaveCount(4);
+      page.getByRole("navigation", { name: "Main navigation" }),
+    ).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Dashboard", exact: true }),
-    ).toHaveAttribute("aria-current", "page");
-    await expect(page.locator(".club-filters")).toHaveCount(0);
+      page.getByRole("button", { name: "Settings", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("searchbox", { name: "Search goals" }),
+    ).toBeInViewport();
     await fits(page, `Goal room ${width}`);
     if (width === 1440 || width === 390)
       await accessible(page, `Sample goal room ${width}`);
@@ -103,66 +103,30 @@ try {
         ),
       });
     }
-    await page.getByRole("button", { name: "Settings", exact: true }).click();
-    await expect(
-      page.getByRole("group", { name: "Settings sections" }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Favourite teams", exact: true }),
-    ).toHaveAttribute("aria-current", "page");
-    await page
-      .getByRole("searchbox", { name: "Search teams" })
-      .fill("Sporting");
-    await page
-      .getByRole("button", { name: "Follow Sporting CP", exact: true })
-      .click();
+    const opened = page.locator(".goal-row.selected");
+    await expect(opened).toHaveClass(/watched/);
+    if (width < 760)
+      await page
+        .getByRole("button", { name: "Back to goals", exact: true })
+        .click();
     await page.reload();
+    await expect(page.locator(".goal-row.watched")).not.toHaveCount(0);
     await page
-      .getByRole("searchbox", { name: "Search teams" })
-      .fill("Sporting");
+      .getByRole("searchbox", { name: "Search goals" })
+      .fill("no such team");
     await expect(
-      page.getByRole("button", { name: "Unfollow Sporting CP", exact: true }),
-    ).toHaveAttribute("aria-pressed", "true");
-    if (width === 1440 || width === 390)
-      await accessible(page, `Teams ${width}`);
-    await page.getByRole("button", { name: "Dashboard", exact: true }).click();
-    await page.getByRole("button", { name: "Matches", exact: true }).click();
-    await expect(
-      page.getByRole("heading", { name: "Matches", exact: true }),
-    ).toBeVisible();
-    expect(new URL(page.url()).searchParams.get("view")).toBe("matches");
-    await page.reload();
-    await expect(
-      page.getByRole("heading", { name: "Matches", exact: true }),
+      page
+        .getByRole("heading", { name: "No matching goals", exact: true })
+        .first(),
     ).toBeVisible();
     await page
-      .getByRole("button", {
-        name: "Follow match: Benfica versus FC Porto",
-        exact: true,
-      })
+      .getByRole("button", { name: "Clear search", exact: true })
       .click();
-    await expect(
-      page.getByRole("button", {
-        name: "Unfollow match: Benfica versus FC Porto",
-        exact: true,
-      }),
-    ).toHaveAttribute("aria-pressed", "true");
-    await fits(page, `Matches page ${width}`);
-    if (width === 390) await accessible(page, "Mobile matches page");
-    await page.getByRole("button", { name: "Settings", exact: true }).click();
-    await page
-      .getByRole("button", { name: "Connections", exact: true })
-      .click();
-    await expect(
-      page.getByRole("heading", { name: "Reddit goal feed" }),
-    ).toBeVisible();
-    if (width === 1440 || width === 390)
-      await accessible(page, `Sources ${width}`);
-    await fits(page, `Sources ${width}`);
+    await expect(page.locator(".goal-row")).toHaveCount(4);
     expect(errors).toEqual([]);
     await context.close();
     console.log(
-      `PASS ${width}x${height}: favourites, match follows, spoilers, player, persistence and viewport.`,
+      `PASS ${width}x${height}: all goals, search, spoilers, seen state, player and viewport.`,
     );
   }
 

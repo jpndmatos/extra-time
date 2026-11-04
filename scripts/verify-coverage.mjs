@@ -122,31 +122,26 @@ try {
       body: "<!doctype html><title>Controlled clip</title><main>Coverage test player</main>",
     }),
   );
-  await page.goto(base);
-  await page.getByRole("button", { name: "Matches", exact: true }).click();
-  await expect(page.locator(".fixture")).toHaveCount(3);
-  await expect(page.getByRole("heading", { name: /With goals/ })).toBeVisible();
+  await page.goto(
+    `${base}/?view=teams&feed=following&team=old-club&match=old-match`,
+  );
+  await expect(page.locator(".goal-row")).toHaveCount(2);
   await expect(
-    page.getByRole("button", {
-      name: "Show goals from Manchester United versus AS Roma",
-    }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Ones to watch", exact: true })
-    .click();
-  await expect(page.locator(".goal-row")).toHaveCount(1);
+    page.getByRole("button", { name: "Settings", exact: true }),
+  ).toHaveCount(0);
+  expect(new URL(page.url()).searchParams.get("feed")).toBe(null);
+  expect(new URL(page.url()).searchParams.get("team")).toBe(null);
+  await page.locator(".goal-row").nth(1).click();
   await expect(
     page.getByRole("heading", { name: "Tagged scorer", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Great goal, tagged on Reddit/ }),
   ).toHaveAttribute("href", source);
-  expect(new URL(page.url()).searchParams.get("feed")).toBe("watch");
-  await page.reload();
+  await page.locator(".goal-row").first().click();
   await expect(
-    page.getByRole("button", { name: "Ones to watch", exact: true }),
-  ).toHaveAttribute("aria-current", "page");
-  await expect(page.locator(".goal-row")).toHaveCount(1);
+    page.getByRole("heading", { name: "Regular scorer", exact: true }),
+  ).toBeVisible();
   expect(
     (
       await new AxeBuilder({ page })
@@ -154,39 +149,8 @@ try {
         .analyze()
     ).violations.map((item) => item.id),
   ).toEqual([]);
-  await page.getByRole("button", { name: "Matches", exact: true }).click();
-  await page
-    .getByRole("button", {
-      name: "Show goals from Portsmouth FC versus Swansea City AFC",
-    })
-    .click();
-  await expect(page.locator(".goal-row")).toHaveCount(1);
-  await expect(
-    page.getByRole("heading", { name: "Regular scorer", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Matches", exact: true }).click();
-  await page
-    .getByRole("button", {
-      name: "Follow match: Portsmouth FC versus Swansea City AFC",
-      exact: true,
-    })
-    .click();
-  await page.getByRole("button", { name: "Following", exact: true }).click();
-  await expect(page.locator(".goal-row")).toHaveCount(1);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page
-    .getByRole("button", { name: "Ones to watch", exact: true })
-    .click();
-  await expect(page.locator(".goal-row")).toHaveCount(1);
-  await page.getByRole("button", { name: "Matches", exact: true }).click();
-  await expect(page.getByRole("heading", { name: /With goals/ })).toBeVisible();
-  await expect(
-    page.getByRole("button", {
-      name: "Show goals from Manchester United versus AS Roma",
-    }),
-  ).toBeVisible();
   console.log(
-    "PASS coverage: recent posted matches beyond today's fixtures, alias linking, match follows, title-tagged feed, URL persistence and mobile matches tab.",
+    "PASS goals-only coverage: old favourite and match URLs cannot hide goals; tagged and regular goals remain available.",
   );
 } finally {
   await browser.close();

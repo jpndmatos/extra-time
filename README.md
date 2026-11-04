@@ -1,8 +1,8 @@
 # Touchline
 
-A personal goal room: follow football clubs and individual fixtures, then watch their goal clips together. Built with .NET 10, React, TypeScript and SQLite.
+A focused r/soccer goal hub: open it, browse the latest available clips, and watch. Built with .NET 10, React, TypeScript and SQLite.
 
-![Touchline goal room](docs/goal-room-live.png)
+![Touchline goal hub playing a real clip](docs/goal-room-live.png)
 
 Read the [project case study](docs/case-study.md) for the UX decisions, implementation and verified limits.
 
@@ -20,17 +20,17 @@ For development, run `dotnet run --project src/Touchline.Api` and `npm --prefix 
 
 ## What works without keys
 
-- Browse recent r/soccer goals through public RSS. All r/soccer works without favourites; Following keeps a personal feed.
-- Follow clubs discovered in fixtures and goal posts alongside the initial 24-club catalogue. Choices persist in SQLite.
-- See official football-data crests in the feed, player, teams and matches; unavailable crests fall back to initials.
-- Add a Reddit goal post manually, with an optional Streamable, Streamain, Streamin or YouTube clip URL.
-- Select a goal to start supported clips muted. Metadata warms on hover/focus and is cached; reselecting restarts the clip. Hosts and browser policies can still restrict playback.
+- Browse every available r/soccer goal in the fetched feed, without choosing clubs or fixtures.
+- Search by team, alias or scorer. Old favourite and match URL parameters cannot filter the hub.
+- Play supported clips muted, with source recovery and alternate links. Reselecting the active goal preserves playback.
+- Mark goals seen immediately when opened; use Unwatched to hide them or mark one unwatched again.
 - Hide scores and scorers until you reveal a goal.
-- Explore fictional match and goal metadata using `?sample=true`. Sample mode contains **no football footage**, makes no fixture or goal-provider requests and stores its preferences separately in the browser.
+- See club crests alongside goal details, with fallback formats and initials for unavailable images.
+- Explore fictional goal metadata using `?sample=true`. Sample mode supplies no footage and stores viewing preferences separately in the browser.
 
-Automatic fixtures require your own provider key. Reddit discovery uses public RSS by default until its announced retirement on 13 November 2026; OAuth requires approved access. Missing connections never silently substitute sample data. Real fixtures, public goal discovery and Streamin/Streamain playback were verified on 4 November 2026.
+The goal hub does not require fixture access. Optional provider metadata can use a football-data key. Reddit discovery uses public RSS by default until its announced retirement on 13 November 2026; OAuth requires approved access. Missing connections never silently substitute sample data. Real fixtures, public goal discovery and Streamin/Streamain playback were verified on 4 November 2026.
 
-## Connect fixtures
+## Optional provider metadata
 
 Register at [football-data.org](https://www.football-data.org/client/register). Once your key is issued, run `./scripts/configure-provider.ps1` in PowerShell 7. The prompt masks your key and sends it to .NET user secrets through stdin, avoiding command history and process arguments. Restart the backend afterwards. Pass `-DotNet /path/to/dotnet` if the SDK is outside PATH.
 
@@ -65,11 +65,11 @@ The public RSS reader fetches up to 100 new posts and 100 daily top posts every 
 
 ## Scope and storage
 
-This is a **single-user local application**, bound to loopback by default. Its SQLite file is `src/Touchline.Api/data/touchline.db` when launched normally. Set `DatabasePath` to choose another file. Favourites and manually added clips persist there. Sample preferences use the separate `touchline.sample` browser-storage key.
+This is a **single-user local application**, bound to loopback by default. Its SQLite file is `src/Touchline.Api/data/touchline.db` when launched normally. Set `DatabasePath` to choose another file. Seen state, spoiler preferences and previously added clips persist there. Legacy favourite fields and API endpoints remain compatible but do not filter the hub. Sample preferences use the separate `touchline.sample` browser-storage key.
 
 It has no multi-user login or public deployment configuration. Keep it local; an internet service would need accounts, per-user storage and an approved long-term clip provider. The provider boundary is separate from the UI so a supported source can replace Reddit later.
 
-The layout fills the full viewport. Cinema view expands the player; Escape restores the feed. Longer lists scroll inside keyboard-focusable panels. On phones, selecting a goal opens its player with Back to goals. Matches stay in the right sidebar, with a Matches drawer on smaller screens. There is no separate Matchday page. Very short landscape windows permit workspace scrolling.
+The layout fills the full viewport. Cinema view expands the player; Escape restores the feed. Longer lists scroll inside keyboard-focusable panels. On phones, selecting a goal opens its player with Back to goals. The UI has no catalogue, favourites, fixture pages or navigation tabs. Very short landscape windows permit workspace scrolling.
 
 ## Checks
 
@@ -84,7 +84,7 @@ node scripts/verify-browsing.mjs
 node scripts/verify-live.mjs
 ```
 
-The browser check uses the installed Playwright and axe dependencies from the sibling Relay workspace. It covers 320×568 through 1440×900, favourites, fixture follows, spoilers, reload persistence and accessibility. Set `TOUCHLINE_URL` to choose a host. Set `TOUCHLINE_ALLOW_WRITES=1` to include the manual-import test, which writes and removes a test clip; use a disposable database for this optional check. The default browser run does not write real preferences or clips. The iframe test intercepts the clip host and never presents a fabricated video as real footage.
+The browser check uses the installed Playwright and axe dependencies from the sibling Relay workspace. It covers 320×568 through 1440×900, all-goal coverage, search, seen state, spoilers, reload persistence and accessibility. Set `TOUCHLINE_URL` to choose a host. The default browser run does not write real preferences or clips. The iframe test intercepts the clip host and never presents a fabricated video as real footage.
 
 Provider and API tests use temporary SQLite databases and mocked HTTP responses. They cover goal matching, URL allowlists, duplicate grouping, error backoff, API validation, persistence and cross-site write rejection.
 
@@ -102,18 +102,18 @@ Embedded players cannot always expose their internal errors across origins. Thei
 
 `/api/live?day=YYYY-MM-DD` sends a server-sent event stream. The browser receives changed dashboard snapshots without REST polling. Content hashes suppress identical snapshots; heartbeats keep the connection alive. Local clip changes are detected within two seconds. The browser reconnects after interruptions and pauses its connection while hidden or offline. The selected video remains mounted as other goals arrive.
 
-This transport does not change the upstream providers’ delay or create access. Automatic goals currently use public RSS until 13 November 2026, or approved Reddit credentials; actual fixtures require a football-data key. Free-plan scores can be delayed. Sample mode remains fictional and does not subscribe to the live feed. Source failures retain existing content and are visible in Sources.
+This transport does not change the upstream providers’ delay or create access. Automatic goals currently use public RSS until 13 November 2026, or approved Reddit credentials; actual fixtures require a football-data key. Free-plan scores can be delayed. Sample mode remains fictional and does not subscribe to the live feed. Source failures retain existing content. An empty feed exposes its Reddit source status.
 
-The matchday date has a Today action. Today follows local midnight and foregrounding automatically, and does not pin a stale date into the URL. Deliberately browsed dates remain bookmarked until Today is selected again. Run `node scripts/verify-matchday.mjs` to check the rollover and explicit-date behavior.
+The hub follows local midnight and foregrounding automatically. There is no fixture-date selector; a pinned date is supported only in sample mode. Run `node scripts/verify-matchday.mjs` to check rollover and sample bookmarks.
 
-## Match coverage and Ones to watch
+## Provider compatibility and title labels
 
-The match rail combines scheduled fixtures with every match discovered in the fetched goal posts. Matches with clips stay visible across the feed's 48-hour window, separate from the selected day's upcoming fixtures. Club-name aliases connect posts to existing fixtures through explicit goal IDs. Games absent from the fixture provider remain labelled as Reddit discoveries, with no invented kickoff time or final score. Followed matches sort first; major competitions lead the remaining fixtures.
+Fixture matching and legacy follow endpoints remain in the provider/API layer for compatibility. They are not exposed as screens or used to restrict goal discovery.
 
-Ones to watch filters titles explicitly labelled great goal, screamer, banger, golazo, worldie, great free-kick and similar phrases. These are Reddit title labels, not invented editorial ratings or vote counts. Alternate posts retain the label and its original source link. The filter is bookmarkable with `?feed=watch` and stays empty when no qualifying posts exist. Run `node scripts/verify-coverage.mjs` for the controlled browser check.
+Ones to watch filters titles explicitly labelled great goal, screamer, banger, golazo, worldie, great free-kick and similar phrases. These are Reddit title labels, not invented editorial ratings or vote counts. Alternate posts retain the label and its original source link. Labels appear on the goal rows and in the selected post; there is no separate filter or page. Run `node scripts/verify-coverage.mjs` for the controlled browser check.
 
 ## Faster goal browsing
 
-Search the current feed by club, alias or scorer, including accent-insensitive names. The query is bookmarked in `q`. Hidden scorers and scores are excluded from search until their goal is revealed. Searching keeps the current player mounted; previous/next buttons navigate only the current results. Arrow keys browse focused goal rows, Enter plays, and arrows inside the navigation controls move between clips without intercepting the video player's keyboard controls. The three feed choices remain visible across a phone's width; search replaces the optional club-chip rail on phones.
+Search the current feed by club, alias or scorer, including accent-insensitive names. The query is bookmarked in `q`. Hidden scorers and scores are excluded from search until their goal is revealed. Searching keeps the current player mounted; previous/next buttons navigate only the current results. Arrow keys browse focused goal rows, Enter plays, and arrows inside the navigation controls move between clips without intercepting the video player's keyboard controls. Search stays visible in the header on desktop and phones. Every available post is shown without club or match restrictions.
 
 On phones, returning to the list stops the hidden player instead of continuing to stream behind it. Selecting a goal starts its player again.
