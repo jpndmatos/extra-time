@@ -95,6 +95,8 @@ export default function App() {
     (initial.get("q") || "").slice(0, 100),
   );
   const goalSearchInput = useRef<HTMLInputElement>(null);
+  const searchTrigger = useRef<HTMLButtonElement>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const goalList = useRef<HTMLDivElement>(null);
   const navigation = useRef<HTMLElement>(null);
   const [data, setData] = useState<Dashboard | null>(null);
@@ -265,6 +267,7 @@ export default function App() {
     });
   }
   function navigate(next: View) {
+    setSearchOpen(false);
     setView(next);
     setCinema(false);
     setImporting(false);
@@ -278,6 +281,16 @@ export default function App() {
   function select(goal: Goal) {
     setNewGoalCount(0);
     setMobilePlayer(true);
+    if (
+      ready &&
+      (!latest.current.spoilers || revealed.includes(goal.id)) &&
+      !latest.current.watched.includes(goal.id)
+    ) {
+      save({
+        ...latest.current,
+        watched: [...latest.current.watched, goal.id].slice(-1000),
+      });
+    }
     if (goal.id === selectedId && playing) return;
     setSelectedId(goal.id);
     setPlaybackAttempt((value) => value + 1);
@@ -332,6 +345,31 @@ export default function App() {
   }, [selectedId, selected?.id]);
   const hideScore =
     prefs.spoilers && selected && !revealed.includes(selected.id);
+  useEffect(() => {
+    if (
+      !ready ||
+      view !== "goals" ||
+      !selected ||
+      !playing ||
+      hideScore ||
+      (compactPlayer && !mobilePlayer)
+    )
+      return;
+    if (!latest.current.watched.includes(selected.id)) {
+      save({
+        ...latest.current,
+        watched: [...latest.current.watched, selected.id].slice(-1000),
+      });
+    }
+  }, [
+    selected?.id,
+    ready,
+    view,
+    playing,
+    hideScore,
+    compactPlayer,
+    mobilePlayer,
+  ]);
   const activeMatch = data?.matches.find((fixture) => fixture.id === match);
   const selectedDate = new Date(day + "T12:00:00");
   const competitionRank = (competition: string) => {
@@ -555,7 +593,7 @@ export default function App() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <header className="topbar">
+      <header className={`topbar${searchOpen ? " searching" : ""}`}>
         <a className="brand" href="/" aria-label="Touchline home">
           <svg
             className="brand-mark"
@@ -654,6 +692,63 @@ export default function App() {
             </div>
           )}
         </nav>
+        {view === "goals" && (
+          <>
+            <button
+              type="button"
+              className="search-toggle icon-button"
+              ref={searchTrigger}
+              aria-label={searchOpen ? "Close goal search" : "Search goals"}
+              aria-expanded={searchOpen}
+              aria-pressed={!!goalSearch}
+              onClick={() => {
+                setSearchOpen(!searchOpen);
+                if (!searchOpen)
+                  requestAnimationFrame(() => goalSearchInput.current?.focus());
+              }}
+            >
+              {searchOpen ? <X size={16} /> : <Search size={16} />}
+            </button>
+            <label className="goal-search">
+              <Search size={15} aria-hidden="true" />
+              <input
+                ref={goalSearchInput}
+                name="goal-search"
+                type="search"
+                aria-label="Search goals"
+                placeholder={
+                  prefs.spoilers ? "Find a team" : "Find team or scorer"
+                }
+                value={goalSearch}
+                maxLength={100}
+                onChange={(event) => setGoalSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setGoalSearch("");
+                    if (compactPlayer && !goalSearch) {
+                      setSearchOpen(false);
+                      searchTrigger.current?.focus();
+                    }
+                  }
+                }}
+              />
+              {!!goalSearch && (
+                <button
+                  type="button"
+                  aria-label="Clear goal search"
+                  onClick={() => {
+                    setGoalSearch("");
+                    goalSearchInput.current?.focus();
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </label>
+          </>
+        )}
         <div className="header-utilities">
           {(view === "goals" || importing) && (
             <>
@@ -891,44 +986,6 @@ export default function App() {
                             Unwatched
                           </label>
                         </div>
-                        <label className="goal-search">
-                          <Search size={15} aria-hidden="true" />
-                          <input
-                            ref={goalSearchInput}
-                            name="goal-search"
-                            type="search"
-                            aria-label="Search goals"
-                            placeholder={
-                              prefs.spoilers
-                                ? "Find a team"
-                                : "Find team or scorer"
-                            }
-                            value={goalSearch}
-                            maxLength={100}
-                            onChange={(event) =>
-                              setGoalSearch(event.target.value)
-                            }
-                            onKeyDown={(event) => {
-                              if (event.key === "Escape") {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                setGoalSearch("");
-                              }
-                            }}
-                          />
-                          {!!goalSearch && (
-                            <button
-                              type="button"
-                              aria-label="Clear goal search"
-                              onClick={() => {
-                                setGoalSearch("");
-                                goalSearchInput.current?.focus();
-                              }}
-                            >
-                              <X size={14} />
-                            </button>
-                          )}
-                        </label>
                         <p id="goal-keyboard-help" className="sr-only">
                           Use the up and down arrow keys to browse goals. Press
                           Enter to play.

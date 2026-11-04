@@ -3422,3 +3422,54 @@ summary:focus-visible {
     min-height: 44px;
   }
 }
+
+/* Search belongs to the global control line; consistent heights give it breathing room. */
+.topbar {
+  min-height: 56px;
+  padding-block: var(--space-xs);
+  gap: var(--space-sm);
+}
+.topbar > .goal-search {
+  flex: 0 1 240px;
+  min-width: 160px;
+  margin: 0;
+}
+.topbar .goal-search input {
+  height: 36px;
+  min-height: 36px;
+  background: var(--color-paper-2);
+}
+.topbar .search-toggle {
+  display: none;
+}
+.topbar .main-navigation > button {
+  min-height: 36px;
+}
+@media (max-width: 760px) {
+  .topbar {
+    min-height: 52px;
+    gap: var(--space-2xs);
+    padding-block: var(--space-2xs);
+  }
+  .topbar .search-toggle {
+    display: inline-flex;
+    min-height: 40px;
+    min-width: 32px;
+  }
+  .topbar > .goal-search {
+    display: none;
+  }
+  .topbar.searching > .main-navigation {
+    display: none;
+  }
+  .topbar.searching > .goal-search {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+  .topbar.searching .goal-search input {
+    min-height: 44px;
+    height: 44px;
+    font-size: var(--text-md);
+  }
+}
