@@ -38,6 +38,8 @@ public class CrestTests
     [InlineData("Slavia Prague", "930")]
     [InlineData("QPR", "69")]
     [InlineData("Wolves", "76")]
+    [InlineData("Atletico-PR", "1768")]
+    [InlineData("Vasco", "1780")]
     public void BundledCrestsWorkWithoutFixtureAccess(string name, string id)
     {
         var original = Catalog.FromName(name);

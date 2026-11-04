@@ -23,7 +23,9 @@ public static class ClubNames
         ["lincoln"] = "lincoln city", ["qpr"] = "queens park rangers",
         ["bragantino"] = "rb bragantino", ["slavia prague"] = "slavia praha",
         ["stuttgart"] = "vfb stuttgart", ["west ham"] = "west ham united",
-        ["wolves"] = "wolverhampton wanderers", ["manchester utd"] = "man-utd"
+        ["wolves"] = "wolverhampton wanderers", ["manchester utd"] = "man-utd",
+        ["atletico pr"] = "ca paranaense", ["athletico pr"] = "ca paranaense",
+        ["athletico paranaense"] = "ca paranaense", ["vasco"] = "cr vasco da gama"
     };
     private static readonly Regex Category = new(@"\b(?:u[ -]?\d{2}|under[ -]?\d{2}|women(?:'s)?|ladies|feminino|feminina|frauen)\b|\(w\)", RegexOptions.CultureInvariant);
     private static readonly ConcurrentDictionary<string, string> Keys = new(StringComparer.Ordinal);
