@@ -612,9 +612,7 @@ export default function App() {
           className="source-status"
           aria-label="Settings"
           aria-current={view !== "goals" ? "page" : undefined}
-          title={
-            sample ? "Sample workspace" : `${connected}/2 sources connected`
-          }
+          title="Favourite teams and connections"
           onClick={() => navigate("teams")}
         >
           <Settings2 size={16} />
