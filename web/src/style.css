@@ -3618,3 +3618,24 @@ summary:focus-visible {
     justify-self: start;
   }
 }
+
+/* Full-width inner screens; the catalogue adds columns as room becomes available. */
+.view-teams > .page-heading,
+.view-sources > .page-heading,
+.view-matches > .page-heading,
+.teams-view,
+.sources-view,
+.matches-view,
+.import-panel {
+  width: 100%;
+  max-width: none;
+  align-self: stretch;
+}
+.team-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+}
+@media (min-width: 1121px) {
+  .source-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
