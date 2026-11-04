@@ -52,7 +52,10 @@ try {
     });
     const page = await context.newPage();
     const errors = [];
-    page.on("pageerror", (e) => { errors.push(e.message); console.log("PAGE ERROR", e.message); });
+    page.on("pageerror", (e) => {
+      errors.push(e.message);
+      console.log("PAGE ERROR", e.message);
+    });
     await page.goto(`${base}/?sample=true`);
     await expect(page.locator(".goal-row")).toHaveCount(4);
     await fits(page, `Goal room ${width}`);
@@ -107,7 +110,9 @@ try {
     ).toHaveAttribute("aria-pressed", "true");
     if (width === 1440 || width === 390)
       await accessible(page, `Teams ${width}`);
-    await page.getByRole("button", { name: "Matchday", exact: true }).click();
+    await page.getByRole("button", { name: "Goal room", exact: true }).click();
+    if (width <= 1120)
+      await page.getByRole("button", { name: /^Matches/ }).click();
     await page
       .getByRole("button", {
         name: "Follow match: Benfica versus FC Porto",
@@ -120,10 +125,15 @@ try {
         exact: true,
       }),
     ).toHaveAttribute("aria-pressed", "true");
-    await fits(page, `Matchday ${width}`);
+    await fits(page, `Match sidebar ${width}`);
+    if (width === 390) await accessible(page, "Mobile matches drawer");
+    if (width <= 1120)
+      await page
+        .getByRole("button", { name: "Close matches sidebar", exact: true })
+        .click();
     await page.getByRole("button", { name: "Sources", exact: true }).click();
     await expect(
-      page.getByRole("heading", { name: "Check Reddit access first" }),
+      page.getByRole("heading", { name: "Reddit goal feed" }),
     ).toBeVisible();
     if (width === 1440 || width === 390)
       await accessible(page, `Sources ${width}`);
@@ -146,6 +156,12 @@ try {
     ).json();
     let goal;
     try {
+      await page.route("https://streamable.com/e/testclip*", (route) =>
+        route.fulfill({
+          contentType: "text/html",
+          body: "<!doctype html><title>Test clip host</title><main>Isolated playback test</main>",
+        }),
+      );
       await page.goto(base);
       await page.getByRole("button", { name: "Add clip", exact: true }).click();
       await page
@@ -161,15 +177,7 @@ try {
       await expect(
         page.getByRole("heading", { name: "Test player", exact: true }),
       ).toBeVisible();
-      await page.route("https://streamable.com/e/testclip", (route) =>
-        route.fulfill({
-          contentType: "text/html",
-          body: "<!doctype html><title>Test clip host</title><main>Isolated playback test</main>",
-        }),
-      );
-      await page
-        .getByRole("button", { name: "Play clip", exact: true })
-        .click();
+
       await expect(
         page.frameLocator("iframe").getByText("Isolated playback test"),
       ).toBeVisible();

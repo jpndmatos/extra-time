@@ -29,6 +29,13 @@ try {
     if (new URL(request.url()).pathname === "/api/dashboard")
       dashboardRequests++;
   });
+  await page.route("https://streamable.com/e/liveclip*", (route) => {
+    embedLoads++;
+    return route.fulfill({
+      contentType: "text/html",
+      body: "<!doctype html><title>Controlled clip</title><main>Playback stays mounted</main>",
+    });
+  });
   await page.goto(base);
   await expect(page.locator(".live-status")).toHaveAttribute(
     "data-state",
@@ -52,14 +59,6 @@ try {
   await expect(
     page.getByRole("heading", { name: "Live player 1", exact: true }),
   ).toBeVisible({ timeout: 6000 });
-  await page.route("https://streamable.com/e/liveclip", (route) => {
-    embedLoads++;
-    return route.fulfill({
-      contentType: "text/html",
-      body: "<!doctype html><title>Controlled clip</title><main>Playback stays mounted</main>",
-    });
-  });
-  await page.getByRole("button", { name: "Play clip", exact: true }).click();
   await expect(
     page.frameLocator("iframe").getByText("Playback stays mounted"),
   ).toBeVisible();

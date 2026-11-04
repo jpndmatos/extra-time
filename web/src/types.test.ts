@@ -19,6 +19,13 @@ const prefs: Preferences = {
   spoilers: false,
 };
 describe("goal feed", () => {
+  it("shows the public hub without favourites while Following stays personal", () => {
+    expect(tracked([goal], [], prefs, "", "", false, true)).toEqual([goal]);
+    expect(tracked([goal], [], prefs, "", "", false, false)).toEqual([]);
+    expect(tracked([goal], [], prefs, "liverpool", "", false, true)).toEqual(
+      [],
+    );
+  });
   it("includes goals for either side of a followed team", () => {
     expect(
       tracked([goal], [], { ...prefs, teams: ["porto"] }, "", "", false),

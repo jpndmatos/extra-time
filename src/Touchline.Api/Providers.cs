@@ -40,14 +40,23 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
                 fixtureResults[key] = result;
             }
             var matches = result.Result;
-            if (redditResult is null || clock.GetUtcNow() - redditResult.Value.At >= ResultTtl(redditResult.Value.Result.Status, TimeSpan.FromSeconds(45)))
+            var redditTtl = TimeSpan.FromSeconds(config.GetValue<bool>("Reddit:Enabled") ? 45 : 120);
+            if (redditResult is null || clock.GetUtcNow() - redditResult.Value.At >= ResultTtl(redditResult.Value.Result.Status, redditTtl))
                 redditResult = (clock.GetUtcNow(), await Reddit(ct));
             var clips = redditResult.Value.Result;
-            return new(Catalog.Teams, matches.Items, GoalParser.Group(clips.Items.Concat(store.Clips())),
+            var allGoals = GoalParser.Group(clips.Items.Concat(store.Clips()));
+            var teams = matches.Items.SelectMany(match => new[] { Catalog.FromName(match.HomeName) with { Crest = match.HomeCrest }, Catalog.FromName(match.AwayName) with { Crest = match.AwayCrest } }).Concat(Catalog.Teams)
+                .Concat(allGoals.SelectMany(goal => new[] { Catalog.FromName(goal.HomeName ?? Catalog.Find(goal.HomeId)?.Name ?? goal.HomeId), Catalog.FromName(goal.AwayName ?? Catalog.Find(goal.AwayId)?.Name ?? goal.AwayId) }))
+                .DistinctBy(team => team.Id).OrderBy(team => team.Name).ToArray();
+            return new(teams, matches.Items, allGoals,
                 [matches.Status, clips.Status], clock.GetUtcNow(), false);
         }
         finally { gate.Release(); }
     }
+
+    private static string? Crest(JsonElement team) => team.TryGetProperty("crest", out var crest) &&
+        Uri.TryCreate(crest.GetString(), UriKind.Absolute, out var uri) && uri.Scheme == "https" &&
+        uri.Host == "crests.football-data.org" && string.IsNullOrEmpty(uri.UserInfo) ? uri.AbsoluteUri : null;
 
     private async Task<ProviderResult<Fixture>> Football(DateOnly day, CancellationToken ct)
     {
@@ -76,10 +85,10 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
                 var homeName = home.GetProperty("name").GetString() ?? "Home team";
                 var awayName = away.GetProperty("name").GetString() ?? "Away team";
                 var score = m.GetProperty("score").GetProperty("fullTime");
-                items.Add(new(m.GetProperty("id").ToString(), Catalog.ByName(homeName)?.Id ?? "fd-" + home.GetProperty("id"),
-                    Catalog.ByName(awayName)?.Id ?? "fd-" + away.GetProperty("id"), homeName, awayName,
+                items.Add(new(m.GetProperty("id").ToString(), Catalog.FromName(homeName).Id,
+                    Catalog.FromName(awayName).Id, homeName, awayName,
                     m.GetProperty("utcDate").GetDateTimeOffset(), m.GetProperty("competition").GetProperty("name").GetString() ?? "Football",
-                    m.GetProperty("status").GetString() ?? "SCHEDULED", Number(score, "home"), Number(score, "away")));
+                    m.GetProperty("status").GetString() ?? "SCHEDULED", Number(score, "home"), Number(score, "away"), false, Crest(home), Crest(away)));
             }
             var now = clock.GetUtcNow();
             // Date browsing must not grow a cache without a bound.
@@ -93,7 +102,7 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
 
     private async Task<ProviderResult<Goal>> Reddit(CancellationToken ct)
     {
-        if (!config.GetValue<bool>("Reddit:Enabled")) return new([], new("Reddit", "disconnected", "Reddit access is unconfirmed. Enable it only with an approved app. You can add a clip link yourself."));
+        if (!config.GetValue<bool>("Reddit:Enabled")) return await PublicReddit(ct);
         if (string.IsNullOrWhiteSpace(config["Reddit:AccessToken"]) &&
             (string.IsNullOrWhiteSpace(config["Reddit:ClientId"]) || string.IsNullOrWhiteSpace(config["Reddit:ClientSecret"])))
             return new([], new("Reddit", "disconnected", "An approved app's OAuth credentials are required. See source setup."));
@@ -157,6 +166,26 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
     }
 
     private static int? Number(JsonElement score, string key) => score.TryGetProperty(key, out var item) && item.ValueKind == JsonValueKind.Number ? item.GetInt32() : null;
+    private async Task<ProviderResult<Goal>> PublicReddit(CancellationToken ct)
+    {
+        if (!config.GetValue<bool>("Reddit:PublicFeedEnabled")) return new([], new("Reddit", "disconnected", "Public feed disabled. An approved app is required for the OAuth connector."));
+        if (clock.GetUtcNow() >= RedditFeed.Retirement) return new([], new("Reddit", "disconnected", "Reddit's public RSS retirement date has passed (13 November 2026). Use approved API access or add goal links manually."));
+        if (goalsAt is { } at && clock.GetUtcNow() - at < TimeSpan.FromMinutes(2))
+            return new(goals, new("Reddit", "connected", "r/soccer public RSS, refreshed every two minutes. Reddit plans to retire RSS on 13 November 2026.", at));
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "https://www.reddit.com/r/soccer/new/.rss?limit=100");
+            request.Headers.TryAddWithoutValidation("User-Agent", "Touchline/0.1 personal RSS reader");
+            request.Headers.Accept.ParseAdd("application/atom+xml");
+            using var response = await clients.CreateClient("providers").SendAsync(request, ct);
+            if (!response.IsSuccessStatusCode) return new(goals, Failure("Reddit", response.StatusCode, goalsAt));
+            goals = RedditFeed.Parse(await response.Content.ReadAsStringAsync(ct), clock.GetUtcNow());
+            goalsAt = clock.GetUtcNow();
+            return new(goals, new("Reddit", "connected", "r/soccer public RSS, refreshed every two minutes. Reddit plans to retire RSS on 13 November 2026.", goalsAt));
+        }
+        catch (Exception error) when (error is HttpRequestException or System.Xml.XmlException || error is TaskCanceledException && !ct.IsCancellationRequested)
+        { return new(goals, new("Reddit", "error", "The public r/soccer feed could not refresh. Try again later or open the source thread. Previously loaded goals remain visible.", goalsAt)); }
+    }
     private static ProviderStatus Failure(string name, HttpStatusCode code, DateTimeOffset? at) => new(name, "error", code switch
     {
         HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => "Access was refused. Check your credentials and provider approval.",

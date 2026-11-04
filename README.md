@@ -18,13 +18,15 @@ For development, run `dotnet run --project src/Touchline.Api` and `npm --prefix 
 
 ## What works without keys
 
-- Follow 24 supported clubs across six countries and persist your choices in SQLite.
-- Add a Reddit goal post manually, with an optional Streamable or YouTube clip URL.
-- Watch supported embeds at their original host, open the source thread, and mark goals watched.
+- Browse recent r/soccer goals through public RSS. All r/soccer works without favourites; Following keeps a personal feed.
+- Follow clubs discovered in fixtures and goal posts alongside the initial 24-club catalogue. Choices persist in SQLite.
+- See official football-data crests in the feed, player, teams and matches; unavailable crests fall back to initials.
+- Add a Reddit goal post manually, with an optional Streamable, Streamain, Streamin or YouTube clip URL.
+- Select a goal to start supported clips muted. Metadata warms on hover/focus and is cached; reselecting restarts the clip. Hosts and browser policies can still restrict playback.
 - Hide scores and scorers until you reveal a goal.
-- Explore fictional match and goal metadata using `?sample=true`. Sample mode contains **no football footage**, makes no external provider calls and stores its preferences separately in the browser.
+- Explore fictional match and goal metadata using `?sample=true`. Sample mode contains **no football footage**, makes no fixture or goal-provider requests and stores its preferences separately in the browser.
 
-Automatic fixtures and automatic Reddit goal discovery require your own provider access. Missing keys produce connection instructions, never invented live results. The fixture connector was verified against the real football-data.org API on 2026-11-04. Reddit is tested against controlled responses and remains unconnected without approved access.
+Automatic fixtures require your own provider key. Reddit discovery uses public RSS by default until its announced retirement on 13 November 2026; OAuth requires approved access. Missing connections never silently substitute sample data. Real fixtures, public goal discovery and Streamin/Streamain playback were verified on 4 November 2026.
 
 ## Connect fixtures
 
@@ -57,7 +59,7 @@ Keys remain on the server and are never returned to the browser. No credential f
 
 The Reddit reader scans up to 300 recent r/soccer posts, stopping after 48 hours. It does not guarantee every goal will be found. It refreshes at most every 45 seconds, backs off failures for two minutes, ignores removed/NSFW posts, excludes misses, highlights and disallowed goals, and uses complete team aliases rather than substring guesses. A goal needs two supported teams, a score and a minute. Ambiguous/unrecognized titles are skipped. Alternate posts with the same teams, UTC posting date, score and minute are grouped conservatively.
 
-Reddit posts are held in the short-lived memory cache, not archived in SQLite. Manually added links are explicitly stored locally. No scraping workaround, private API, clip downloading or rehosting is used. Other video hosts and removed/blocked embeds open in the original thread. Reddit-hosted DASH video is not combined or downloaded for inline playback.
+The public RSS reader fetches up to 100 recent posts every two minutes, validates r/soccer threads, accepts clean club names outside the seed catalogue, and disables itself on 13 November 2026. See [Reddit's announcement](https://support.reddithelp.com/hc/en-us/articles/54353370049684-Changelog-October-8-2026). Posts remain in a short-lived memory cache. Manually added links are stored locally. Streamin playback resolves the publisher's public video metadata through a size-limited request with allowlisted redirects; the browser streams video from the original CDN. No private API, video downloading or rehosting is used. Other hosts and removed/blocked clips open in the original thread. Reddit-hosted DASH video is not combined or downloaded for inline playback.
 
 ## Scope and storage
 
@@ -65,7 +67,7 @@ This is a **single-user local application**, bound to loopback by default. Its S
 
 It has no multi-user login or public deployment configuration. Keep it local; an internet service would need accounts, per-user storage and an approved long-term clip provider. The provider boundary is separate from the UI so a supported source can replace Reddit later.
 
-The layout fills the full viewport width and height, including large displays. Cinema view expands the player into the workspace; Escape restores the feed. Longer lists scroll inside keyboard-focusable panels. On phones, selecting a goal opens its player with a Back to goals action. Matchday remains available from the main navigation. Very short landscape windows permit workspace scrolling.
+The layout fills the full viewport. Cinema view expands the player; Escape restores the feed. Longer lists scroll inside keyboard-focusable panels. On phones, selecting a goal opens its player with Back to goals. Matches stay in the right sidebar, with a Matches drawer on smaller screens. There is no separate Matchday page. Very short landscape windows permit workspace scrolling.
 
 ## Checks
 
@@ -88,6 +90,6 @@ Sources: [football-data match documentation](https://docs.football-data.org/gene
 
 `/api/live?day=YYYY-MM-DD` sends a server-sent event stream. The browser receives changed dashboard snapshots without REST polling. Content hashes suppress identical snapshots; heartbeats keep the connection alive. Local clip changes are detected within two seconds. The browser reconnects after interruptions and pauses its connection while hidden or offline. The selected video remains mounted as other goals arrive.
 
-This transport does not change the upstream providers’ delay or create access. Actual goals require approved Reddit credentials and actual fixtures require a football-data key. Free-plan scores can be delayed. Sample mode remains fictional and does not subscribe to the live feed. Source failures retain existing content and are visible in Sources.
+This transport does not change the upstream providers’ delay or create access. Automatic goals currently use public RSS until 13 November 2026, or approved Reddit credentials; actual fixtures require a football-data key. Free-plan scores can be delayed. Sample mode remains fictional and does not subscribe to the live feed. Source failures retain existing content and are visible in Sources.
 
 The matchday date has a Today action. Today follows local midnight and foregrounding automatically, and does not pin a stale date into the URL. Deliberately browsed dates remain bookmarked until Today is selected again. Run `node scripts/verify-matchday.mjs` to check the rollover and explicit-date behavior.

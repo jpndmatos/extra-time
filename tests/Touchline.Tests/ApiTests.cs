@@ -14,7 +14,7 @@ public class ApiTests : IDisposable
     public ApiTests()
     {
         factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
-        { ["DatabasePath"] = database, ["Reddit:Enabled"] = "false", ["FootballData:Token"] = "" })));
+        { ["DatabasePath"] = database, ["Reddit:Enabled"] = "false", ["Reddit:PublicFeedEnabled"] = "false", ["FootballData:Token"] = "" })));
     }
     [Fact]
     public async Task LiveStreamPushesManualGoalsWithoutAnotherDashboardRequest()

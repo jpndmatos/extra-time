@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLiveFeed } from "./useLiveFeed";
 import { useMatchday } from "./useMatchday";
+import ClipPlayback, { warmClip } from "./ClipPlayback";
+import TeamCrest from "./TeamCrest";
 import {
   ArrowLeft,
   ArrowRight,
@@ -42,10 +44,9 @@ const sampleDefaults: Preferences = {
   ...empty,
   teams: ["benfica", "arsenal", "liverpool"],
 };
-type View = "goals" | "matchday" | "teams" | "sources";
+type View = "goals" | "teams" | "sources";
 const tabs: { id: View; label: string }[] = [
   { id: "goals", label: "Goal room" },
-  { id: "matchday", label: "Matchday" },
   { id: "teams", label: "Your teams" },
   { id: "sources", label: "Sources" },
 ];
@@ -79,6 +80,9 @@ export default function App() {
   const day = matchday.day;
   const [team, setTeam] = useState(initial.get("team") || "");
   const [match, setMatch] = useState(initial.get("match") || "");
+  const [feed, setFeed] = useState<"all" | "following">(
+    initial.get("feed") === "following" ? "following" : "all",
+  );
   const [data, setData] = useState<Dashboard | null>(null);
   const [prefs, setPrefs] = useState<Preferences>(sample ? loadSample : empty);
   const [loading, setLoading] = useState(true);
@@ -88,7 +92,8 @@ export default function App() {
   const [writeError, setWriteError] = useState("");
   const [ready, setReady] = useState(sample);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(true);
+  const [playbackAttempt, setPlaybackAttempt] = useState(0);
   const [revealed, setRevealed] = useState<string[]>([]);
   const [unwatched, setUnwatched] = useState(false);
   const [search, setSearch] = useState("");
@@ -98,6 +103,38 @@ export default function App() {
   const [pendingWrites, setPendingWrites] = useState(0);
   const [mobilePlayer, setMobilePlayer] = useState(false);
   const [cinema, setCinema] = useState(false);
+  const [matchesOpen, setMatchesOpen] = useState(false);
+  const matchesTrigger = useRef<HTMLButtonElement>(null);
+  const matchesClose = useRef<HTMLButtonElement>(null);
+  const matchesPanel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!matchesOpen) return;
+    matchesClose.current?.focus();
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Tab") {
+        const controls = Array.from(
+          matchesPanel.current?.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), a[href], [tabindex="0"]',
+          ) || [],
+        ).filter((element) => element.getClientRects().length);
+        const first = controls[0],
+          last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+      if (event.key === "Escape") {
+        setMatchesOpen(false);
+        matchesTrigger.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [matchesOpen]);
   const [newGoalCount, setNewGoalCount] = useState(0);
   const knownGoals = useRef<Set<string> | null>(null);
   const queue = useRef(Promise.resolve());
@@ -121,6 +158,7 @@ export default function App() {
         team,
         match,
         unwatched,
+        feed === "all",
       ).filter((goal) => !knownGoals.current!.has(goal.id)).length;
       if (added) setNewGoalCount((count) => count + added);
     }
@@ -136,9 +174,10 @@ export default function App() {
     if (sample) params.set("sample", "true");
     if (team) params.set("team", team);
     if (match) params.set("match", match);
+    if (feed === "following") params.set("feed", "following");
     if (!matchday.followingToday) params.set("day", day);
     history.replaceState(null, "", `${location.pathname}?${params}`);
-  }, [view, sample, day, team, match, matchday.followingToday]);
+  }, [view, sample, day, team, match, feed, matchday.followingToday]);
 
   useEffect(() => {
     if (sample) return;
@@ -229,7 +268,8 @@ export default function App() {
   function select(goal: Goal) {
     setNewGoalCount(0);
     setSelectedId(goal.id);
-    setPlaying(false);
+    setPlaybackAttempt((value) => value + 1);
+    setPlaying(true);
     setMobilePlayer(true);
   }
   function name(id: string) {
@@ -239,7 +279,15 @@ export default function App() {
     return data?.teams.find((t) => t.id === id)?.shortName || id.slice(0, 3);
   }
   const visibleGoals = data
-    ? tracked(data.goals, data.matches, prefs, team, match, unwatched)
+    ? tracked(
+        data.goals,
+        data.matches,
+        prefs,
+        team,
+        match,
+        unwatched,
+        feed === "all",
+      )
     : [];
   const playingGoal = playing
     ? data?.goals.find((goal) => goal.id === selectedId)
@@ -352,16 +400,26 @@ export default function App() {
             onClick={() => {
               setMatch(fixture.id);
               setTeam("");
+              setFeed("all");
+              setMatchesOpen(false);
               navigate("goals");
             }}
             aria-label={`Show goals from ${fixture.homeName} versus ${fixture.awayName}`}
           >
             <span>
-              {fixture.homeName}
+              <TeamCrest
+                team={data?.teams.find((t) => t.id === fixture.homeId)}
+                src={fixture.homeCrest}
+              />
+              <span className="fixture-name">{fixture.homeName}</span>
               <b>{prefs.spoilers ? "—" : (fixture.homeScore ?? "—")}</b>
             </span>
             <span>
-              {fixture.awayName}
+              <TeamCrest
+                team={data?.teams.find((t) => t.id === fixture.awayId)}
+                src={fixture.awayCrest}
+              />
+              <span className="fixture-name">{fixture.awayName}</span>
               <b>{prefs.spoilers ? "—" : (fixture.awayScore ?? "—")}</b>
             </span>
           </button>
@@ -424,15 +482,24 @@ export default function App() {
             </h1>
             <p>
               {view === "goals"
-                ? "Just the goals from the teams and matches you follow."
-                : view === "matchday"
-                  ? "Follow a fixture to keep all its goals in your feed."
-                  : view === "teams"
-                    ? "Pick your clubs. Their goals will find their way here."
-                    : "Choose where your fixtures and goal clips come from."}
+                ? "Recent r/soccer goals. Your clubs, one place."
+                : view === "teams"
+                  ? "Pick your clubs. Their goals will find their way here."
+                  : "Choose where your fixtures and goal clips come from."}
             </p>
           </div>
           <div className="heading-actions">
+            {view === "goals" && (
+              <button
+                ref={matchesTrigger}
+                className="quiet matches-trigger"
+                aria-expanded={matchesOpen}
+                aria-controls="matches-sidebar"
+                onClick={() => setMatchesOpen(!matchesOpen)}
+              >
+                Matches <span>{matchList.length}</span>
+              </button>
+            )}
             <button
               className="quiet"
               aria-label={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
@@ -492,8 +559,8 @@ export default function App() {
             <div className="form-intro">
               <h2>A link is enough.</h2>
               <p>
-                Paste a goal post from Reddit. Add a Streamable or YouTube URL
-                for inline playback; other hosts open in the original thread.
+                Paste a goal post from Reddit. Add a supported clip URL for
+                inline playback; other hosts open in the original thread.
               </p>
             </div>
             <form onSubmit={importClip}>
@@ -518,7 +585,7 @@ export default function App() {
                 />
               </label>
               <label>
-                Clip URL <small>Optional, Streamable or YouTube</small>
+                Clip URL <small>Optional, supported video host</small>
                 <input
                   name="clip"
                   type="url"
@@ -542,17 +609,28 @@ export default function App() {
           </section>
         ) : (
           <>
-            {(view === "goals" || view === "matchday") && (
+            {view === "goals" && (
               <div className="workspace-toolbar">
                 <div className="team-filters" aria-label="Filter by team">
                   <button
-                    aria-pressed={!team}
+                    aria-pressed={feed === "all" && !team && !match}
                     onClick={() => {
+                      setFeed("all");
                       setTeam("");
                       setMatch("");
                     }}
                   >
-                    All followed
+                    All r/soccer
+                  </button>
+                  <button
+                    aria-pressed={feed === "following" && !team && !match}
+                    onClick={() => {
+                      setFeed("following");
+                      setTeam("");
+                      setMatch("");
+                    }}
+                  >
+                    Following
                   </button>
                   {data?.teams
                     .filter((t) => prefs.teams.includes(t.id))
@@ -640,6 +718,20 @@ export default function App() {
                                 key={goal.id}
                                 className={`goal-row ${selected?.id === goal.id ? "selected" : ""}`}
                                 onClick={() => select(goal)}
+                                onPointerEnter={() => {
+                                  if (
+                                    !prefs.spoilers ||
+                                    revealed.includes(goal.id)
+                                  )
+                                    void warmClip(goal.media).catch(() => {});
+                                }}
+                                onFocus={() => {
+                                  if (
+                                    !prefs.spoilers ||
+                                    revealed.includes(goal.id)
+                                  )
+                                    void warmClip(goal.media).catch(() => {});
+                                }}
                                 aria-pressed={selected?.id === goal.id}
                                 aria-label={
                                   prefs.spoilers && !revealed.includes(goal.id)
@@ -657,6 +749,11 @@ export default function App() {
                                 </span>
                                 <span className="goal-copy">
                                   <span>
+                                    <TeamCrest
+                                      team={data.teams.find(
+                                        (t) => t.id === goal.homeId,
+                                      )}
+                                    />
                                     {short(goal.homeId)}
                                     <b>
                                       {prefs.spoilers &&
@@ -665,6 +762,11 @@ export default function App() {
                                         : `${goal.homeScore} – ${goal.awayScore}`}
                                     </b>
                                     {short(goal.awayId)}
+                                    <TeamCrest
+                                      team={data.teams.find(
+                                        (t) => t.id === goal.awayId,
+                                      )}
+                                    />
                                   </span>
                                   <strong>
                                     {prefs.spoilers &&
@@ -752,9 +854,19 @@ export default function App() {
                           <>
                             <div className="player-header">
                               <span>
+                                <TeamCrest
+                                  team={data.teams.find(
+                                    (t) => t.id === selected.homeId,
+                                  )}
+                                />
                                 {name(selected.homeId)}{" "}
                                 <span className="muted">vs</span>{" "}
                                 {name(selected.awayId)}
+                                <TeamCrest
+                                  team={data.teams.find(
+                                    (t) => t.id === selected.awayId,
+                                  )}
+                                />
                               </span>
                               <button
                                 className="icon-button cinema-toggle"
@@ -797,22 +909,21 @@ export default function App() {
                                   <p>Reveal this goal when you’re ready.</p>
                                   <button
                                     className="primary"
-                                    onClick={() =>
-                                      setRevealed([...revealed, selected.id])
-                                    }
+                                    onClick={() => (
+                                      setRevealed([...revealed, selected.id]),
+                                      setPlaying(true)
+                                    )}
                                   >
                                     Reveal goal
                                   </button>
                                 </div>
                               ) : playingGoal?.id === selected.id &&
                                 selected.media ? (
-                                <iframe
-                                  key={selected.id}
-                                  src={selected.media.url}
+                                <ClipPlayback
+                                  key={`${selected.id}-${playbackAttempt}`}
+                                  media={selected.media}
+                                  sourceUrl={selected.sourceUrl}
                                   title={`${name(selected.homeId)} versus ${name(selected.awayId)} goal clip`}
-                                  allow="fullscreen; encrypted-media; picture-in-picture"
-                                  referrerPolicy="strict-origin-when-cross-origin"
-                                  allowFullScreen
                                 />
                               ) : (
                                 <div className="stage-message">
@@ -883,6 +994,11 @@ export default function App() {
                                       ? "Fictional goal metadata for the sample workspace."
                                       : selected.title}
                                 </p>
+                                {selected.author && (
+                                  <p>
+                                    Posted to r/soccer by u/{selected.author}
+                                  </p>
+                                )}
                               </div>
                               {selected.sourceUrl && (
                                 <a
@@ -898,9 +1014,9 @@ export default function App() {
                             </div>
                             {playing && (
                               <p className="playback-note">
-                                If the clip is removed, blocked or won’t play,
-                                open the Reddit thread for the original post and
-                                mirrors.
+                                Starts muted. Use the player controls for sound.
+                                Removed or restricted clip? Check the Reddit
+                                thread for mirrors.
                               </p>
                             )}
                             {!!selected.alternatives.length && (
@@ -946,16 +1062,40 @@ export default function App() {
                           </div>
                         )}
                       </section>
-                      <aside className="match-rail">
+                      {matchesOpen && (
+                        <button
+                          className="matches-scrim"
+                          aria-label="Close matches"
+                          onClick={() => {
+                            setMatchesOpen(false);
+                            matchesTrigger.current?.focus();
+                          }}
+                        />
+                      )}
+                      <div
+                        ref={matchesPanel}
+                        id="matches-sidebar"
+                        role={matchesOpen ? "dialog" : "complementary"}
+                        aria-modal={matchesOpen ? true : undefined}
+                        className={`match-rail${matchesOpen ? " matches-open" : ""}`}
+                        aria-label="Matches"
+                      >
                         <div className="section-bar">
                           <h2>Matchday</h2>
                           <button
-                            className="icon-button"
-                            onClick={() => navigate("matchday")}
-                            aria-label="Open full matchday"
+                            ref={matchesClose}
+                            className="icon-button matches-close"
+                            aria-label="Close matches sidebar"
+                            onClick={() => {
+                              setMatchesOpen(false);
+                              matchesTrigger.current?.focus();
+                            }}
                           >
-                            <ArrowRight size={16} />
+                            <X size={17} />
                           </button>
+                          <span className="muted">
+                            {matchList.length} matches
+                          </span>
                         </div>
                         {dateControls()}
                         <div
@@ -986,36 +1126,8 @@ export default function App() {
                             ? "Fictional matchday"
                             : "Times shown in your time zone"}
                         </p>
-                      </aside>
+                      </div>
                     </div>
-                  )}
-                  {view === "matchday" && (
-                    <section className="matchday-view">
-                      <div className="section-bar">
-                        <h2>Fixtures</h2>
-                        {dateControls()}
-                      </div>
-                      <div
-                        className="matchday-list scroll-region"
-                        tabIndex={0}
-                        aria-label="Matchday fixtures"
-                      >
-                        {matchList.length ? (
-                          matchList.map(matchRow)
-                        ) : (
-                          <div className="empty">
-                            <h3>No fixtures here yet</h3>
-                            <p>Try another day or connect football-data.org.</p>
-                            <button
-                              className="quiet"
-                              onClick={() => navigate("sources")}
-                            >
-                              Check sources
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </section>
                   )}
                   {view === "teams" && (
                     <section className="teams-view">
@@ -1039,7 +1151,7 @@ export default function App() {
                       >
                         {filteredTeams.map((t) => (
                           <div className="team-row" key={t.id}>
-                            <span className="club-code">{t.shortName}</span>
+                            <TeamCrest team={t} large />
                             <div>
                               <h3>{t.name}</h3>
                               <p>{t.country}</p>
@@ -1081,9 +1193,8 @@ export default function App() {
                         )}
                       </div>
                       <p className="panel-note">
-                        24 supported clubs across Portugal, England, Spain,
-                        France, Germany and Italy. More can be added to the
-                        shared team catalogue.
+                        {data.teams.length} clubs available from the catalogue,
+                        fixtures and current r/soccer goal posts.
                       </p>
                     </section>
                   )}
@@ -1158,7 +1269,21 @@ export default function App() {
                           </p>
                         </section>
                         <section>
-                          <h2>Check Reddit access first</h2>
+                          <h2>Reddit goal feed</h2>
+                          <p>
+                            Recent r/soccer posts arrive through Reddit’s public
+                            RSS feed, refreshed every two minutes. Reddit
+                            retires RSS on 13 November 2026; this connection
+                            will stop then.
+                          </p>
+                          <a
+                            href="https://support.reddithelp.com/hc/en-us/articles/54353370049684-Changelog-October-8-2026"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Reddit’s RSS announcement
+                            <ExternalLink size={14} />
+                          </a>
                           <p>
                             A Reddit login does not establish API approval. Only
                             enable the connector if you already have an approved
@@ -1187,9 +1312,9 @@ export default function App() {
                           <h2>Keep watching in the meantime</h2>
                           <p>
                             Add a Reddit goal post and its clip URL yourself.
-                            Streamable and YouTube can play here; other hosts
-                            open at the source. Nothing is downloaded or
-                            rehosted.
+                            Streamable, Streamain, Streamin and YouTube can play
+                            here; other hosts open at the source. Nothing is
+                            downloaded or rehosted.
                           </p>
                           <button
                             className="quiet"

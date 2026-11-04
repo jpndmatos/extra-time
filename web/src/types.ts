@@ -4,11 +4,14 @@ export type Team = {
   shortName: string;
   country: string;
   aliases: string[];
+  crest?: string | null;
 };
 export type Fixture = {
   id: string;
   homeId: string;
   awayId: string;
+  homeCrest?: string | null;
+  awayCrest?: string | null;
   homeName: string;
   awayName: string;
   kickoff: string;
@@ -32,6 +35,9 @@ export type Goal = {
   media: { kind: string; url: string } | null;
   alternatives: string[];
   sample: boolean;
+  homeName?: string | null;
+  awayName?: string | null;
+  author?: string | null;
 };
 export type Preferences = {
   teams: string[];
@@ -76,6 +82,7 @@ export function tracked(
   team: string,
   match: string,
   unwatched: boolean,
+  allGoals = false,
 ) {
   return goals.filter((goal) => {
     const favouriteMatch = matches.some(
@@ -89,7 +96,8 @@ export function tracked(
           6 * 3600_000,
     );
     return (
-      (preferences.teams.includes(goal.homeId) ||
+      (allGoals ||
+        preferences.teams.includes(goal.homeId) ||
         preferences.teams.includes(goal.awayId) ||
         favouriteMatch) &&
       (!team || goal.homeId === team || goal.awayId === team) &&

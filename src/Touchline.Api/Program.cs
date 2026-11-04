@@ -9,7 +9,10 @@ builder.Configuration.AddUserSecrets<Program>(optional: true).AddEnvironmentVari
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<Store>();
 builder.Services.AddSingleton<Providers>();
-builder.Services.AddHttpClient("providers", client => client.Timeout = TimeSpan.FromSeconds(12));
+builder.Services.AddSingleton<ClipMedia>();
+builder.Services.AddHttpClient("providers", client => { client.Timeout = TimeSpan.FromSeconds(12); client.MaxResponseContentBufferSize = 3_000_000; });
+builder.Services.AddHttpClient("clip-metadata", client => { client.Timeout = TimeSpan.FromSeconds(10); client.DefaultRequestHeaders.UserAgent.ParseAdd("Touchline/0.1"); })
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddProblemDetails();
 var app = builder.Build();
 app.UseExceptionHandler();
@@ -17,7 +20,7 @@ app.Use(async (ctx, next) =>
 {
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://streamable.com https://www.youtube-nocookie.com; connect-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
+    ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://crests.football-data.org; frame-src https://streamable.com https://www.youtube-nocookie.com https://streamain.com; media-src 'self' https://*.streamin.top; connect-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
     if (ctx.Request.Path.StartsWithSegments("/api")) ctx.Response.Headers.CacheControl = "no-store";
     // This is a single-user localhost app. Cross-site writes must not change it.
     if (ctx.Request.Method is "POST" or "PUT" or "DELETE" && ctx.Request.Headers.Origin.FirstOrDefault() is { } origin)
@@ -31,11 +34,22 @@ app.Use(async (ctx, next) =>
 app.UseDefaultFiles(); app.UseStaticFiles();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/api/live", LiveFeed.Stream);
+app.MapPost("/api/media", async (MediaRequest input, ClipMedia media, CancellationToken ct) =>
+{
+    if (string.IsNullOrEmpty(input.Url) || input.Url.Length > 2000) return Results.Problem("Choose a valid clip link.", statusCode: 400);
+    try
+    {
+        var result = await media.Resolve(input.Url, ct);
+        return result is null ? Results.Problem("This clip could not be loaded here. Open its original Reddit thread or clip host.", statusCode: 422) : Results.Ok(result);
+    }
+    catch (Exception error) when (error is HttpRequestException || error is TaskCanceledException && !ct.IsCancellationRequested)
+    { return Results.Problem("The clip host is unavailable. Open the original Reddit thread or try again later.", statusCode: 502); }
+});
 app.MapGet("/api/preferences", (Store store) => store.Preferences());
 app.MapPut("/api/preferences", (Preferences value, Store store) =>
 {
     if (value.Teams is null || value.Matches is null || value.Watched is null || value.Teams.Length > 50 || value.Matches.Length > 100 || value.Watched.Length > 1000 ||
-        value.Teams.Any(x => Catalog.Find(x) is null) || value.Matches.Concat(value.Watched).Any(x => string.IsNullOrEmpty(x) || x.Length > 100))
+        value.Teams.Any(x => x is null || !Catalog.ValidId(x)) || value.Matches.Concat(value.Watched).Any(x => string.IsNullOrEmpty(x) || x.Length > 100))
         return Results.Problem("The favourite list is invalid.", statusCode: 400);
     store.Save(value with { Teams = value.Teams.Distinct().ToArray(), Matches = value.Matches.Distinct().ToArray(), Watched = value.Watched.Distinct().ToArray() });
     return Results.Ok(store.Preferences());
@@ -54,8 +68,8 @@ app.MapPost("/api/clips", (ClipInput input, Store store, TimeProvider clock) =>
     var source = GoalParser.RedditUrl(input.RedditUrl);
     if (source is null) return Results.Problem("Use an HTTPS Reddit post URL, including /comments/.", statusCode: 400);
     if (!string.IsNullOrWhiteSpace(input.ClipUrl) && GoalParser.SafeMedia(input.ClipUrl) is null)
-        return Results.Problem("Inline playback supports Streamable and YouTube links. Leave this blank for other hosts; the Reddit source will still open.", statusCode: 400);
-    var goal = GoalParser.Parse("manual-" + Guid.NewGuid().ToString("N"), input.Title, clock.GetUtcNow(), source, input.ClipUrl);
+        return Results.Problem("Inline playback supports Streamable, Streamain, Streamin and YouTube links. Leave this blank for other hosts; the Reddit source will still open.", statusCode: 400);
+    var goal = GoalParser.Parse("manual-" + Guid.NewGuid().ToString("N"), input.Title, clock.GetUtcNow(), source, input.ClipUrl, allowUnknownTeams: true);
     if (goal is null) return Results.Problem("Use a goal title with both supported teams, score and minute, for example: Benfica [1]-0 FC Porto - Player 18'. Disallowed goals and misses are excluded.", statusCode: 400);
     store.Add(goal); return Results.Ok(goal);
 });

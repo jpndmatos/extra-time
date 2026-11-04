@@ -2,13 +2,13 @@ using System.Text.Json;
 
 namespace Touchline;
 
-public record Team(string Id, string Name, string ShortName, string Country, string[] Aliases);
+public record Team(string Id, string Name, string ShortName, string Country, string[] Aliases, string? Crest = null);
 public record Fixture(string Id, string HomeId, string AwayId, string HomeName, string AwayName,
-    DateTimeOffset Kickoff, string Competition, string Status, int? HomeScore, int? AwayScore, bool Sample = false);
+    DateTimeOffset Kickoff, string Competition, string Status, int? HomeScore, int? AwayScore, bool Sample = false, string? HomeCrest = null, string? AwayCrest = null);
 public record Media(string Kind, string Url);
 public record Goal(string Id, string Title, string HomeId, string AwayId, int HomeScore, int AwayScore,
     string Scorer, string? Minute, DateTimeOffset PublishedAt, string SourceUrl, Media? Media,
-    string[] Alternatives, bool Sample = false);
+    string[] Alternatives, bool Sample = false, string? HomeName = null, string? AwayName = null, string? Author = null);
 public record ProviderStatus(string Name, string State, string Message, DateTimeOffset? UpdatedAt = null);
 public record Dashboard(Team[] Teams, Fixture[] Matches, Goal[] Goals, ProviderStatus[] Sources, DateTimeOffset UpdatedAt, bool Sample);
 public record Preferences(string[] Teams, string[] Matches, bool Spoilers, string[] Watched)
@@ -50,6 +50,19 @@ public static class Catalog
     public static Team? Find(string id) => Teams.FirstOrDefault(t => t.Id == id);
     public static Team? ByName(string name) => Teams.FirstOrDefault(t =>
         t.Aliases.Any(a => GoalParser.Normalize(a) == GoalParser.Normalize(name)));
+
+    public static Team FromName(string name)
+    {
+        var known = ByName(name);
+        if (known is not null) return known;
+        var clean = name.Trim();
+        var slug = System.Text.RegularExpressions.Regex.Replace(GoalParser.Normalize(clean), @"[^\p{L}\p{N}]+", "-").Trim('-');
+        var id = "rss-" + slug;
+        var code = string.Concat(clean.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(word => word[0])).ToUpperInvariant();
+        if (code.Length < 2) code = clean[..Math.Min(3, clean.Length)].ToUpperInvariant();
+        return new(id, clean, code[..Math.Min(4, code.Length)], "Other clubs", [clean]);
+    }
+    public static bool ValidId(string id) => Find(id) is not null || System.Text.RegularExpressions.Regex.IsMatch(id, @"^rss-[\p{L}\p{N}-]{1,90}$");
 }
 
 public static class JsonDefaults
