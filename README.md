@@ -79,6 +79,7 @@ npm --prefix web test
 npm --prefix web run build
 node scripts/verify-browser.mjs
 node scripts/verify-playback.mjs
+node scripts/verify-browsing.mjs
 # Optional: against a disposable host with TOUCHLINE_ALLOW_WRITES=1
 node scripts/verify-live.mjs
 ```
@@ -110,3 +111,9 @@ The matchday date has a Today action. Today follows local midnight and foregroun
 The match rail combines scheduled fixtures with every match discovered in the fetched goal posts. Matches with clips stay visible across the feed's 48-hour window, separate from the selected day's upcoming fixtures. Club-name aliases connect posts to existing fixtures through explicit goal IDs. Games absent from the fixture provider remain labelled as Reddit discoveries, with no invented kickoff time or final score. Followed matches sort first; major competitions lead the remaining fixtures.
 
 Ones to watch filters titles explicitly labelled great goal, screamer, banger, golazo, worldie, great free-kick and similar phrases. These are Reddit title labels, not invented editorial ratings or vote counts. Alternate posts retain the label and its original source link. The filter is bookmarkable with `?feed=watch` and stays empty when no qualifying posts exist. Run `node scripts/verify-coverage.mjs` for the controlled browser check.
+
+## Faster goal browsing
+
+Search the current feed by club, alias or scorer, including accent-insensitive names. The query is bookmarked in `q`. Hidden scorers and scores are excluded from search until their goal is revealed. Searching keeps the current player mounted; previous/next buttons navigate only the current results. Arrow keys browse focused goal rows, Enter plays, and arrows inside the navigation controls move between clips without intercepting the video player's keyboard controls. The three feed choices remain visible across a phone's width; search replaces the optional club-chip rail on phones.
+
+On phones, returning to the list stops the hidden player instead of continuing to stream behind it. Selecting a goal starts its player again.

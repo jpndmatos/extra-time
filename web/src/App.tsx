@@ -3,6 +3,8 @@ import { useLiveFeed } from "./useLiveFeed";
 import { useMatchday } from "./useMatchday";
 import ClipPlayback, { warmClip } from "./ClipPlayback";
 import TeamCrest from "./TeamCrest";
+import { adjacentGoal, searchGoals } from "./goalNavigation";
+import { useCompactPlayer } from "./useCompactPlayer";
 import {
   ArrowLeft,
   ArrowRight,
@@ -69,6 +71,7 @@ function loadSample(): Preferences {
 }
 
 export default function App() {
+  const compactPlayer = useCompactPlayer();
   const initial = new URLSearchParams(location.search);
   const sample = initial.get("sample") === "true";
   const [view, setView] = useState<View>(
@@ -87,6 +90,10 @@ export default function App() {
         ? "following"
         : "all",
   );
+  const [goalSearch, setGoalSearch] = useState(
+    (initial.get("q") || "").slice(0, 100),
+  );
+  const goalSearchInput = useRef<HTMLInputElement>(null);
   const [data, setData] = useState<Dashboard | null>(null);
   const [prefs, setPrefs] = useState<Preferences>(sample ? loadSample : empty);
   const [loading, setLoading] = useState(true);
@@ -155,7 +162,7 @@ export default function App() {
   }, [cinema]);
   const live = useLiveFeed(day, sample, (next) => {
     if (knownGoals.current) {
-      const added = tracked(
+      const candidates = tracked(
         next.goals,
         next.matches,
         latest.current,
@@ -164,6 +171,13 @@ export default function App() {
         unwatched,
         feed !== "following",
         feed === "watch",
+      );
+      const added = searchGoals(
+        candidates,
+        next.teams,
+        goalSearch,
+        latest.current.spoilers,
+        revealed,
       ).filter((goal) => !knownGoals.current!.has(goal.id)).length;
       if (added) setNewGoalCount((count) => count + added);
     }
@@ -180,9 +194,19 @@ export default function App() {
     if (team) params.set("team", team);
     if (match) params.set("match", match);
     if (feed !== "all") params.set("feed", feed);
+    if (goalSearch.trim()) params.set("q", goalSearch.trim());
     if (!matchday.followingToday) params.set("day", day);
     history.replaceState(null, "", `${location.pathname}?${params}`);
-  }, [view, sample, day, team, match, feed, matchday.followingToday]);
+  }, [
+    view,
+    sample,
+    day,
+    team,
+    match,
+    feed,
+    goalSearch,
+    matchday.followingToday,
+  ]);
 
   useEffect(() => {
     if (sample) return;
@@ -283,7 +307,7 @@ export default function App() {
   function short(id: string) {
     return data?.teams.find((t) => t.id === id)?.shortName || id.slice(0, 3);
   }
-  const visibleGoals = data
+  const feedGoals = data
     ? tracked(
         data.goals,
         data.matches,
@@ -295,6 +319,9 @@ export default function App() {
         feed === "watch",
       )
     : [];
+  const visibleGoals = data
+    ? searchGoals(feedGoals, data.teams, goalSearch, prefs.spoilers, revealed)
+    : [];
   const playingGoal = playing
     ? data?.goals.find((goal) => goal.id === selectedId)
     : undefined;
@@ -302,11 +329,17 @@ export default function App() {
     playingGoal ||
     visibleGoals.find((g) => g.id === selectedId) ||
     visibleGoals[0];
+  const selectedIndex = visibleGoals.findIndex(
+    (goal) => goal.id === selected?.id,
+  );
+  const previousGoal = adjacentGoal(visibleGoals, selected?.id, -1);
+  const nextGoal = adjacentGoal(visibleGoals, selected?.id, 1);
   useEffect(() => {
     if (selectedId === null && selected) setSelectedId(selected.id);
   }, [selectedId, selected?.id]);
   const hideScore =
     prefs.spoilers && selected && !revealed.includes(selected.id);
+  const activeMatch = data?.matches.find((fixture) => fixture.id === match);
   const selectedDate = new Date(day + "T12:00:00");
   const competitionRank = (competition: string) => {
     const leagues = [
@@ -412,7 +445,7 @@ export default function App() {
       followed;
     return (
       <article
-        className={`fixture ${isTracked ? "tracked" : ""}`}
+        className={`fixture ${isTracked ? "tracked" : ""} ${match === fixture.id ? "selected" : ""}`}
         key={fixture.id}
       >
         <div className="fixture-meta">
@@ -438,6 +471,7 @@ export default function App() {
           <button
             type="button"
             className="fixture-teams"
+            aria-current={match === fixture.id ? "true" : undefined}
             onClick={() => {
               setMatch(fixture.id);
               setSelectedId(null);
@@ -690,71 +724,77 @@ export default function App() {
             {view === "goals" && (
               <div className="workspace-toolbar">
                 <div className="team-filters" aria-label="Filter by team">
-                  <button
-                    type="button"
-                    aria-pressed={feed === "all" && !team && !match}
-                    onClick={() => {
-                      setFeed("all");
-                      setSelectedId(null);
-                      setPlaying(true);
-                      setTeam("");
-                      setMatch("");
-                    }}
+                  <div className="feed-tabs">
+                    <button
+                      type="button"
+                      aria-pressed={feed === "all" && !team && !match}
+                      onClick={() => {
+                        setFeed("all");
+                        setSelectedId(null);
+                        setPlaying(true);
+                        setTeam("");
+                        setMatch("");
+                      }}
+                    >
+                      All r/soccer
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={feed === "following" && !team && !match}
+                      onClick={() => {
+                        setFeed("following");
+                        setSelectedId(null);
+                        setPlaying(true);
+                        setTeam("");
+                        setMatch("");
+                      }}
+                    >
+                      Following
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={feed === "watch" && !team && !match}
+                      onClick={() => {
+                        setFeed("watch");
+                        setTeam("");
+                        setMatch("");
+                        setSelectedId(null);
+                        setPlaying(true);
+                      }}
+                    >
+                      <Star size={14} />
+                      Ones to watch
+                    </button>
+                  </div>
+                  <div
+                    className={`club-filters ${prefs.teams.length ? "has-clubs" : ""}`}
                   >
-                    All r/soccer
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={feed === "following" && !team && !match}
-                    onClick={() => {
-                      setFeed("following");
-                      setSelectedId(null);
-                      setPlaying(true);
-                      setTeam("");
-                      setMatch("");
-                    }}
-                  >
-                    Following
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={feed === "watch" && !team && !match}
-                    onClick={() => {
-                      setFeed("watch");
-                      setTeam("");
-                      setMatch("");
-                      setSelectedId(null);
-                      setPlaying(true);
-                    }}
-                  >
-                    <Star size={14} />
-                    Ones to watch
-                  </button>
-                  {data?.teams
-                    .filter((t) => prefs.teams.includes(t.id))
-                    .map((t) => (
-                      <button
-                        type="button"
-                        key={t.id}
-                        aria-pressed={team === t.id}
-                        onClick={() => {
-                          setTeam(team === t.id ? "" : t.id);
-                          setMatch("");
-                        }}
-                      >
-                        <TeamCrest team={t} />
-                        {t.name}
-                      </button>
-                    ))}
-                  <button
-                    type="button"
-                    className="add-team"
-                    aria-label="Choose favourite teams"
-                    onClick={() => navigate("teams")}
-                  >
-                    <Star size={15} />
-                    <span>Teams</span>
-                  </button>
+                    {data?.teams
+                      .filter((t) => prefs.teams.includes(t.id))
+                      .map((t) => (
+                        <button
+                          type="button"
+                          key={t.id}
+                          aria-pressed={team === t.id}
+                          onClick={() => {
+                            setTeam(team === t.id ? "" : t.id);
+                            setMatch("");
+                          }}
+                        >
+                          <TeamCrest team={t} />
+                          {t.name}
+                        </button>
+                      ))}
+                    <button
+                      type="button"
+                      className="add-team"
+                      aria-label="Choose favourite teams"
+                      onClick={() => navigate("teams")}
+                    >
+                      <Star size={15} />
+                      <span>Teams</span>
+                    </button>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -802,9 +842,55 @@ export default function App() {
                             Unwatched
                           </label>
                         </div>
+                        <label className="goal-search">
+                          <Search size={15} aria-hidden="true" />
+                          <input
+                            ref={goalSearchInput}
+                            name="goal-search"
+                            type="search"
+                            aria-label="Search goals"
+                            placeholder={
+                              prefs.spoilers
+                                ? "Find a team"
+                                : "Find team or scorer"
+                            }
+                            value={goalSearch}
+                            maxLength={100}
+                            onChange={(event) =>
+                              setGoalSearch(event.target.value)
+                            }
+                            onKeyDown={(event) => {
+                              if (event.key === "Escape") {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                setGoalSearch("");
+                              }
+                            }}
+                          />
+                          {!!goalSearch && (
+                            <button
+                              type="button"
+                              aria-label="Clear goal search"
+                              onClick={() => {
+                                setGoalSearch("");
+                                goalSearchInput.current?.focus();
+                              }}
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </label>
+                        <p id="goal-keyboard-help" className="sr-only">
+                          Use the up and down arrow keys to browse goals. Press
+                          Enter to play.
+                        </p>
                         {match && (
                           <div className="active-filter">
-                            <span>Selected match</span>
+                            <span>
+                              {activeMatch
+                                ? `${activeMatch.homeName} vs ${activeMatch.awayName}`
+                                : "Selected match"}
+                            </span>
                             <button
                               type="button"
                               onClick={() => setMatch("")}
@@ -818,6 +904,40 @@ export default function App() {
                           className="goal-list scroll-region"
                           tabIndex={0}
                           aria-label="Recent goal clips"
+                          aria-describedby="goal-keyboard-help"
+                          onKeyDown={(event) => {
+                            if (
+                              event.altKey ||
+                              event.ctrlKey ||
+                              event.metaKey ||
+                              event.shiftKey ||
+                              !["ArrowDown", "ArrowUp", "Home", "End"].includes(
+                                event.key,
+                              )
+                            )
+                              return;
+                            const rows = Array.from(
+                              event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                                ".goal-row",
+                              ),
+                            );
+                            if (!rows.length) return;
+                            const index = rows.indexOf(
+                              document.activeElement as HTMLButtonElement,
+                            );
+                            const target =
+                              event.key === "Home"
+                                ? 0
+                                : event.key === "End"
+                                  ? rows.length - 1
+                                  : event.key === "ArrowUp"
+                                    ? index < 0
+                                      ? rows.length - 1
+                                      : Math.max(0, index - 1)
+                                    : Math.min(rows.length - 1, index + 1);
+                            event.preventDefault();
+                            rows[target]?.focus();
+                          }}
                         >
                           {visibleGoals.length ? (
                             visibleGoals.map((goal) => (
@@ -927,51 +1047,62 @@ export default function App() {
                             <div className="empty queue-empty">
                               <GoalIcon size={26} />
                               <h3>
-                                {feed === "watch"
-                                  ? "No tagged goals yet"
-                                  : prefs.teams.length || prefs.matches.length
-                                    ? "No goals in this feed"
-                                    : "Start with your teams"}
+                                {goalSearch.trim()
+                                  ? "No matching goals"
+                                  : feed === "watch"
+                                    ? "No tagged goals yet"
+                                    : prefs.teams.length || prefs.matches.length
+                                      ? "No goals in this feed"
+                                      : "Start with your teams"}
                               </h3>
                               <p>
-                                {feed === "watch"
-                                  ? "Posts labelled great goal, screamer, golazo and similar appear here. These labels come from Reddit titles."
-                                  : unwatched
-                                    ? "You’re caught up. Turn off Unwatched to see your clips."
-                                    : match || team
-                                      ? "No matching goal clips yet. Try another team or clear the filter."
-                                      : prefs.teams.length
-                                        ? "Your followed teams’ goals will appear when a source finds them. You can also add a clip link."
-                                        : "Follow a club to keep its goals close."}
+                                {goalSearch.trim()
+                                  ? prefs.spoilers
+                                    ? "Try another team or clear your search."
+                                    : "Try another team or scorer, or clear your search."
+                                  : feed === "watch"
+                                    ? "Posts labelled great goal, screamer, golazo and similar appear here. These labels come from Reddit titles."
+                                    : unwatched
+                                      ? "You’re caught up. Turn off Unwatched to see your clips."
+                                      : match || team
+                                        ? "No matching goal clips yet. Try another team or clear the filter."
+                                        : prefs.teams.length
+                                          ? "Your followed teams’ goals will appear when a source finds them. You can also add a clip link."
+                                          : "Follow a club to keep its goals close."}
                               </p>
                               <button
                                 type="button"
                                 className="quiet"
                                 onClick={() =>
-                                  feed === "watch"
-                                    ? (setFeed("all"),
-                                      setSelectedId(null),
-                                      setPlaying(true))
-                                    : unwatched
-                                      ? setUnwatched(false)
-                                      : match || team
-                                        ? (setMatch(""), setTeam(""))
-                                        : navigate(
-                                            prefs.teams.length
-                                              ? "sources"
-                                              : "teams",
-                                          )
+                                  goalSearch.trim()
+                                    ? (setGoalSearch(""),
+                                      goalSearchInput.current?.focus())
+                                    : feed === "watch"
+                                      ? (setFeed("all"),
+                                        setSelectedId(null),
+                                        setPlaying(true))
+                                      : unwatched
+                                        ? setUnwatched(false)
+                                        : match || team
+                                          ? (setMatch(""), setTeam(""))
+                                          : navigate(
+                                              prefs.teams.length
+                                                ? "sources"
+                                                : "teams",
+                                            )
                                 }
                               >
-                                {feed === "watch"
-                                  ? "Show all goals"
-                                  : unwatched
+                                {goalSearch.trim()
+                                  ? "Clear search"
+                                  : feed === "watch"
                                     ? "Show all goals"
-                                    : match || team
-                                      ? "Clear filter"
-                                      : prefs.teams.length
-                                        ? "Check sources"
-                                        : "Choose teams"}
+                                    : unwatched
+                                      ? "Show all goals"
+                                      : match || team
+                                        ? "Clear filter"
+                                        : prefs.teams.length
+                                          ? "Check sources"
+                                          : "Choose teams"}
                               </button>
                             </div>
                           )}
@@ -1067,7 +1198,8 @@ export default function App() {
                                   </button>
                                 </div>
                               ) : playingGoal?.id === selected.id &&
-                                selected.media ? (
+                                selected.media &&
+                                (!compactPlayer || mobilePlayer) ? (
                                 <ClipPlayback
                                   key={`${selected.id}-${playbackAttempt}`}
                                   media={selected.media}
@@ -1167,17 +1299,62 @@ export default function App() {
                                   </p>
                                 )}
                               </div>
-                              {selected.sourceUrl && (
-                                <a
-                                  className="quiet"
-                                  href={selected.sourceUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
+                              <div className="clip-actions">
+                                {selected.sourceUrl && (
+                                  <a
+                                    className="quiet"
+                                    href={selected.sourceUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    Reddit thread
+                                    <ExternalLink size={15} />
+                                  </a>
+                                )}
+                                <nav
+                                  className="clip-navigation"
+                                  aria-label="Goal navigation"
+                                  onKeyDown={(event) => {
+                                    if (
+                                      event.key === "ArrowLeft" ||
+                                      event.key === "ArrowRight"
+                                    ) {
+                                      event.preventDefault();
+                                      const goal =
+                                        event.key === "ArrowLeft"
+                                          ? previousGoal
+                                          : nextGoal;
+                                      if (goal) select(goal);
+                                    }
+                                  }}
                                 >
-                                  Reddit thread
-                                  <ExternalLink size={15} />
-                                </a>
-                              )}
+                                  <button
+                                    type="button"
+                                    className="icon-button"
+                                    aria-label="Previous goal"
+                                    disabled={!previousGoal}
+                                    onClick={() =>
+                                      previousGoal && select(previousGoal)
+                                    }
+                                  >
+                                    <ChevronLeft size={17} />
+                                  </button>
+                                  <span title="Position in the current results">
+                                    {selectedIndex >= 0
+                                      ? `${selectedIndex + 1} / ${visibleGoals.length}`
+                                      : `${visibleGoals.length} results`}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="icon-button"
+                                    aria-label="Next goal"
+                                    disabled={!nextGoal}
+                                    onClick={() => nextGoal && select(nextGoal)}
+                                  >
+                                    <ChevronRight size={17} />
+                                  </button>
+                                </nav>
+                              </div>
                             </div>
                             {playing && (
                               <details className="playback-help">

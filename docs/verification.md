@@ -1,6 +1,6 @@
 # Verification
 
-Verified on 4 November 2026 with .NET 10 and TypeScript strict mode. There are 59 backend tests and nine frontend tests. API and write-enabled browser checks use isolated SQLite databases.
+Verified on 4 November 2026 with .NET 10 and TypeScript strict mode. There are 59 backend tests and 12 frontend tests. API and write-enabled browser checks use isolated SQLite databases.
 
 Real football-data.org requests returned HTTP 200 and loaded 55 fixtures across the date window. Its key is stored outside the repository in local .NET user secrets. Public r/soccer RSS also returned HTTP 200, initially providing 48 parsed goals, later 27 as the 48-hour window advanced. Fixtures supplied official crests for 107 clubs; missing crests use initials. No approved Reddit OAuth account is configured. Public RSS stops on its announced retirement date, 13 November 2026.
 
@@ -19,3 +19,7 @@ Playback recovery checks pass with controlled responses: a failed publisher look
 Crest correction: feed/fixture name aliases now share logos without changing saved team IDs. Braga uses the verified provider ID 5613. All 129 clubs in the current dashboard have crest URLs, and all 114 distinct assets returned HTTP 200. `scripts/verify-crests.mjs` verifies actual alias-club images and recovery from a controlled missing SVG to the real PNG. Mobile player crests remain visible.
 
 Coverage and spotlight checks pass: both new and daily-top RSS posts reach the dashboard, aliases attach to the correct existing fixture, unmatched games receive stable discovery IDs without fabricated scores, title labels survive duplicate grouping with attribution, and negated labels are excluded. The browser check verifies past-day matches with available goals remain visible beside today's fixtures, match follows work across provider name aliases, Ones to watch filters correctly and survives reload, and the mobile matches drawer remains accessible. The live dashboard check found 14 goals across nine linked matches, with no unlinked goals; there were no qualifying title labels in that particular refresh.
+
+Browsing checks pass for accent-insensitive search, team aliases, spoiler-safe results, query persistence, unchanged iframe load count while searching, previous/next bounds, scoped keyboard navigation, empty-result recovery and visible feed choices at 320px. Desktop and phone axe checks pass. Three added unit tests cover search privacy and navigation bounds. This pass changes no backend behaviour.
+
+Mobile playback check: returning to the goal list unmounts hidden video/iframe players; choosing a goal mounts the player again. This prevents background streaming while browsing the phone queue. Desktop player retention still passes the live-update check.

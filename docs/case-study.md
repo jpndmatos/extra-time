@@ -20,7 +20,7 @@ Clip metadata requests use host allowlists, bounded redirects, response limits a
 
 ## Validation
 
-The project has 59 backend tests and nine frontend tests. Browser checks cover 320–1920px layouts, favourites, spoiler reveal, persistence, offline recovery and uninterrupted playback during live updates. Controlled failures verify missing videos, stalls, expired metadata, mirror selection and exhausted-source retries. Desktop and mobile accessibility checks use axe.
+The project has 59 backend tests and 12 frontend tests. Browser checks cover 320–1920px layouts, favourites, spoiler reveal, persistence, offline recovery and uninterrupted playback during live updates. Controlled failures verify missing videos, stalls, expired metadata, mirror selection and exhausted-source retries. Desktop and mobile accessibility checks use axe.
 
 The Hallmark redesign sweep captured all three screens at desktop and phone sizes. It finished with zero Floor failures and zero unresolved Reflex findings, retaining all recorded links, fields and handlers. The screenshot above was captured only after actual native video playback began; sample mode contains no footage.
 
