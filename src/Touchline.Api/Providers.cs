@@ -16,6 +16,8 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
     private readonly Dictionary<string, (DateTimeOffset At, ProviderResult<Fixture> Result)> fixtureResults = [];
     private (DateTimeOffset At, ProviderResult<Goal> Result)? redditResult;
     private DateTimeOffset? lastFootballRequest;
+    private DateTimeOffset? redditRetryAt;
+    private string? publicBackfillAfter;
 
     private TimeSpan FixtureTtl(DateOnly day) => day == DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime)
         ? TimeSpan.FromSeconds(30) : TimeSpan.FromMinutes(5);
@@ -41,10 +43,15 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
             }
             var matches = result.Result;
             var redditTtl = TimeSpan.FromSeconds(config.GetValue<bool>("Reddit:Enabled") ? 45 : 120);
-            if (redditResult is null || clock.GetUtcNow() - redditResult.Value.At >= ResultTtl(redditResult.Value.Result.Status, redditTtl))
+            if (redditResult is null || ((redditRetryAt is null || redditRetryAt <= clock.GetUtcNow()) &&
+                clock.GetUtcNow() - redditResult.Value.At >= ResultTtl(redditResult.Value.Result.Status, redditTtl)))
+            {
                 redditResult = (clock.GetUtcNow(), await Reddit(ct));
+                store.KeepDiscovered(redditResult.Value.Result.Items, clock.GetUtcNow());
+            }
             var clips = redditResult.Value.Result;
-            var allGoals = GoalParser.Group(clips.Items.Concat(store.Clips()));
+            var now = clock.GetUtcNow();
+            var allGoals = GoalParser.Group(store.Discovered(now).Concat(store.Clips()).Where(goal => GoalWindow.Contains(goal, now)));
             var teams = matches.Items.SelectMany(match => new[] { Catalog.FromName(match.HomeName) with { Crest = match.HomeCrest }, Catalog.FromName(match.AwayName) with { Crest = match.AwayCrest } }).Concat(Catalog.Teams)
                 .Concat(allGoals.SelectMany(goal => new[] { Catalog.FromName(goal.HomeName ?? Catalog.Find(goal.HomeId)?.Name ?? goal.HomeId), Catalog.FromName(goal.AwayName ?? Catalog.Find(goal.AwayId)?.Name ?? goal.AwayId) }))
                 .DistinctBy(team => team.Id).OrderBy(team => team.Name).ToArray();
@@ -102,6 +109,9 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
 
     private async Task<ProviderResult<Goal>> Reddit(CancellationToken ct)
     {
+        goals = goals.Where(goal => GoalWindow.Contains(goal, clock.GetUtcNow())).ToArray();
+        if (redditRetryAt is { } retry && retry > clock.GetUtcNow())
+            return new(goals, new("Reddit", "waiting", $"Reddit rate limit; retry after {retry:HH:mm:ss} UTC. Retained goals remain until their 48-hour expiry.", goalsAt));
         if (!config.GetValue<bool>("Reddit:Enabled")) return await PublicReddit(ct);
         if (string.IsNullOrWhiteSpace(config["Reddit:AccessToken"]) &&
             (string.IsNullOrWhiteSpace(config["Reddit:ClientId"]) || string.IsNullOrWhiteSpace(config["Reddit:ClientSecret"])))
@@ -121,7 +131,7 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
                     auth.Headers.TryAddWithoutValidation("User-Agent", config["Reddit:UserAgent"]);
                     auth.Content = new FormUrlEncodedContent(new Dictionary<string, string> { ["grant_type"] = "client_credentials" });
                     using var authResponse = await client.SendAsync(auth, ct);
-                    if (!authResponse.IsSuccessStatusCode) return new(goals, Failure("Reddit", authResponse.StatusCode, goalsAt));
+                    if (!authResponse.IsSuccessStatusCode) { Backoff(authResponse); return new(goals, Failure("Reddit", authResponse.StatusCode, goalsAt)); }
                     using var authJson = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync(ct));
                     token = authJson.RootElement.GetProperty("access_token").GetString();
                     tokenUntil = clock.GetUtcNow().AddSeconds(authJson.RootElement.GetProperty("expires_in").GetDouble() - 60);
@@ -129,7 +139,9 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
                 access = token;
             }
             var found = new List<Goal>(); string? after = null;
-            for (var page = 0; page < 3; page++)
+            var reachedWindow = false;
+            var cursors = new HashSet<string>();
+            for (var page = 0; page < 10; page++)
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, "https://oauth.reddit.com/r/soccer/new?limit=100&raw_json=1" + (after is null ? "" : "&after=" + Uri.EscapeDataString(after)));
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
@@ -137,6 +149,7 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
                 using var response = await client.SendAsync(request, ct);
                 if (!response.IsSuccessStatusCode)
                 {
+                    Backoff(response);
                     if (response.StatusCode == HttpStatusCode.Unauthorized) { token = null; tokenUntil = default; }
                     return new(goals, Failure("Reddit", response.StatusCode, goalsAt));
                 }
@@ -146,20 +159,23 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
                 {
                     var post = child.GetProperty("data");
                     var published = DateTimeOffset.FromUnixTimeSeconds((long)post.GetProperty("created_utc").GetDouble());
-                    if (published < clock.GetUtcNow().AddHours(-48)) { old = true; continue; }
+                    if (published <= clock.GetUtcNow().AddHours(-48)) { old = true; continue; }
+                    if (published > clock.GetUtcNow().AddMinutes(5)) continue;
                     if (post.TryGetProperty("removed_by_category", out var removed) && removed.ValueKind != JsonValueKind.Null) continue;
                     if (post.TryGetProperty("over_18", out var nsfw) && nsfw.GetBoolean()) continue;
                     var source = GoalParser.RedditUrl("https://www.reddit.com" + post.GetProperty("permalink").GetString());
                     if (source is null) continue;
                     var goal = GoalParser.Parse(post.GetProperty("id").GetString()!, post.GetProperty("title").GetString()!, published,
-                        source, post.GetProperty("url").GetString());
-                    if (goal is not null) found.Add(goal);
+                        source, post.GetProperty("url").GetString(), allowUnknownTeams: true);
+                    if (goal is not null) found.Add(goal with { Author = post.TryGetProperty("author", out var author) ? author.GetString() : null });
                 }
+                goals = found.Concat(goals).DistinctBy(goal => goal.SourceUrl).ToArray();
                 after = listing.GetProperty("after").GetString();
-                if (old || after is null) break;
+                if (old || after is null) { reachedWindow = true; break; }
+                if (!cursors.Add(after)) break;
             }
-            goals = GoalParser.Group(found); goalsAt = clock.GetUtcNow();
-            return new(goals, new("Reddit", "connected", "Recent r/soccer posts. Up to 300 posts from the last 48 hours are scanned.", goalsAt));
+            goalsAt = clock.GetUtcNow();
+            return new(goals, new("Reddit", "connected", reachedWindow ? "48-hour r/soccer listing scanned; discovered goals are retained until publication + 48 hours." : "Partial backfill: Reddit's listing limit was reached before the 48-hour boundary. Discovered goals are retained for 48 hours.", goalsAt));
         }
         catch (Exception e) when (e is HttpRequestException or JsonException or KeyNotFoundException or InvalidOperationException or FormatException || e is TaskCanceledException && !ct.IsCancellationRequested)
         { return new(goals, new("Reddit", "error", "Reddit could not refresh. Check source setup or try again. Previously fetched goals remain visible.", goalsAt)); }
@@ -172,16 +188,43 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
         if (clock.GetUtcNow() >= RedditFeed.Retirement) return new([], new("Reddit", "disconnected", "Reddit's public RSS retirement date has passed (13 November 2026). Use approved API access or add goal links manually."));
         if (goalsAt is { } at && clock.GetUtcNow() - at < TimeSpan.FromMinutes(2))
             return new(goals, new("Reddit", "connected", "r/soccer public RSS, refreshed every two minutes. Reddit plans to retire RSS on 13 November 2026.", at));
-        var feeds = await Task.WhenAll(
-            FetchPublicFeed("https://www.reddit.com/r/soccer/new/.rss?limit=100", ct),
-            FetchPublicFeed("https://www.reddit.com/r/soccer/top/.rss?t=day&limit=100", ct));
-        if (feeds.All(feed => feed is null)) return new(goals, new("Reddit", "error", "The public r/soccer feeds could not refresh. Previously loaded goals remain visible.", goalsAt));
-        goals = GoalParser.Group(feeds.Where(feed => feed is not null).SelectMany(feed => feed!).DistinctBy(goal => goal.Id));
-        goalsAt = clock.GetUtcNow();
-        var coverage = feeds.Any(feed => feed is null) ? "One public feed is unavailable; coverage is partial. " : "Recent and daily top r/soccer posts. ";
-        return new(goals, new("Reddit", "connected", coverage + "Refreshed every two minutes. RSS retires on 13 November 2026.", goalsAt));
+        var found = new List<Goal>();
+        var cursors = new HashSet<string>();
+        var after = publicBackfillAfter;
+        var complete = false;
+        var failed = false;
+        for (var page = 0; page < 10; page++)
+        {
+            var result = await FetchPublicFeed("https://www.reddit.com/r/soccer/new/.rss?limit=100" +
+                (after is null ? "" : "&after=" + Uri.EscapeDataString(after)), ct);
+            if (result is null) { publicBackfillAfter = after; failed = true; break; }
+            found.AddRange(result.Goals);
+            goals = found.Concat(goals).DistinctBy(goal => goal.SourceUrl).ToArray();
+            goalsAt = clock.GetUtcNow();
+            if (result.ReachedCutoff || result.Count < 100 || result.After is null)
+            { complete = true; publicBackfillAfter = null; break; }
+            if (!cursors.Add(result.After)) { failed = true; publicBackfillAfter = null; break; }
+            after = result.After;
+            publicBackfillAfter = after;
+        }
+        // Supplement the chronological scan with the public daily listing. Never
+        // issue further requests after Reddit asks us to back off.
+        if (redditRetryAt is null || redditRetryAt <= clock.GetUtcNow())
+        {
+            var top = await FetchPublicFeed("https://www.reddit.com/r/soccer/top/.rss?t=day&limit=100", ct);
+            if (top is not null)
+            {
+                goals = goals.Concat(top.Goals).DistinctBy(goal => goal.SourceUrl).ToArray();
+                goalsAt = clock.GetUtcNow();
+            }
+            else failed = true;
+        }
+        var coverage = !complete || failed ? "Partial RSS coverage. " : "48-hour public listing scanned. ";
+        var backoff = redditRetryAt > clock.GetUtcNow() ? $" Rate limited; retry after {redditRetryAt:HH:mm:ss} UTC." : "";
+        return new(goals, new("Reddit", redditRetryAt > clock.GetUtcNow() ? "waiting" : failed && found.Count == 0 ? "error" : "connected",
+            coverage + "Goals are retained until publication + 48 hours. Public RSS cannot guarantee every post. RSS retires on 13 November 2026." + backoff, goalsAt));
     }
-    private async Task<Goal[]?> FetchPublicFeed(string url, CancellationToken ct)
+    private async Task<RedditFeed.Page?> FetchPublicFeed(string url, CancellationToken ct)
     {
         try
         {
@@ -189,11 +232,18 @@ public sealed class Providers(IHttpClientFactory clients, IConfiguration config,
             request.Headers.TryAddWithoutValidation("User-Agent", "Touchline/0.1 personal RSS reader");
             request.Headers.Accept.ParseAdd("application/atom+xml");
             using var response = await clients.CreateClient("providers").SendAsync(request, ct);
-            if (!response.IsSuccessStatusCode) return null;
-            return RedditFeed.Parse(await response.Content.ReadAsStringAsync(ct), clock.GetUtcNow());
+            if (!response.IsSuccessStatusCode) { Backoff(response); return null; }
+            return RedditFeed.ParsePage(await response.Content.ReadAsStringAsync(ct), clock.GetUtcNow());
         }
         catch (Exception error) when (error is HttpRequestException or System.Xml.XmlException || error is TaskCanceledException && !ct.IsCancellationRequested)
         { return null; }
+    }
+    private void Backoff(HttpResponseMessage response)
+    {
+        if (response.StatusCode != HttpStatusCode.TooManyRequests) return;
+        var retry = response.Headers.RetryAfter;
+        var delay = retry?.Date ?? clock.GetUtcNow().Add(retry?.Delta ?? TimeSpan.FromMinutes(5));
+        redditRetryAt = delay > clock.GetUtcNow() ? delay : clock.GetUtcNow().AddMinutes(5);
     }
     private static ProviderStatus Failure(string name, HttpStatusCode code, DateTimeOffset? at) => new(name, "error", code switch
     {

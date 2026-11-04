@@ -9,6 +9,7 @@ builder.Configuration.AddUserSecrets<Program>(optional: true).AddEnvironmentVari
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<Store>();
 builder.Services.AddSingleton<Providers>();
+builder.Services.AddHostedService<GoalCollector>();
 builder.Services.AddSingleton<ClipMedia>();
 builder.Services.AddHttpClient("providers", client => { client.Timeout = TimeSpan.FromSeconds(12); client.MaxResponseContentBufferSize = 3_000_000; });
 builder.Services.AddHttpClient("clip-metadata", client => { client.Timeout = TimeSpan.FromSeconds(10); client.DefaultRequestHeaders.UserAgent.ParseAdd("Touchline/0.1"); })

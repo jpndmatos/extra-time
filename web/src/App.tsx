@@ -81,6 +81,31 @@ export default function App() {
   const seenAccordion = useRef<HTMLDetailsElement>(null);
   const connections = useRef<HTMLDetailsElement>(null);
 
+  // Expire posts locally too, including when the event stream is offline.
+  useEffect(() => {
+    if (sample || !data?.goals.length) return;
+    const expires = Math.min(
+      ...data.goals.map((goal) => Date.parse(goal.publishedAt) + 48 * 3600_000),
+    );
+    if (!Number.isFinite(expires)) return;
+    const timer = window.setTimeout(
+      () =>
+        setData((current) =>
+          current
+            ? {
+                ...current,
+                goals: current.goals.filter(
+                  (goal) =>
+                    Date.parse(goal.publishedAt) + 48 * 3600_000 > Date.now(),
+                ),
+              }
+            : current,
+        ),
+      Math.max(0, Math.min(expires - Date.now(), 2_147_483_647)),
+    );
+    return () => window.clearTimeout(timer);
+  }, [data, sample]);
+
   useEffect(() => {
     const dismiss = (event: PointerEvent | KeyboardEvent) => {
       const panel = connections.current;

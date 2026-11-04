@@ -13,7 +13,7 @@ public sealed class Store
         connectionString = new SqliteConnectionStringBuilder { DataSource = path }.ToString();
         using var db = Open();
         using var cmd = db.CreateCommand();
-        cmd.CommandText = "CREATE TABLE IF NOT EXISTS state (key TEXT PRIMARY KEY, value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS clips (source TEXT PRIMARY KEY, value TEXT NOT NULL);";
+        cmd.CommandText = "CREATE TABLE IF NOT EXISTS state (key TEXT PRIMARY KEY, value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS clips (source TEXT PRIMARY KEY, value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS discovered_goals (source TEXT PRIMARY KEY, published INTEGER NOT NULL, value TEXT NOT NULL); CREATE INDEX IF NOT EXISTS discovered_goals_published ON discovered_goals(published);";
         cmd.ExecuteNonQuery();
     }
     private SqliteConnection Open() { var db = new SqliteConnection(connectionString); db.Open(); return db; }
@@ -35,6 +35,36 @@ public sealed class Store
         using var reader = cmd.ExecuteReader(); var clips = new List<Goal>();
         while (reader.Read()) clips.Add(JsonSerializer.Deserialize<Goal>(reader.GetString(0), JsonDefaults.Options)!);
         return clips.ToArray();
+    }
+    public void KeepDiscovered(IEnumerable<Goal> goals, DateTimeOffset now)
+    {
+        using var db = Open(); using var transaction = db.BeginTransaction();
+        foreach (var goal in goals.Where(goal => GoalWindow.Contains(goal, now)))
+        {
+            using var cmd = db.CreateCommand(); cmd.Transaction = transaction;
+            cmd.CommandText = "INSERT INTO discovered_goals VALUES ($source,$published,$value) ON CONFLICT(source) DO UPDATE SET value=excluded.value";
+            cmd.Parameters.AddWithValue("$source", goal.SourceUrl);
+            cmd.Parameters.AddWithValue("$published", goal.PublishedAt.ToUnixTimeMilliseconds());
+            cmd.Parameters.AddWithValue("$value", JsonSerializer.Serialize(goal, JsonDefaults.Options));
+            cmd.ExecuteNonQuery();
+        }
+        transaction.Commit();
+    }
+    public Goal[] Discovered(DateTimeOffset now)
+    {
+        using var db = Open();
+        using (var prune = db.CreateCommand())
+        {
+            prune.CommandText = "DELETE FROM discovered_goals WHERE published <= $cutoff";
+            prune.Parameters.AddWithValue("$cutoff", now.AddHours(-48).ToUnixTimeMilliseconds());
+            prune.ExecuteNonQuery();
+        }
+        using var cmd = db.CreateCommand();
+        cmd.CommandText = "SELECT value FROM discovered_goals WHERE published <= $future ORDER BY published DESC";
+        cmd.Parameters.AddWithValue("$future", now.AddMinutes(5).ToUnixTimeMilliseconds());
+        using var reader = cmd.ExecuteReader(); var goals = new List<Goal>();
+        while (reader.Read()) goals.Add(JsonSerializer.Deserialize<Goal>(reader.GetString(0), JsonDefaults.Options)!);
+        return goals.ToArray();
     }
     public void Add(Goal goal)
     {

@@ -13,3 +13,5 @@ The interface keeps one header, an aligned goal list and the footage. Unwatched 
 Verification covers responsive layouts, accessibility, search, spoiler privacy, seen persistence, mobile media unloading, unchanged player instances, long-list navigation and playback failure recovery. Sample fixtures and goal metadata contain no supplied footage and are never presented as live football.
 
 The application is local and single-user. Clip availability depends on the original hosts and provider access. The Reddit RSS retirement described in the README remains a source limitation; the provider boundary allows a supported replacement without rebuilding the viewing interface.
+
+The discovery pipeline merges paginated Reddit posts into a persistent 48-hour SQLite collection. A hosted collector runs independently of browser sessions. Publication-based expiry applies even during upstream failures, and a browser deadline removes stale clips while offline. RSS backfill obeys Retry-After and preserves partial discoveries; complete historical coverage remains dependent on Reddit access and listing availability.

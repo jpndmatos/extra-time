@@ -8,17 +8,26 @@ namespace Touchline;
 public static class RedditFeed
 {
     public static readonly DateTimeOffset Retirement = new(2026, 11, 13, 0, 0, 0, TimeSpan.Zero);
-    public static Goal[] Parse(string xml, DateTimeOffset now)
+    public record Page(Goal[] Goals, string? After, int Count, bool ReachedCutoff);
+    public static Goal[] Parse(string xml, DateTimeOffset now) => GoalParser.Group(ParsePage(xml, now).Goals);
+    public static Page ParsePage(string xml, DateTimeOffset now)
     {
         using var input = new StringReader(xml);
         using var reader = XmlReader.Create(input, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, MaxCharactersInDocument = 2_000_000 });
         var document = XDocument.Load(reader);
         XNamespace atom = "http://www.w3.org/2005/Atom";
         var goals = new List<Goal>();
-        foreach (var entry in document.Descendants(atom + "entry").Take(100))
+        var entries = document.Descendants(atom + "entry").Take(100).ToArray();
+        var reachedCutoff = false;
+        string? after = null;
+        foreach (var entry in entries)
         {
+            var entryId = entry.Element(atom + "id")?.Value;
+            if (entryId is not null && Regex.IsMatch(entryId, "^t3_[a-z0-9]+$")) after = entryId;
             var title = entry.Element(atom + "title")?.Value ?? "";
-            if (!DateTimeOffset.TryParse(entry.Element(atom + "published")?.Value, out var published) || published < now.AddHours(-48) || published > now.AddMinutes(5)) continue;
+            if (!DateTimeOffset.TryParse(entry.Element(atom + "published")?.Value, out var published)) continue;
+            if (published <= now.AddHours(-48)) { reachedCutoff = true; continue; }
+            if (published > now.AddMinutes(5)) continue;
             var postUrl = GoalParser.RedditUrl(entry.Elements(atom + "link").FirstOrDefault(e => e.Attribute("rel")?.Value is null or "alternate")?.Attribute("href")?.Value ?? "");
             if (postUrl is null || !new Uri(postUrl).AbsolutePath.StartsWith("/r/soccer/comments/", StringComparison.OrdinalIgnoreCase)) continue;
             var content = entry.Element(atom + "content")?.Value ?? "";
@@ -32,6 +41,6 @@ public static class RedditFeed
             if (author?.StartsWith("u/", StringComparison.Ordinal) == true) author = author[2..].Trim();
             goals.Add(goal with { Author = author });
         }
-        return GoalParser.Group(goals);
+        return new(goals.ToArray(), after, entries.Length, reachedCutoff);
     }
 }
