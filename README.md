@@ -24,7 +24,7 @@ For development, run `dotnet run --project src/Touchline.Api` and `npm --prefix 
 - Hide scores and scorers until you reveal a goal.
 - Explore fictional match and goal metadata using `?sample=true`. Sample mode contains **no football footage**, makes no external provider calls and stores its preferences separately in the browser.
 
-Automatic fixtures and automatic Reddit goal discovery require your own provider access. Missing keys produce connection instructions, never invented live results. This version has been tested with controlled provider responses; real provider access has not been verified with personal credentials.
+Automatic fixtures and automatic Reddit goal discovery require your own provider access. Missing keys produce connection instructions, never invented live results. The fixture connector was verified against the real football-data.org API on 2026-11-04. Reddit is tested against controlled responses and remains unconnected without approved access.
 
 ## Connect fixtures
 
