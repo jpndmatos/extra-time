@@ -340,23 +340,6 @@ export default function App() {
                 <span>{data ? counts.get(id) || 0 : "—"}</span>
               </button>
             ))}
-            <label className="seen-filter">
-              <span className="sr-only">Viewing history</span>
-              <select
-                aria-label="Viewing history"
-                value={visibility}
-                onChange={(event) => {
-                  setVisibility(
-                    event.target.value as "all" | "unseen" | "seen",
-                  );
-                  setNewCount(0);
-                }}
-              >
-                <option value="all">All goals</option>
-                <option value="unseen">Unseen</option>
-                <option value="seen">Seen</option>
-              </select>
-            </label>
           </nav>
         </div>
         <label className="goal-search">
@@ -570,6 +553,23 @@ export default function App() {
                 <h2>
                   Recent goals <span>{goals.length}</span>
                 </h2>
+                <label className="seen-filter">
+                  <span className="sr-only">Viewing history</span>
+                  <select
+                    aria-label="Viewing history"
+                    value={visibility}
+                    onChange={(event) => {
+                      setVisibility(
+                        event.target.value as "all" | "unseen" | "seen",
+                      );
+                      setNewCount(0);
+                    }}
+                  >
+                    <option value="all">All goals</option>
+                    <option value="unseen">Unseen</option>
+                    <option value="seen">Seen</option>
+                  </select>
+                </label>
               </div>
               {newCount > 0 && (
                 <button
