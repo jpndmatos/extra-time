@@ -22,6 +22,12 @@
   --color-matches-surface: #242424;
   --color-match-selected: #3a3a3a;
   --color-match-hover: #303030;
+  --color-green: #174a39;
+  --color-green-hover: #205b46;
+  --color-green-selected: #183c2e;
+  --color-green-ink: #edf7f0;
+  --color-green-muted: #b8d3c2;
+  --color-green-signal: #86b99b;
   --font-body: "Poppins", Arial, sans-serif;
   --font-display: "Poppins", Arial, sans-serif;
   --font-mono: "Poppins", Arial, sans-serif;

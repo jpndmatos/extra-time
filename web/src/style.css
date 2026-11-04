@@ -5,7 +5,6 @@
 /* Hallmark · reworded "Keep watching in the meantime" to "Your clip links" · 19 and 69 replace vague filler with the actual task. */
 /* Hallmark · dismissed 28a · The lazy image is a 22px team crest, not the LCP; the goal video owns the stage and preloads its media. */
 /* Hallmark · answered F25 · The match rail is reachable through the Matches drawer on phones, and selecting a goal opens its player with Back to goals. The subtitle repeats the screen purpose. */
-/* Hallmark · dismissed 40 · The selected row explicitly sets dark text on its light background, including crest fallbacks. Both desktop and phone axe contrast checks pass; the static scan does not resolve the descendant overrides. */
 @import "./tokens.css";
 @import "./base.css";
 * {
@@ -2816,40 +2815,40 @@ summary:focus-visible {
   flex: none;
 }
 .scoreboard-result {
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
+  background: var(--color-green);
+  color: var(--color-green-ink);
   min-width: 88px;
   padding: var(--space-2xs) var(--space-sm);
   font-weight: 600;
   align-self: center;
 }
 .scoreboard-result > span {
-  color: var(--color-surface-edge);
+  color: var(--color-green-muted);
 }
 .goal-row.selected {
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
-  border-left-color: var(--color-accent);
+  background: var(--color-green-selected);
+  color: var(--color-green-ink);
+  border-left-color: var(--color-green-signal);
 }
 .goal-row.selected .goal-team,
 .goal-row.selected .goal-copy b,
 .goal-row.selected .goal-copy strong,
 .goal-row.selected .goal-minute,
 .goal-row.selected .queue-play {
-  color: var(--color-accent-ink);
+  color: var(--color-green-ink);
 }
 .goal-row.selected small,
 .goal-row.selected .watch-tag {
-  color: var(--color-surface-edge);
+  color: var(--color-green-muted);
 }
 .goal-row.selected .goal-minute {
   font-weight: 600;
 }
 .goal-row.selected:hover {
-  background: var(--color-focus);
+  background: var(--color-green-hover);
 }
 .goal-row.selected:focus-visible {
-  outline-color: var(--color-accent-ink);
+  outline-color: var(--color-green-ink);
 }
 .clip-details .scorer-heading {
   font-size: clamp(24px, 2.2vw, 32px);
@@ -2890,6 +2889,28 @@ summary:focus-visible {
 }
 
 .goal-row.selected .crest-fallback {
-  color: var(--color-accent-ink);
-  border-color: var(--color-surface-edge);
+  color: var(--color-green-ink);
+  border-color: var(--color-green-muted);
+}
+
+.topbar .brand-mark {
+  color: var(--color-green-signal);
+}
+.topbar nav button[aria-current="page"],
+.feed-tabs > button[aria-pressed="true"],
+.settings-navigation button[aria-current="page"] {
+  border-bottom-color: var(--color-green-signal);
+}
+.fixture.selected {
+  background: var(--color-green-selected);
+  box-shadow: inset 3px 0 0 var(--color-green-signal);
+}
+.primary {
+  background: var(--color-green);
+  border-color: var(--color-green);
+  color: var(--color-green-ink);
+}
+.primary:hover {
+  background: var(--color-green-hover);
+  color: var(--color-green-ink);
 }
