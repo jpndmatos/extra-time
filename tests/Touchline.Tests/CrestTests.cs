@@ -17,7 +17,8 @@ public class CrestTests
         var original = Catalog.FromName(postName);
         var provider = Catalog.FromName(fixtureName) with { Crest = "https://crests.football-data.org/72.png" };
         var resolved = Crests.Enrich([original, provider]);
-        Assert.Equal(provider.Crest, resolved[0].Crest);
+        Assert.StartsWith("/crests/", resolved[0].Crest);
+        Assert.Equal(provider.Crest, resolved[1].Crest);
         Assert.Equal(original.Id, resolved[0].Id);
         Assert.Equal(original.Name, resolved[0].Name);
         Assert.Null(original.Crest);
@@ -27,7 +28,23 @@ public class CrestTests
     {
         var teams = Crests.Enrich(Catalog.Teams);
         Assert.All(teams, team => Assert.NotNull(team.Crest));
-        Assert.Equal("https://crests.football-data.org/5613.png", teams.Single(team => team.Id == "braga").Crest);
+        Assert.Equal("/crests/5613.png", teams.Single(team => team.Id == "braga").Crest);
+    }
+    [Theory]
+    [InlineData("AEK Athens", "1899")]
+    [InlineData("Dortmund U19", "4")]
+    [InlineData("Manchester Utd U19", "66")]
+    [InlineData("Real Betis Women", "90")]
+    [InlineData("Slavia Prague", "930")]
+    [InlineData("QPR", "69")]
+    [InlineData("Wolves", "76")]
+    public void BundledCrestsWorkWithoutFixtureAccess(string name, string id)
+    {
+        var original = Catalog.FromName(name);
+        var resolved = Assert.Single(Crests.Enrich([original]));
+        Assert.Equal($"/crests/{id}.png", resolved.Crest);
+        Assert.Equal(original.Id, resolved.Id);
+        Assert.Equal(original.Name, resolved.Name);
     }
     [Fact]
     public void DoesNotGuessByPartialClubNameOrReplaceAnExistingCrest()

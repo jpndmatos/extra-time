@@ -42,7 +42,15 @@ app.Use(async (ctx, next) =>
     }
     await next();
 });
-app.UseDefaultFiles(); app.UseStaticFiles();
+app.UseDefaultFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        if (context.Context.Request.Path.StartsWithSegments("/crests"))
+            context.Context.Response.Headers.CacheControl = "public,max-age=604800";
+    }
+});
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/api/live", LiveFeed.Stream);
 app.MapPost("/api/media", async (MediaRequest input, ClipMedia media, CancellationToken ct) =>

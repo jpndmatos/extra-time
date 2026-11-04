@@ -1,0 +1,558 @@
+[
+  {
+    "name": "AC Milan",
+    "file": "98.png"
+  },
+  {
+    "name": "ACF Fiorentina",
+    "file": "99.png"
+  },
+  {
+    "name": "Arsenal",
+    "file": "57.png"
+  },
+  {
+    "name": "AS Roma",
+    "file": "100.png"
+  },
+  {
+    "name": "Aston Villa",
+    "file": "58.png"
+  },
+  {
+    "name": "Atalanta BC",
+    "file": "102.png"
+  },
+  {
+    "name": "Atlético Madrid",
+    "file": "78.png"
+  },
+  {
+    "name": "Barcelona",
+    "file": "81.png"
+  },
+  {
+    "name": "Bayer Leverkusen",
+    "file": "3.png"
+  },
+  {
+    "name": "Bayern Munich",
+    "file": "5.png"
+  },
+  {
+    "name": "Benfica",
+    "file": "1903.png"
+  },
+  {
+    "name": "Birmingham",
+    "file": "332.png"
+  },
+  {
+    "name": "Birmingham City FC",
+    "file": "332.png"
+  },
+  {
+    "name": "Blackburn",
+    "file": "59.png"
+  },
+  {
+    "name": "Blackburn Rovers FC",
+    "file": "59.png"
+  },
+  {
+    "name": "Bolton Wanderers FC",
+    "file": "60.png"
+  },
+  {
+    "name": "Borussia Dortmund",
+    "file": "4.png"
+  },
+  {
+    "name": "Borussia Mönchengladbach",
+    "file": "18.png"
+  },
+  {
+    "name": "Botafogo FR",
+    "file": "1770.png"
+  },
+  {
+    "name": "Bristol City",
+    "file": "387.png"
+  },
+  {
+    "name": "Bristol City FC",
+    "file": "387.png"
+  },
+  {
+    "name": "Burnley",
+    "file": "328.png"
+  },
+  {
+    "name": "Burnley FC",
+    "file": "328.png"
+  },
+  {
+    "name": "CA Mineiro",
+    "file": "1766.png"
+  },
+  {
+    "name": "CA Osasuna",
+    "file": "79.png"
+  },
+  {
+    "name": "CA Paranaense",
+    "file": "1768.png"
+  },
+  {
+    "name": "Cardiff City FC",
+    "file": "715.png"
+  },
+  {
+    "name": "Chapecoense AF",
+    "file": "1772_large.png"
+  },
+  {
+    "name": "Charlton Athletic FC",
+    "file": "348.png"
+  },
+  {
+    "name": "Chelsea",
+    "file": "61.png"
+  },
+  {
+    "name": "Club Brugge KV",
+    "file": "851.png"
+  },
+  {
+    "name": "Clube do Remo",
+    "file": "4287.png"
+  },
+  {
+    "name": "Como 1907",
+    "file": "7397.png"
+  },
+  {
+    "name": "Coritiba FBC",
+    "file": "4241.png"
+  },
+  {
+    "name": "Coventry City FC",
+    "file": "1076.png"
+  },
+  {
+    "name": "CR Flamengo",
+    "file": "1783.png"
+  },
+  {
+    "name": "CR Vasco da Gama",
+    "file": "1780.png"
+  },
+  {
+    "name": "Cruzeiro EC",
+    "file": "1771.png"
+  },
+  {
+    "name": "Deportivo Alavés",
+    "file": "263.png"
+  },
+  {
+    "name": "Derby",
+    "file": "342.png"
+  },
+  {
+    "name": "Derby County FC",
+    "file": "342.png"
+  },
+  {
+    "name": "EC Bahia",
+    "file": "1777.png"
+  },
+  {
+    "name": "EC Vitória",
+    "file": "1782.png"
+  },
+  {
+    "name": "Everton FC",
+    "file": "62.png"
+  },
+  {
+    "name": "FC Alverca",
+    "file": "7822.png"
+  },
+  {
+    "name": "FC Arouca",
+    "file": "712.png"
+  },
+  {
+    "name": "FC Famalicão",
+    "file": "5531.png"
+  },
+  {
+    "name": "FC Lorient",
+    "file": "525.png"
+  },
+  {
+    "name": "FC Porto",
+    "file": "503.png"
+  },
+  {
+    "name": "Fenerbahce",
+    "file": "613.png"
+  },
+  {
+    "name": "Fenerbahçe SK",
+    "file": "613.png"
+  },
+  {
+    "name": "Feyenoord Rotterdam",
+    "file": "675.png"
+  },
+  {
+    "name": "FK Bodø/Glimt",
+    "file": "5721.png"
+  },
+  {
+    "name": "FK Shakhtar Donetsk",
+    "file": "1887.png"
+  },
+  {
+    "name": "Fluminense FC",
+    "file": "1765.png"
+  },
+  {
+    "name": "Galatasaray",
+    "file": "610.png"
+  },
+  {
+    "name": "Galatasaray SK",
+    "file": "610.png"
+  },
+  {
+    "name": "Gil Vicente FC",
+    "file": "5533.png"
+  },
+  {
+    "name": "Grêmio FBPA",
+    "file": "1767.png"
+  },
+  {
+    "name": "Hamburger SV",
+    "file": "7.png"
+  },
+  {
+    "name": "Inter Milan",
+    "file": "108.png"
+  },
+  {
+    "name": "Juventus",
+    "file": "109.png"
+  },
+  {
+    "name": "LASK",
+    "file": "2016.png"
+  },
+  {
+    "name": "LASK Linz",
+    "file": "2016.png"
+  },
+  {
+    "name": "Lille OSC",
+    "file": "521.png"
+  },
+  {
+    "name": "Lincoln City FC",
+    "file": "1126.png"
+  },
+  {
+    "name": "Liverpool",
+    "file": "64.png"
+  },
+  {
+    "name": "Manchester City",
+    "file": "65.png"
+  },
+  {
+    "name": "Manchester United",
+    "file": "66.png"
+  },
+  {
+    "name": "Marseille",
+    "file": "516.png"
+  },
+  {
+    "name": "Middlesbrough",
+    "file": "343.png"
+  },
+  {
+    "name": "Middlesbrough FC",
+    "file": "343.png"
+  },
+  {
+    "name": "Millwall",
+    "file": "384.png"
+  },
+  {
+    "name": "Millwall FC",
+    "file": "384.png"
+  },
+  {
+    "name": "Mirassol FC",
+    "file": "4364.png"
+  },
+  {
+    "name": "Napoli",
+    "file": "113.png"
+  },
+  {
+    "name": "Newcastle United",
+    "file": "67.png"
+  },
+  {
+    "name": "Norwich",
+    "file": "68.png"
+  },
+  {
+    "name": "Norwich City FC",
+    "file": "68.png"
+  },
+  {
+    "name": "PAE AEK",
+    "file": "1899.png"
+  },
+  {
+    "name": "Paris Saint-Germain",
+    "file": "524.png"
+  },
+  {
+    "name": "Parma Calcio 1913",
+    "file": "112.png"
+  },
+  {
+    "name": "PEC Zwolle",
+    "file": "684.png"
+  },
+  {
+    "name": "Portsmouth",
+    "file": "325.png"
+  },
+  {
+    "name": "Portsmouth FC",
+    "file": "325.png"
+  },
+  {
+    "name": "Preston",
+    "file": "1081.png"
+  },
+  {
+    "name": "Preston North End FC",
+    "file": "1081.png"
+  },
+  {
+    "name": "PSV",
+    "file": "674.png"
+  },
+  {
+    "name": "Queens Park Rangers FC",
+    "file": "69.png"
+  },
+  {
+    "name": "Racing Club de Lens",
+    "file": "546.png"
+  },
+  {
+    "name": "RB Bragantino",
+    "file": "4286.png"
+  },
+  {
+    "name": "RB Leipzig",
+    "file": "721.png"
+  },
+  {
+    "name": "RC Deportivo La Coruña",
+    "file": "560.png"
+  },
+  {
+    "name": "RC Strasbourg Alsace",
+    "file": "576.png"
+  },
+  {
+    "name": "Real Betis Balompié",
+    "file": "90.png"
+  },
+  {
+    "name": "Real Madrid",
+    "file": "86.png"
+  },
+  {
+    "name": "Sabah FC",
+    "file": "10233.png"
+  },
+  {
+    "name": "Sabah FK",
+    "file": "10233.png"
+  },
+  {
+    "name": "Santos",
+    "file": "6685.png"
+  },
+  {
+    "name": "Santos FC",
+    "file": "6685.png"
+  },
+  {
+    "name": "São Paulo FC",
+    "file": "1776.png"
+  },
+  {
+    "name": "SC Braga",
+    "file": "5613.png"
+  },
+  {
+    "name": "SC Corinthians Paulista",
+    "file": "1779.png"
+  },
+  {
+    "name": "SC Internacional",
+    "file": "6684.png"
+  },
+  {
+    "name": "SE Palmeiras",
+    "file": "1769.png"
+  },
+  {
+    "name": "Sevilla FC",
+    "file": "559.png"
+  },
+  {
+    "name": "Sheffield United FC",
+    "file": "356.png"
+  },
+  {
+    "name": "Sheffield Utd",
+    "file": "356.png"
+  },
+  {
+    "name": "SK Slavia Praha",
+    "file": "930.png"
+  },
+  {
+    "name": "ŠK Slovan Bratislava",
+    "file": "7509.png"
+  },
+  {
+    "name": "Slovan Bratislava",
+    "file": "7509.png"
+  },
+  {
+    "name": "Southampton",
+    "file": "340.png"
+  },
+  {
+    "name": "Southampton FC",
+    "file": "340.png"
+  },
+  {
+    "name": "Sporting CP",
+    "file": "498.png"
+  },
+  {
+    "name": "Stade Brestois 29",
+    "file": "512.png"
+  },
+  {
+    "name": "Stoke",
+    "file": "70.png"
+  },
+  {
+    "name": "Stoke City FC",
+    "file": "70.png"
+  },
+  {
+    "name": "Swansea",
+    "file": "72.png"
+  },
+  {
+    "name": "Swansea City AFC",
+    "file": "72.png"
+  },
+  {
+    "name": "Tottenham",
+    "file": "73.png"
+  },
+  {
+    "name": "Toulouse FC",
+    "file": "511.png"
+  },
+  {
+    "name": "Udinese Calcio",
+    "file": "115.png"
+  },
+  {
+    "name": "US Sassuolo Calcio",
+    "file": "471.png"
+  },
+  {
+    "name": "Venezia FC",
+    "file": "454.png"
+  },
+  {
+    "name": "VfB Stuttgart",
+    "file": "10.png"
+  },
+  {
+    "name": "Viking",
+    "file": "5720.png"
+  },
+  {
+    "name": "Viking FK",
+    "file": "5720.png"
+  },
+  {
+    "name": "Villarreal",
+    "file": "94.png"
+  },
+  {
+    "name": "Villarreal CF",
+    "file": "94.png"
+  },
+  {
+    "name": "Vitória SC",
+    "file": "5543.png"
+  },
+  {
+    "name": "Watford",
+    "file": "346.png"
+  },
+  {
+    "name": "Watford FC",
+    "file": "346.png"
+  },
+  {
+    "name": "West Brom",
+    "file": "74.png"
+  },
+  {
+    "name": "West Bromwich Albion FC",
+    "file": "74.png"
+  },
+  {
+    "name": "West Ham United FC",
+    "file": "563.png"
+  },
+  {
+    "name": "Willem II Tilburg",
+    "file": "672.png"
+  },
+  {
+    "name": "Wolverhampton Wanderers FC",
+    "file": "76.png"
+  },
+  {
+    "name": "Wrexham",
+    "file": "404.png"
+  },
+  {
+    "name": "Wrexham AFC",
+    "file": "404.png"
+  }
+]

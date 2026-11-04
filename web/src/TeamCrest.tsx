@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Team } from "./types";
+import { appBase } from "./api";
 
 export default function TeamCrest({
   team,
@@ -31,7 +32,7 @@ export default function TeamCrest({
     <span className={`team-crest${large ? " large" : ""}`} aria-hidden="true">
       {url ? (
         <img
-          src={url}
+          src={url.startsWith("/crests/") ? `${appBase}${url.slice(1)}` : url}
           alt=""
           width={large ? 36 : 22}
           height={large ? 36 : 22}
