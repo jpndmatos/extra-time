@@ -1,47 +1,40 @@
 {
   "scanned": "2026-11-04",
-  "mode": "redesign",
-  "depth": "full",
+  "mode": "polish",
   "scope": "app",
   "findings": {
-    "brand": "docs/design.md:3; web/src/tokens.css:3-24",
-    "framework": "web/package.json: React, TypeScript, Vite; .NET API",
+    "fonts": "web/src/main.tsx:1; web/src/tokens.css:31 \u2014 locally hosted Poppins",
+    "palette": "web/src/tokens.css:3 \u2014 neutral greys and deep green",
+    "framework": "web/package.json \u2014 React / TypeScript / Vite; .NET API",
     "product": "http://127.0.0.1:5195/",
-    "before": "6 Floor failures, 6 Reflex findings"
+    "design": "docs/design.md \u2014 refreshed from explicit current user choices"
   },
   "preserve": [
-    "warm dark palette",
-    "Georgia wordmark and native UI type",
-    "routes and live data",
-    "full viewport as explicitly requested previously",
-    "clip recovery"
+    "Poppins",
+    "neutral greys and deep green",
+    "full viewport and fluid columns by user request",
+    "settings favourites",
+    "live feed and playback recovery",
+    "removed duplicate score strip"
   ],
   "introduce": [
-    "quieter navigation and import",
-    "denser named-team queue",
-    "playback controls below footage",
-    "progressive setup disclosures"
+    "consistent 12px list insets",
+    "16\u201324px column separation",
+    "stronger input boundaries",
+    "visually hidden dashboard heading with correct dimensions"
   ],
   "material": {
     "real": [
-      "current r/soccer videos",
-      "official crests",
-      "football-data fixtures"
+      "provider clips",
+      "club crests",
+      "match data"
     ],
     "sample": [
-      "explicit fictional metadata"
+      "explicitly fictional goals without footage"
     ],
     "absent": [
       "testimonials",
-      "marketing claims",
       "invented metrics"
     ]
-  },
-  "files": [
-    "web/src/App.tsx",
-    "web/src/ClipPlayback.tsx",
-    "web/src/style.css",
-    "web/src/tokens.css",
-    "web/src/base.css"
-  ]
+  }
 }

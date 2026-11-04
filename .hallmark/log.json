@@ -1,26 +1,69 @@
 [
- {
-  "mode": "redesign",
-  "depth": "full",
-  "scope": "app",
-  "theme": "brand (kiln ember retained)",
-  "shape": "app screen",
-  "signature": "named-team queue beside uninterrupted video and matches",
-  "nav": "single Sources utility, goal room and teams",
-  "footer": "persistent update state",
-  "imagery": "actual provider videos and official club crests",
-  "prompt": "streamline the personal goal hub for a portfolio-quality project",
-  "waived": [
-   "39b selectable goal rows"
-  ],
-  "review": "in-thread, 3 findings resolved",
-  "sweep": "0 Floor failures, 0 unresolved Reflex findings, 0 warnings",
-  "kept": {
-   "links": "16/16",
-   "fields": "5/5",
-   "handlers": "48/48",
-   "figures": "3/3"
+  {
+    "mode": "polish",
+    "scope": "app",
+    "theme": "user brand: Poppins, neutral graphite, deep green",
+    "signature": "uninterrupted footage beside a named-team queue",
+    "prompt": "keep improving; make the dashboard more airy with Hallmark; remove duplicate score strip",
+    "date": "2026-11-04",
+    "preserved": [
+      "full-width fluid dashboard by user request",
+      "favourites in Settings",
+      "provider wiring and playback",
+      "spoiler privacy"
+    ],
+    "changes": [
+      "consistent 12px list and caption insets",
+      "16\u201324px desktop gutters",
+      "accessible search edge",
+      "visually hidden heading dimensions",
+      "player tools below footage"
+    ],
+    "review": {
+      "method": "fresh-context subagent",
+      "verdict": "ship",
+      "findings": 0,
+      "material_gap": "none"
+    },
+    "sweep": {
+      "render": "ran: 1280,1440,1920,375",
+      "fails": 0,
+      "warns": 0,
+      "waived": [
+        "39b multi-line selectable goal rows"
+      ],
+      "dismissed": [
+        "3 selection side rule"
+      ]
+    },
+    "verification": [
+      "responsive and accessibility at six viewport sizes",
+      "search and privacy",
+      "keyboard and mobile playback retention"
+    ]
   },
-  "date": "2026-11-04"
- }
+  {
+    "mode": "redesign",
+    "depth": "full",
+    "scope": "app",
+    "theme": "brand (kiln ember retained)",
+    "shape": "app screen",
+    "signature": "named-team queue beside uninterrupted video and matches",
+    "nav": "single Sources utility, goal room and teams",
+    "footer": "persistent update state",
+    "imagery": "actual provider videos and official club crests",
+    "prompt": "streamline the personal goal hub for a portfolio-quality project",
+    "waived": [
+      "39b selectable goal rows"
+    ],
+    "review": "in-thread, 3 findings resolved",
+    "sweep": "0 Floor failures, 0 unresolved Reflex findings, 0 warnings",
+    "kept": {
+      "links": "16/16",
+      "fields": "5/5",
+      "handlers": "48/48",
+      "figures": "3/3"
+    },
+    "date": "2026-11-04"
+  }
 ]

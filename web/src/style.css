@@ -1,5 +1,5 @@
-/* Hallmark v2.0.0 · theme: custom (neutral graphite desk) · genre: atmospheric · shape: app screen · scope: app · redesign: full · signature: machined score strip, white selection key and uninterrupted goal footage. */
-/* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V3 · weakest: V, existing shell retained; removed duplicated Sources chrome and lifted playback help off the footage. Finish review: in-thread, fix, 3 findings resolved (duplicate chrome, video overlays, scroll footer). */
+/* Hallmark v2.0.0 · theme: brand (Poppins graphite and deep green, by request) · genre: atmospheric · shape: app screen · scope: app · depth: polish · signature: uninterrupted footage beside a named-team goal queue. */
+/* Hallmark · critique: retain the compact dashboard, use consistent panel insets, remove repeated score information and keep playback tools below footage. Finish review: subagent, ship, 0 findings; rendered sweep 0 FAIL, 0 WARN, row-height waiver retained. */
 /* Hallmark · waive 39b · Goal rows exceed 52px · Each selectable goal contains minute, score, scorer and watch state; the entire row is a touch target rather than a toolbar button. */
 /* Hallmark · dismissed 3 · The goal row side rule marks the selected clip and changes with selection, rather than decorating unrelated content. */
 /* Hallmark · reworded "Keep watching in the meantime" to "Your clip links" · 19 and 69 replace vague filler with the actual task. */
@@ -3097,5 +3097,67 @@ summary:focus-visible {
 @media (max-width: 760px) {
   .player-tools .cinema-toggle {
     display: none;
+  }
+}
+
+/* Hallmark polish: continuous footage, consistent panel insets, quiet separation. */
+.view-goals {
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+  gap: var(--space-xs);
+}
+.goal-workspace {
+  gap: clamp(var(--space-md), 1.6vw, var(--space-lg));
+}
+.goal-queue .section-bar,
+.match-rail .section-bar,
+.goal-row,
+.fixture {
+  padding-inline: var(--space-sm);
+}
+.goal-row {
+  padding-block: var(--space-sm);
+}
+.goal-search {
+  margin: var(--space-2xs) var(--space-sm) var(--space-xs);
+}
+.goal-search input {
+  border-color: var(--color-muted);
+}
+.player-column {
+  background: var(--color-clear);
+  gap: var(--space-xs);
+}
+.clip-details {
+  background: var(--color-player-surface);
+  color: var(--color-ink);
+  padding: var(--space-sm);
+  gap: var(--space-md);
+}
+.clip-details .scorer-heading {
+  font-size: 26px;
+}
+.fixture {
+  padding-block: var(--space-sm);
+}
+.player-tools {
+  gap: var(--space-2xs);
+}
+.player-tools .icon-button,
+.clip-navigation .icon-button {
+  min-height: 40px;
+  min-width: 40px;
+}
+@media (max-width: 760px) {
+  .view-goals {
+    padding: var(--space-xs);
+  }
+  .goal-workspace.player-open .player-column {
+    gap: var(--space-xs);
+  }
+  .clip-details {
+    gap: var(--space-sm);
+  }
+  .clip-details .scorer-heading {
+    font-size: 24px;
   }
 }

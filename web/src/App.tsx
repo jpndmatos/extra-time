@@ -633,7 +633,11 @@ export default function App() {
           className={`page-heading ${view === "goals" && !importing ? "workspace-heading" : ""}`}
         >
           <div>
-            <h1 ref={heading} tabIndex={-1}>
+            <h1
+              ref={heading}
+              tabIndex={-1}
+              className={view === "goals" && !importing ? "sr-only" : undefined}
+            >
               {importing
                 ? "Add a goal clip"
                 : view === "goals"
