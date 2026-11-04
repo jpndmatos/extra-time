@@ -29,6 +29,7 @@ import { appBase, browserPreferences } from "./api";
 import { clubCrest } from "./goalCategories";
 import { searchGoals } from "./goalNavigation";
 import { matchGoals } from "./matchGoals";
+import { goalPostIds, hasSeenGoal, setGoalSeen } from "./goalHistory";
 import { useCompactPlayer } from "./useCompactPlayer";
 import { useLiveFeed } from "./useLiveFeed";
 import { useMatchday } from "./useMatchday";
@@ -139,19 +140,20 @@ export default function App() {
 
   const live = useLiveFeed(day, sample, (next) => {
     if (known.current) {
+      const watched = new Set(latest.current.watched);
       const matching = searchGoals(
-        next.goals.filter((goal) => !latest.current.watched.includes(goal.id)),
+        next.goals.filter((goal) => !hasSeenGoal(goal, watched)),
         next.teams,
         query,
         latest.current.spoilers,
         revealed,
       );
       const added = matching.filter(
-        (goal) => !known.current!.has(goal.id),
+        (goal) => !goalPostIds(goal).some((id) => known.current!.has(id)),
       ).length;
       if (added) setNewCount((count) => count + added);
     }
-    known.current = new Set(next.goals.map((goal) => goal.id));
+    known.current = new Set(next.goals.flatMap(goalPostIds));
     setData(next);
     setLoading(false);
     setError("");
@@ -189,7 +191,7 @@ export default function App() {
       { signal: controller.signal },
     )
       .then((value) => {
-        known.current ??= new Set(value.goals.map((goal) => goal.id));
+        known.current ??= new Set(value.goals.flatMap(goalPostIds));
         setData(value);
       })
       .catch((error) => {
@@ -236,22 +238,28 @@ export default function App() {
     (goal: Goal) => {
       if (
         !ready ||
-        (latest.current.spoilers && !revealed.includes(goal.id)) ||
-        latest.current.watched.includes(goal.id)
+        (latest.current.spoilers &&
+          !goalPostIds(goal).some((id) => revealed.includes(id))) ||
+        hasSeenGoal(goal, new Set(latest.current.watched))
       )
         return;
       save({
         ...latest.current,
-        watched: [...latest.current.watched, goal.id].slice(-1000),
+        watched: setGoalSeen(goal, latest.current.watched, true),
       });
     },
     [ready, revealed],
   );
   const select = useCallback(
     (goal: Goal) => {
-      if (latest.current.watched.includes(goal.id) && seenAccordion.current)
+      if (
+        hasSeenGoal(goal, new Set(latest.current.watched)) &&
+        seenAccordion.current
+      )
         seenAccordion.current.open = true;
-      setSelectedId(goal.id);
+      setSelectedId((current) =>
+        current && goalPostIds(goal).includes(current) ? current : goal.id,
+      );
       setMobilePlayer(true);
       setNewCount(0);
       markSeen(goal);
@@ -278,8 +286,18 @@ export default function App() {
         : [],
     [data, searchQuery, prefs.spoilers, revealed],
   );
-  const watched = useMemo(() => new Set(prefs.watched), [prefs.watched]);
-  const visibleDetails = useMemo(() => new Set(revealed), [revealed]);
+  const watched = useMemo(() => {
+    const ids = new Set(prefs.watched);
+    for (const goal of data?.goals || [])
+      if (hasSeenGoal(goal, ids)) ids.add(goal.id);
+    return ids;
+  }, [prefs.watched, data?.goals]);
+  const visibleDetails = useMemo(() => {
+    const ids = new Set(revealed);
+    for (const goal of data?.goals || [])
+      if (goalPostIds(goal).some((id) => ids.has(id))) ids.add(goal.id);
+    return ids;
+  }, [revealed, data?.goals]);
   const unseenGoals = useMemo(
     () => goals.filter((goal) => !watched.has(goal.id)),
     [goals, watched],
@@ -289,15 +307,23 @@ export default function App() {
     [goals, watched],
   );
   const selected =
-    data?.goals.find((goal) => goal.id === selectedId) || goals[0];
+    data?.goals.find((goal) => goal.id === selectedId) ||
+    (selectedId
+      ? data?.goals.find((goal) => goalPostIds(goal).includes(selectedId))
+      : undefined) ||
+    goals[0];
   const hideScore = !!(
     prefs.spoilers &&
     selected &&
-    !revealed.includes(selected.id)
+    !visibleDetails.has(selected.id)
   );
   const match = useMemo(() => matchGoals(data, selected), [data, selected]);
   useEffect(() => {
-    if (!selectedId && selected) setSelectedId(selected.id);
+    if (
+      selected &&
+      (!selectedId || !goalPostIds(selected).includes(selectedId))
+    )
+      setSelectedId(selected.id);
   }, [selectedId, selected?.id]);
   useEffect(() => {
     if (selected && (!compact || mobilePlayer)) markSeen(selected);
@@ -739,7 +765,12 @@ export default function App() {
                       </div>
                     ) : selected.media && (!compact || mobilePlayer) ? (
                       <ClipPlayback
-                        key={selected.id}
+                        key={
+                          selectedId &&
+                          goalPostIds(selected).includes(selectedId)
+                            ? selectedId
+                            : selected.id
+                        }
                         media={selected.media}
                         mirrors={selected.mirrors}
                         alternatives={selected.alternatives}
@@ -880,33 +911,28 @@ export default function App() {
                             className="icon-button"
                             disabled={!ready}
                             aria-label={
-                              prefs.watched.includes(selected.id)
+                              watched.has(selected.id)
                                 ? "Mark as unwatched"
                                 : "Mark as watched"
                             }
                             title={
-                              prefs.watched.includes(selected.id)
+                              watched.has(selected.id)
                                 ? "Mark as unwatched"
                                 : "Mark as watched"
                             }
-                            aria-pressed={prefs.watched.includes(selected.id)}
+                            aria-pressed={watched.has(selected.id)}
                             onClick={() =>
                               save({
                                 ...latest.current,
-                                watched: latest.current.watched.includes(
-                                  selected.id,
-                                )
-                                  ? latest.current.watched.filter(
-                                      (id) => id !== selected.id,
-                                    )
-                                  : [
-                                      ...latest.current.watched,
-                                      selected.id,
-                                    ].slice(-1000),
+                                watched: setGoalSeen(
+                                  selected,
+                                  latest.current.watched,
+                                  !watched.has(selected.id),
+                                ),
                               })
                             }
                           >
-                            {prefs.watched.includes(selected.id) ? (
+                            {watched.has(selected.id) ? (
                               <Check size={17} />
                             ) : (
                               <Eye size={17} />
@@ -967,7 +993,7 @@ export default function App() {
                             </span>
                             {goal.id === selected.id ? (
                               <Play size={12} fill="currentColor" />
-                            ) : prefs.watched.includes(goal.id) ? (
+                            ) : watched.has(goal.id) ? (
                               <Check size={12} />
                             ) : (
                               <Play size={12} />

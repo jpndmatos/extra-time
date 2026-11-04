@@ -20,6 +20,7 @@ export function connectLiveFeed(
   onDashboard: (data: Dashboard) => void,
   onState: (state: ConnectionState) => void,
   onReceived: (at: number) => void,
+  version?: { get: () => string | null; set: (value: string) => void },
 ) {
   let disposed = false;
   let healthy = false;
@@ -74,9 +75,11 @@ export function connectLiveFeed(
       poll = setTimeout(pollOnce, 0);
       return;
     }
-    const current = new EventSource(
-      apiUrl(`/api/live?day=${encodeURIComponent(day)}`),
-    );
+    const params = new URLSearchParams({ day });
+    const previous = version?.get();
+    if (previous && /^[a-f0-9]{64}$/i.test(previous))
+      params.set("version", previous);
+    const current = new EventSource(apiUrl(`/api/live?${params}`));
     stream = current;
     function lost() {
       if (disposed || stream !== current) return;
@@ -103,7 +106,11 @@ export function connectLiveFeed(
     current.addEventListener("dashboard", (event) => {
       if (disposed || stream !== current) return;
       try {
-        if (publish(JSON.parse((event as MessageEvent).data))) alive();
+        if (publish(JSON.parse((event as MessageEvent).data))) {
+          const id = (event as MessageEvent).lastEventId;
+          if (/^[a-f0-9]{64}$/i.test(id)) version?.set(id);
+          alive();
+        }
       } catch {
         /* A malformed event must not replace the loaded feed. */
       }

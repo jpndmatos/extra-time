@@ -1,4 +1,5 @@
 import type { Goal, Team } from "./types";
+import { goalPostIds } from "./goalHistory";
 
 const normalize = (value: string) =>
   value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -23,7 +24,8 @@ export function searchGoals(
       ...(home?.aliases || []),
       ...(away?.aliases || []),
     ];
-    if (!spoilers || visible.has(goal.id)) names.push(goal.scorer, goal.title);
+    if (!spoilers || goalPostIds(goal).some((id) => visible.has(id)))
+      names.push(goal.scorer, goal.title);
     const text = normalize(names.join(" "));
     return words.every((word) => text.includes(word));
   });

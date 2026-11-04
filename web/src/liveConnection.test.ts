@@ -23,9 +23,12 @@ class Source extends EventTarget {
   fail() {
     this.onerror?.();
   }
-  send(value: unknown) {
+  send(value: unknown, lastEventId = "") {
     this.dispatchEvent(
-      new MessageEvent("dashboard", { data: JSON.stringify(value) }),
+      new MessageEvent("dashboard", {
+        data: JSON.stringify(value),
+        lastEventId,
+      }),
     );
   }
 }
@@ -51,6 +54,39 @@ function setup() {
   };
 }
 describe("live feed transport", () => {
+  it("resumes from a validated event version without requesting an unchanged snapshot", async () => {
+    let id: string | null = null;
+    const stop = connectLiveFeed("2026-11-04", vi.fn(), vi.fn(), vi.fn(), {
+      get: () => id,
+      set: (value) => {
+        id = value;
+      },
+    });
+    Source.instances[0].send(data, "A".repeat(64));
+    expect(id).toBe("A".repeat(64));
+    Source.instances[0].fail();
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(
+      new URL(
+        Source.instances[1].url,
+        "https://touchline.test",
+      ).searchParams.get("version"),
+    ).toBe(id);
+    stop();
+  });
+  it("does not send arbitrary saved values as resume parameters", () => {
+    const stop = connectLiveFeed("2026-11-04", vi.fn(), vi.fn(), vi.fn(), {
+      get: () => "invalid/version?token=untrusted",
+      set: vi.fn(),
+    });
+    expect(
+      new URL(
+        Source.instances[0].url,
+        "https://touchline.test",
+      ).searchParams.has("version"),
+    ).toBe(false);
+    stop();
+  });
   it("publishes valid events, ignores malformed/sample payloads and cancels every timer", () => {
     const client = setup(),
       source = Source.instances[0];

@@ -19,7 +19,8 @@ public static class LiveFeed
         var ct = context.RequestAborted;
         await context.Response.WriteAsync("retry: 3000\n\n", ct);
         await context.Response.Body.FlushAsync(ct);
-        string? lastVersion = null;
+        var resume = context.Request.Query["version"].FirstOrDefault() ?? context.Request.Headers["Last-Event-ID"].FirstOrDefault();
+        string? lastVersion = resume is { Length: 64 } && resume.All(char.IsAsciiHexDigit) ? resume.ToUpperInvariant() : null;
         try
         {
             while (!ct.IsCancellationRequested)

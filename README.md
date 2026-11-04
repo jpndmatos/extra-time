@@ -25,6 +25,7 @@ For development, run `dotnet run --project src/Touchline.Api` and `npm --prefix 
 - Search by team, alias or scorer. Old favourite and match URL parameters cannot filter the hub.
 - Play supported clips muted, with source recovery and alternate links. Reselecting the active goal preserves playback.
 - Mark goals seen immediately when opened; expand Seen inside the goal list to revisit viewing history, or mark one unwatched again.
+- Keep seen state, revealed details and the selected goal when an alternate Reddit post becomes the primary source.
 - Hide scores and scorers until you reveal a goal.
 - See club crests alongside goal details, with fallback formats and initials for unavailable images.
 - Explore fictional goal metadata using `?sample=true`. Sample mode supplies no footage and stores viewing preferences separately in the browser.
@@ -77,6 +78,8 @@ The public deployment serves a read-only feed and keeps each visitor's viewing h
 The layout fills the full viewport. Cinema view expands the player; Escape restores the feed. Longer lists scroll inside keyboard-focusable panels. On phones, selecting a goal opens its player with Back to goals. Short landscape windows reserve space for playback controls. The UI has no catalogue, favourites, fixture pages or navigation tabs.
 
 Live updates use an event stream with a 45-second heartbeat deadline. If the stream fails, the visible tab polls every 30 seconds while reconnecting with backoff. Hidden/offline tabs stop requests. Event snapshots share their database read and serialization across viewers of the same day. Ordinary API reads avoid a cross-origin preflight.
+
+Reconnections resume from the last verified event version, so an unchanged feed needs only a heartbeat. Exact club aliases join the same match without merging senior, youth or women's teams. Inferred match windows can cross UTC midnight and are bounded to eight hours from the first post; they do not assert an official kickoff or final score. Stoppage time stays within its own period when ordering clips.
 
 The API compresses public dashboard responses and text assets with Brotli or gzip. Event streams and private preference responses are excluded. Hashed frontend assets use an immutable cache; HTML revalidates so new releases are discovered.
 

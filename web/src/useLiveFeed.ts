@@ -22,7 +22,9 @@ export function useLiveFeed(
     sample ? "sample" : "connecting",
   );
   const [receivedAt, setReceivedAt] = useState<number | null>(null);
+  const version = useRef<string | null>(null);
   useEffect(() => {
+    version.current = null;
     if (sample) {
       setState("sample");
       return;
@@ -46,6 +48,12 @@ export function useLiveFeed(
         (data) => callback.current(data),
         setState,
         setReceivedAt,
+        {
+          get: () => version.current,
+          set: (value) => {
+            version.current = value;
+          },
+        },
       );
     }
     connect();

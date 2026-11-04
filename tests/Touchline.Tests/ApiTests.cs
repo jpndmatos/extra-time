@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Touchline;
 
 namespace Touchline.Tests;
@@ -33,6 +34,24 @@ public class ApiTests : IDisposable
         saved.EnsureSuccessStatusCode();
         var updated = await NextDashboard(reader, deadline.Token);
         Assert.Equal("Live player", Assert.Single(updated.Goals).Scorer);
+        deadline.Cancel();
+    }
+    [Fact]
+    public async Task ResumedStreamSkipsUnchangedContentButStillPushesNewGoals()
+    {
+        using var client = factory.CreateClient();
+        var snapshot = await factory.Services.GetRequiredService<LiveSnapshots>().Get(DateOnly.FromDateTime(DateTime.UtcNow), default);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+        using var response = await client.GetAsync("/api/live?version=" + snapshot.Version.ToLowerInvariant(), HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+        using var reader = new StreamReader(await response.Content.ReadAsStreamAsync(deadline.Token));
+        string? firstEvent = null;
+        while (await reader.ReadLineAsync(deadline.Token) is { } line)
+            if (line.StartsWith("event:", StringComparison.Ordinal)) { firstEvent = line; break; }
+        Assert.Equal("event: heartbeat", firstEvent);
+        var saved = await client.PostAsJsonAsync("/api/clips", new ClipInput("Benfica [1]-0 Porto - Resumed player 18'", "https://www.reddit.com/r/soccer/comments/resume123/goal/", null), deadline.Token);
+        saved.EnsureSuccessStatusCode();
+        var updated = await NextDashboard(reader, deadline.Token);
+        Assert.Equal("Resumed player", Assert.Single(updated.Goals).Scorer);
         deadline.Cancel();
     }
     [Fact]

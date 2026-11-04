@@ -1,8 +1,5 @@
 // Controlled local UI data. No preferences or clips are written to the server.
-import {
-  chromium,
-  expect,
-} from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
 const browser = await chromium.launch();
@@ -321,6 +318,32 @@ try {
   await page.locator(".seen-goals > summary").click();
   await expect(page.locator(".seen-goals .goal-row")).toBeVisible();
   expect(loads).toBe(beforeCollapse);
+  const beforeMirror = loads;
+  const originalPost = longGoals[0];
+  longGoals[0] = {
+    ...originalPost,
+    id: "reposted",
+    sourceUrl: "https://www.reddit.com/r/soccer/comments/reposted/goal/",
+    alternatives: [originalPost.sourceUrl],
+  };
+  await page
+    .getByRole("button", { name: "Refresh goals", exact: true })
+    .click();
+  await expect(page.locator(".goal-row.selected")).toHaveAttribute(
+    "data-goal-id",
+    "reposted",
+  );
+  await expect(page.locator(".goal-row.selected")).toHaveClass(/watched/);
+  await expect(
+    page.getByRole("heading", { name: "Queue scorer 0", exact: true }),
+  ).toBeVisible();
+  expect(loads).toBe(beforeMirror);
+  await page
+    .getByRole("button", { name: "Mark as unwatched", exact: true })
+    .click();
+  await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  expect(prefs.watched).not.toContain("long0");
+  expect(prefs.watched).not.toContain("reposted");
   expect(errors).toEqual([]);
   console.log(
     "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, same-match goal selection, keyboard browsing and visible mobile search.",
