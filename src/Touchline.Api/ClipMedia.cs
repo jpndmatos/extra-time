@@ -9,21 +9,48 @@ public record MediaRequest(string Url, bool Refresh = false);
 public sealed class ClipMedia(IHttpClientFactory clients, TimeProvider clock)
 {
     private readonly ConcurrentDictionary<string, (DateTimeOffset At, Media Media)> cache = new();
+    private readonly ConcurrentDictionary<string, DateTimeOffset> failed = new();
+    private readonly ConcurrentDictionary<string, Lazy<Task<Media?>>> pending = new();
+    private readonly SemaphoreSlim slots = new(4, 4);
     public async Task<Media?> Resolve(string value, CancellationToken ct, bool refresh = false)
     {
         var safe = GoalParser.SafeMedia(value);
         if (safe?.Kind != "resolve") return null;
-        if (refresh) cache.TryRemove(safe.Url, out _);
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        deadline.CancelAfter(TimeSpan.FromSeconds(12));
-        ct = deadline.Token;
+        if (refresh) { cache.TryRemove(safe.Url, out _); failed.TryRemove(safe.Url, out _); }
         if (cache.TryGetValue(safe.Url, out var existing) && clock.GetUtcNow() - existing.At < TimeSpan.FromMinutes(10)) return existing.Media;
+        if (failed.TryGetValue(safe.Url, out var failure) && clock.GetUtcNow() - failure < TimeSpan.FromSeconds(30)) return null;
+        // One shared lookup per clip. A departing viewer cancels only their wait.
+        var operation = pending.GetOrAdd(safe.Url, url => new Lazy<Task<Media?>>(() => FetchShared(url)));
+        return await operation.Value.WaitAsync(ct);
+    }
+    private async Task<Media?> FetchShared(string url)
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(12));
+        var entered = false;
+        try
+        {
+            await slots.WaitAsync(deadline.Token); entered = true;
+            var result = await Fetch(url, deadline.Token);
+            if (result is null) RememberFailure(url);
+            return result;
+        }
+        catch (Exception error) when (error is HttpRequestException or OperationCanceledException)
+        { RememberFailure(url); throw; }
+        finally { if (entered) slots.Release(); pending.TryRemove(url, out _); }
+    }
+    private void RememberFailure(string url)
+    {
+        if (failed.Count >= 128) foreach (var item in failed.OrderBy(item => item.Value).Take(16)) failed.TryRemove(item.Key, out _);
+        failed[url] = clock.GetUtcNow();
+    }
+    private async Task<Media?> Fetch(string value, CancellationToken ct)
+    {
         var client = clients.CreateClient("clip-metadata");
-        var response = await client.GetAsync(safe.Url, HttpCompletionOption.ResponseHeadersRead, ct);
+        var response = await client.GetAsync(value, HttpCompletionOption.ResponseHeadersRead, ct);
         for (var redirects = 0; (int)response.StatusCode is >= 300 and < 400 && redirects < 3; redirects++)
         {
             var location = response.Headers.Location;
-            var next = location is null ? null : new Uri(response.RequestMessage?.RequestUri ?? new Uri(safe.Url), location);
+            var next = location is null ? null : new Uri(response.RequestMessage?.RequestUri ?? new Uri(value), location);
             if (next is null || next.Port != 443 || GoalParser.SafeMedia(next.AbsoluteUri)?.Kind != "resolve") { response.Dispose(); return null; }
             response.Dispose();
             response = await client.GetAsync(next, HttpCompletionOption.ResponseHeadersRead, ct);
@@ -46,7 +73,7 @@ public sealed class ClipMedia(IHttpClientFactory clients, TimeProvider clock)
             !Regex.IsMatch(uri.Host, @"^[a-z]-cdn\.streamin\.top$") || !Regex.IsMatch(uri.AbsolutePath, @"^/uploads/[A-Za-z0-9]+\.mp4$")) return null;
         var media = new Media("video", uri.AbsoluteUri);
         if (cache.Count >= 128) foreach (var item in cache.OrderBy(item => item.Value.At).Take(16)) cache.TryRemove(item.Key, out _);
-        cache[safe.Url] = (clock.GetUtcNow(), media);
+        cache[value] = (clock.GetUtcNow(), media);
         return media;
     }
 }

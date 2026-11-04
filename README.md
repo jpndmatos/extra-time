@@ -66,7 +66,7 @@ The public RSS reader paginates up to ten chronological pages per collection and
 
 Discovered goal metadata is stored in SQLite by Reddit source URL, without a 500-goal cap. Refreshes merge into this collection rather than replacing it. Entries expire at publication time + 48 hours; repeated fetches never restart the clock. Expiry is applied before dashboard grouping even while providers are unavailable, and expired discovery records are pruned. A background collector runs while the local server is running, including with all browser tabs closed. Restarts retain discovered goals. The browser schedules its own expiry timer so offline views cannot keep showing an expired goal. Sample data is exempt. The app cannot discover posts while its server is stopped, but attempts backfill on restart.
 
-Streamin playback resolves the publisher's public video metadata through a size-limited request with allowlisted redirects; the browser streams video from the original CDN. No private API, video downloading or rehosting is used. Other hosts and removed/blocked clips open in the original thread. Reddit-hosted DASH video is not combined or downloaded for inline playback.
+Streamin playback shares one metadata request across simultaneous viewers, limits concurrent lookups to four, and briefly caches unavailable clips (explicit retry bypasses that failure cache). The publisher metadata request is size-limited with allowlisted redirects; the browser streams video from the original CDN. No private API, video downloading or rehosting is used. Other hosts and removed/blocked clips open in the original thread. Reddit-hosted DASH video is not combined or downloaded for inline playback.
 
 ## Scope and storage
 
