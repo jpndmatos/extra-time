@@ -25,7 +25,7 @@ For development, run `dotnet run --project src/Touchline.Api` and `npm --prefix 
 - Check individual Reddit and fixture source states and last fetch times from the top-right connection panel.
 - Search by team, alias or scorer. Old favourite and match URL parameters cannot filter the hub.
 - Play supported clips muted, with source recovery and alternate links. Reselecting the active goal preserves playback.
-- Mark goals seen immediately when opened; use Unwatched to hide them or mark one unwatched again.
+- Mark goals seen immediately when opened; use the All goals / Unseen / Seen dropdown to browse viewing history, or mark one unwatched again.
 - Hide scores and scorers until you reveal a goal.
 - See club crests alongside goal details, with fallback formats and initials for unavailable images.
 - Explore fictional goal metadata using `?sample=true`. Sample mode supplies no footage and stores viewing preferences separately in the browser.

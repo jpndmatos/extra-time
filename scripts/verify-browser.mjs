@@ -68,6 +68,35 @@ try {
       page.getByRole("searchbox", { name: "Search goals" }),
     ).toBeInViewport();
     await fits(page, `Goal room ${width}`);
+    const header = await page.evaluate(() => {
+      const bounds = (selector) => {
+        const r = document.querySelector(selector).getBoundingClientRect();
+        return { left: r.left, right: r.right, center: (r.left + r.right) / 2 };
+      };
+      return {
+        width: innerWidth,
+        search: bounds(".goal-search"),
+        left: bounds(innerWidth > 1250 ? ".header-browse" : ".brand"),
+        right: bounds(".header-utilities"),
+      };
+    });
+    expect(
+      Math.abs(header.search.center - width / 2),
+      "Search stays centred",
+    ).toBeLessThan(2);
+    expect(
+      header.left.right,
+      "Browsing does not overlap search",
+    ).toBeLessThanOrEqual(header.search.left);
+    expect(
+      header.search.right,
+      "Search does not overlap utilities",
+    ).toBeLessThanOrEqual(header.right.left);
+    expect(
+      header.right.right,
+      "Status stays at the right edge",
+    ).toBeGreaterThan(width - 24);
+
     if (width === 1440 || width === 390)
       await accessible(page, `Sample goal room ${width}`);
     await page.screenshot({

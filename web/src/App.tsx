@@ -83,7 +83,14 @@ export default function App() {
       ? (initial.get("category") as Category)
       : "main",
   );
-  const [unwatched, setUnwatched] = useState(false);
+  const [visibility, setVisibility] = useState<"all" | "unseen" | "seen">(
+    "all",
+  );
+  const unwatched = visibility === "unseen";
+  const filtered = visibility !== "all";
+  const visibleBySeen = (goal: Goal, watched: string[]) =>
+    visibility === "all" ||
+    watched.includes(goal.id) === (visibility === "seen");
   const [revealed, setRevealed] = useState<string[]>([]);
   const [newCount, setNewCount] = useState(0);
   const known = useRef<Set<string> | null>(null);
@@ -115,7 +122,7 @@ export default function App() {
         next.goals.filter(
           (goal) =>
             goalCategory(goal, next) === category &&
-            (!unwatched || !latest.current.watched.includes(goal.id)),
+            visibleBySeen(goal, latest.current.watched),
         ),
         next.teams,
         query,
@@ -240,7 +247,7 @@ export default function App() {
         data.goals.filter(
           (goal) =>
             goalGroups.get(goal.id) === category &&
-            (!unwatched || !prefs.watched.includes(goal.id)),
+            visibleBySeen(goal, prefs.watched),
         ),
         data.teams,
         query,
@@ -298,41 +305,60 @@ export default function App() {
         Skip to goals
       </a>
       <header className="topbar goal-hub-header">
-        <a className="brand" href="/" aria-label="Touchline home">
-          <svg
-            className="brand-mark"
-            width="22"
-            height="24"
-            viewBox="0 0 22 24"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M3 21 10 3M12 21 19 3"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-          </svg>
-          <span>touchline</span>
-        </a>
-        <nav className="goal-categories" aria-label="Goal categories">
-          {categories.map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              aria-current={category === id ? "page" : undefined}
-              onClick={() => {
-                setCategory(id);
-                setSelectedId(null);
-                setMobilePlayer(false);
-                setNewCount(0);
-              }}
+        <div className="header-browse">
+          <a className="brand" href="/" aria-label="Touchline home">
+            <svg
+              className="brand-mark"
+              width="22"
+              height="24"
+              viewBox="0 0 22 24"
+              fill="none"
+              aria-hidden="true"
             >
-              {label}
-              <span>{data ? counts.get(id) || 0 : "—"}</span>
-            </button>
-          ))}
-        </nav>
+              <path
+                d="M3 21 10 3M12 21 19 3"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+            </svg>
+            <span>touchline</span>
+          </a>
+          <nav className="goal-categories" aria-label="Goal categories">
+            {categories.map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                aria-current={category === id ? "page" : undefined}
+                onClick={() => {
+                  setCategory(id);
+                  setSelectedId(null);
+                  setMobilePlayer(false);
+                  setNewCount(0);
+                }}
+              >
+                {label}
+                <span>{data ? counts.get(id) || 0 : "—"}</span>
+              </button>
+            ))}
+            <label className="seen-filter">
+              <span className="sr-only">Viewing history</span>
+              <select
+                aria-label="Viewing history"
+                value={visibility}
+                onChange={(event) => {
+                  setVisibility(
+                    event.target.value as "all" | "unseen" | "seen",
+                  );
+                  setNewCount(0);
+                }}
+              >
+                <option value="all">All goals</option>
+                <option value="unseen">Unseen</option>
+                <option value="seen">Seen</option>
+              </select>
+            </label>
+          </nav>
+        </div>
         <label className="goal-search">
           <Search size={15} aria-hidden="true" />
           <input
@@ -365,6 +391,30 @@ export default function App() {
           )}
         </label>
         <div className="header-utilities">
+          <div className="heading-actions">
+            <button
+              type="button"
+              className="icon-button spoiler-toggle"
+              title={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
+              aria-label={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
+              aria-pressed={prefs.spoilers}
+              disabled={!ready}
+              onClick={() =>
+                save({ ...latest.current, spoilers: !prefs.spoilers })
+              }
+            >
+              {prefs.spoilers ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          <button
+            type="button"
+            className="icon-button refresh"
+            aria-label="Refresh goals"
+            disabled={loading}
+            onClick={() => setRefresh((value) => value + 1)}
+          >
+            <RefreshCw size={16} />
+          </button>
           <details className="connection-status" ref={connections}>
             <summary aria-label="Connections and refresh status">
               {sample ? (
@@ -452,32 +502,6 @@ export default function App() {
               </small>
             </div>
           </details>
-          <div className="heading-actions">
-            <button
-              type="button"
-              className="quiet"
-              aria-label={prefs.spoilers ? "Show spoilers" : "Hide spoilers"}
-              aria-pressed={prefs.spoilers}
-              disabled={!ready}
-              onClick={() =>
-                save({ ...latest.current, spoilers: !prefs.spoilers })
-              }
-            >
-              {prefs.spoilers ? <EyeOff size={16} /> : <Eye size={16} />}
-              <span>
-                {prefs.spoilers ? "Spoilers hidden" : "Hide spoilers"}
-              </span>
-            </button>
-          </div>
-          <button
-            type="button"
-            className="icon-button refresh"
-            aria-label="Refresh goals"
-            disabled={loading}
-            onClick={() => setRefresh((value) => value + 1)}
-          >
-            <RefreshCw size={16} />
-          </button>
         </div>
       </header>
       {sample && (
@@ -546,14 +570,6 @@ export default function App() {
                 <h2>
                   Recent goals <span>{goals.length}</span>
                 </h2>
-                <label className="check-filter">
-                  <input
-                    type="checkbox"
-                    checked={unwatched}
-                    onChange={(event) => setUnwatched(event.target.checked)}
-                  />
-                  Unwatched
-                </label>
               </div>
               {newCount > 0 && (
                 <button
@@ -707,22 +723,26 @@ export default function App() {
                         ? "No matching goals"
                         : unwatched
                           ? "You’re caught up"
-                          : "No recent goals"}
+                          : visibility === "seen"
+                            ? "No seen goals yet"
+                            : "No recent goals"}
                     </h3>
                     <p>
                       {query.trim()
                         ? "Try another team or scorer."
                         : unwatched
                           ? "Show all goals to watch them again."
-                          : "New r/soccer goal posts appear here automatically."}
+                          : visibility === "seen"
+                            ? "Goals you open will appear here."
+                            : "New r/soccer goal posts appear here automatically."}
                     </p>
-                    {(query || unwatched) && (
+                    {(query || filtered) && (
                       <button
                         type="button"
                         className="quiet"
                         onClick={() => {
                           setQuery("");
-                          setUnwatched(false);
+                          setVisibility("all");
                           searchInput.current?.focus();
                         }}
                       >
@@ -988,12 +1008,12 @@ export default function App() {
               ) : (
                 <div className="player-welcome">
                   <h2>
-                    {query || unwatched
+                    {query || filtered
                       ? "No matching goals"
                       : "Waiting for goals"}
                   </h2>
                   <p>
-                    {query || unwatched
+                    {query || filtered
                       ? "Clear the filters to see all recent goals."
                       : "Recent r/soccer goal clips will appear here."}
                   </p>
@@ -1001,15 +1021,15 @@ export default function App() {
                     type="button"
                     className="quiet"
                     onClick={() =>
-                      query || unwatched
-                        ? (setQuery(""), setUnwatched(false))
+                      query || filtered
+                        ? (setQuery(""), setVisibility("all"))
                         : setRefresh((value) => value + 1)
                     }
                   >
-                    {query || unwatched ? "Show all goals" : "Refresh goals"}
+                    {query || filtered ? "Show all goals" : "Refresh goals"}
                   </button>
                   {!query &&
-                    !unwatched &&
+                    !filtered &&
                     data?.sources.some((source) =>
                       source.name.toLowerCase().includes("reddit"),
                     ) && (

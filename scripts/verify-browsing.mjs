@@ -293,11 +293,22 @@ try {
   await expect.poll(() => prefs.watched.includes("long0")).toBe(false);
   await page.locator(".goal-row.selected").click();
   await expect(page.locator(".goal-row.selected")).toHaveClass(/watched/);
-  await page.getByRole("checkbox", { name: "Unwatched", exact: true }).check();
+  await page
+    .getByRole("combobox", { name: "Viewing history" })
+    .selectOption("unseen");
   await expect(page.locator(".goal-row")).toHaveCount(19);
   await expect(
     page.getByRole("heading", { name: "Queue scorer 0", exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Viewing history" })
+    .selectOption("seen");
+  await expect(page.locator(".goal-row")).toHaveCount(1);
+  await expect(page.locator(".goal-row")).toHaveClass(/watched/);
+  await page
+    .getByRole("combobox", { name: "Viewing history" })
+    .selectOption("all");
+  await expect(page.locator(".goal-row")).toHaveCount(20);
   expect(errors).toEqual([]);
   console.log(
     "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, previous/next, keyboard browsing and visible mobile search.",

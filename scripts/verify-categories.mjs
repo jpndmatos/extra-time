@@ -61,7 +61,7 @@ try {
       "Main",
     ]) {
       await page
-        .getByRole("button", { name: new RegExp("^" + label + "\\s*1$") })
+        .getByRole("button", { name: new RegExp("^" + label + "(?:\\s*1)?$") })
         .click();
       await expect(page.locator(".goal-row")).toHaveCount(1);
       await expect(
