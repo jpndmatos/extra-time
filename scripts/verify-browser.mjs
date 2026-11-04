@@ -62,7 +62,7 @@ try {
       page
         .getByRole("navigation", { name: "Main navigation" })
         .getByRole("button"),
-    ).toHaveCount(1);
+    ).toHaveCount(4);
     await expect(
       page.getByRole("button", { name: "Dashboard", exact: true }),
     ).toHaveAttribute("aria-current", "page");
@@ -105,7 +105,7 @@ try {
     }
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await expect(
-      page.getByRole("navigation", { name: "Settings sections" }),
+      page.getByRole("group", { name: "Settings sections" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Favourite teams", exact: true }),
@@ -126,8 +126,15 @@ try {
     if (width === 1440 || width === 390)
       await accessible(page, `Teams ${width}`);
     await page.getByRole("button", { name: "Dashboard", exact: true }).click();
-    if (width <= 1120)
-      await page.getByRole("button", { name: /^Matches/ }).click();
+    await page.getByRole("button", { name: "Matches", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Matches", exact: true }),
+    ).toBeVisible();
+    expect(new URL(page.url()).searchParams.get("view")).toBe("matches");
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { name: "Matches", exact: true }),
+    ).toBeVisible();
     await page
       .getByRole("button", {
         name: "Follow match: Benfica versus FC Porto",
@@ -140,12 +147,8 @@ try {
         exact: true,
       }),
     ).toHaveAttribute("aria-pressed", "true");
-    await fits(page, `Match sidebar ${width}`);
-    if (width === 390) await accessible(page, "Mobile matches drawer");
-    if (width <= 1120)
-      await page
-        .getByRole("button", { name: "Close matches sidebar", exact: true })
-        .click();
+    await fits(page, `Matches page ${width}`);
+    if (width === 390) await accessible(page, "Mobile matches page");
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page
       .getByRole("button", { name: "Connections", exact: true })

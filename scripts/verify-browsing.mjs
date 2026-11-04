@@ -181,9 +181,10 @@ try {
   await page.getByText("Original post", { exact: true }).click();
   const density = await page.evaluate(() => ({
     controlsY: document
-      .querySelector(".workspace-toolbar .heading-actions")
+      .querySelector(".header-utilities .heading-actions")
       .getBoundingClientRect().y,
-    feedsY: document.querySelector(".feed-tabs").getBoundingClientRect().y,
+    feedsY: document.querySelector(".main-navigation").getBoundingClientRect()
+      .y,
     rowHeight: document.querySelector(".goal-row").getBoundingClientRect()
       .height,
     playerHeight: document.querySelector(".video-stage").getBoundingClientRect()
@@ -199,10 +200,23 @@ try {
       .locator(".topbar")
       .evaluate((element) => element.getBoundingClientRect().height),
   ).toBeLessThanOrEqual(56);
-  for (const name of ["All r/soccer", "Following", "Ones to watch"])
+  for (const name of ["Dashboard", "Following", "Ones to watch", "Matches"])
     await expect(
       page.getByRole("button", { name, exact: true }),
-    ).toBeInViewport();
+    ).toBeAttached();
+  await page.getByRole("button", { name: "Matches", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Matches", exact: true }),
+  ).toBeInViewport();
+  await expect(
+    page.getByRole("heading", { name: "Matches", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".workspace-toolbar")).toHaveCount(0);
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Dashboard", exact: true }),
+  ).toBeInViewport();
+  await page.locator(".goal-row").first().click();
   await page
     .getByRole("button", { name: "Back to goals", exact: true })
     .click();

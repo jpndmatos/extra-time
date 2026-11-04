@@ -123,6 +123,7 @@ try {
     }),
   );
   await page.goto(base);
+  await page.getByRole("button", { name: "Matches", exact: true }).click();
   await expect(page.locator(".fixture")).toHaveCount(3);
   await expect(page.getByRole("heading", { name: /With goals/ })).toBeVisible();
   await expect(
@@ -144,7 +145,7 @@ try {
   await page.reload();
   await expect(
     page.getByRole("button", { name: "Ones to watch", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+  ).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".goal-row")).toHaveCount(1);
   expect(
     (
@@ -153,6 +154,7 @@ try {
         .analyze()
     ).violations.map((item) => item.id),
   ).toEqual([]);
+  await page.getByRole("button", { name: "Matches", exact: true }).click();
   await page
     .getByRole("button", {
       name: "Show goals from Portsmouth FC versus Swansea City AFC",
@@ -162,6 +164,7 @@ try {
   await expect(
     page.getByRole("heading", { name: "Regular scorer", exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Matches", exact: true }).click();
   await page
     .getByRole("button", {
       name: "Follow match: Portsmouth FC versus Swansea City AFC",
@@ -175,7 +178,7 @@ try {
     .getByRole("button", { name: "Ones to watch", exact: true })
     .click();
   await expect(page.locator(".goal-row")).toHaveCount(1);
-  await page.getByRole("button", { name: /^Matches/ }).click();
+  await page.getByRole("button", { name: "Matches", exact: true }).click();
   await expect(page.getByRole("heading", { name: /With goals/ })).toBeVisible();
   await expect(
     page.getByRole("button", {
@@ -183,7 +186,7 @@ try {
     }),
   ).toBeVisible();
   console.log(
-    "PASS coverage: recent posted matches beyond today's fixtures, alias linking, match follows, title-tagged feed, URL persistence and mobile drawer.",
+    "PASS coverage: recent posted matches beyond today's fixtures, alias linking, match follows, title-tagged feed, URL persistence and mobile matches tab.",
   );
 } finally {
   await browser.close();

@@ -46,9 +46,10 @@ const sampleDefaults: Preferences = {
   ...empty,
   teams: ["benfica", "arsenal", "liverpool"],
 };
-type View = "goals" | "teams" | "sources";
+type View = "goals" | "matches" | "teams" | "sources";
 const tabs: { id: View; label: string }[] = [
   { id: "goals", label: "Dashboard" },
+  { id: "matches", label: "Matches" },
   { id: "teams", label: "Favourite teams" },
   { id: "sources", label: "Connections" },
 ];
@@ -95,6 +96,7 @@ export default function App() {
   );
   const goalSearchInput = useRef<HTMLInputElement>(null);
   const goalList = useRef<HTMLDivElement>(null);
+  const navigation = useRef<HTMLElement>(null);
   const [data, setData] = useState<Dashboard | null>(null);
   const [prefs, setPrefs] = useState<Preferences>(sample ? loadSample : empty);
   const [loading, setLoading] = useState(true);
@@ -115,38 +117,6 @@ export default function App() {
   const [pendingWrites, setPendingWrites] = useState(0);
   const [mobilePlayer, setMobilePlayer] = useState(false);
   const [cinema, setCinema] = useState(false);
-  const [matchesOpen, setMatchesOpen] = useState(false);
-  const matchesTrigger = useRef<HTMLButtonElement>(null);
-  const matchesClose = useRef<HTMLButtonElement>(null);
-  const matchesPanel = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!matchesOpen) return;
-    matchesClose.current?.focus();
-    const close = (event: KeyboardEvent) => {
-      if (event.key === "Tab") {
-        const controls = Array.from(
-          matchesPanel.current?.querySelectorAll<HTMLElement>(
-            'button:not(:disabled), a[href], [tabindex="0"]',
-          ) || [],
-        ).filter((element) => element.getClientRects().length);
-        const first = controls[0],
-          last = controls.at(-1);
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last?.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first?.focus();
-        }
-      }
-      if (event.key === "Escape") {
-        setMatchesOpen(false);
-        matchesTrigger.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
-  }, [matchesOpen]);
   const [newGoalCount, setNewGoalCount] = useState(0);
   const knownGoals = useRef<Set<string> | null>(null);
   const queue = useRef(Promise.resolve());
@@ -188,6 +158,16 @@ export default function App() {
     setError("");
   });
 
+  useEffect(() => {
+    const nav = navigation.current;
+    const active = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!nav || !active) return;
+    const bounds = nav.getBoundingClientRect();
+    const item = active.getBoundingClientRect();
+    if (item.left < bounds.left) nav.scrollLeft += item.left - bounds.left;
+    else if (item.right > bounds.right)
+      nav.scrollLeft += item.right - bounds.right;
+  }, [view, feed]);
   useEffect(() => {
     const params = new URLSearchParams();
     if (view !== "goals") params.set("view", view);
@@ -491,7 +471,6 @@ export default function App() {
               setPlaying(true);
               setTeam("");
               setFeed("all");
-              setMatchesOpen(false);
               navigate("goals");
             }}
             aria-label={`Show goals from ${fixture.homeName} versus ${fixture.awayName}`}
@@ -545,18 +524,6 @@ export default function App() {
 
   const workspaceActions = (
     <div className="heading-actions">
-      {view === "goals" && (
-        <button
-          type="button"
-          ref={matchesTrigger}
-          className="quiet matches-trigger"
-          aria-expanded={matchesOpen}
-          aria-controls="matches-sidebar"
-          onClick={() => setMatchesOpen(!matchesOpen)}
-        >
-          Matches <span>{matchList.length}</span>
-        </button>
-      )}
       <button
         type="button"
         className="quiet"
@@ -586,7 +553,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main">
-        Skip to goal room
+        Skip to content
       </a>
       <header className="topbar">
         <a className="brand" href="/" aria-label="Touchline home">
@@ -606,25 +573,150 @@ export default function App() {
           </svg>
           <span>touchline</span>
         </a>
-        <nav aria-label="Main navigation">
-          {tabs
-            .filter((tab) => tab.id === "goals")
-            .map((tab) => (
+        <nav
+          ref={navigation}
+          className="main-navigation"
+          aria-label="Main navigation"
+        >
+          <button
+            type="button"
+            aria-current={
+              view === "goals" && feed === "all" ? "page" : undefined
+            }
+            onClick={() => {
+              navigate("goals");
+              setFeed("all");
+              setSelectedId(null);
+              setPlaying(true);
+              setTeam("");
+              setMatch("");
+            }}
+          >
+            Dashboard
+          </button>
+          <button
+            type="button"
+            aria-current={
+              view === "goals" && feed === "following" ? "page" : undefined
+            }
+            onClick={() => {
+              navigate("goals");
+              setFeed("following");
+              setSelectedId(null);
+              setPlaying(true);
+              setTeam("");
+              setMatch("");
+            }}
+          >
+            Following
+          </button>
+          <button
+            type="button"
+            aria-current={
+              view === "goals" && feed === "watch" ? "page" : undefined
+            }
+            onClick={() => {
+              navigate("goals");
+              setFeed("watch");
+              setTeam("");
+              setMatch("");
+              setSelectedId(null);
+              setPlaying(true);
+            }}
+          >
+            Ones to watch
+          </button>
+          <button
+            type="button"
+            aria-current={view === "matches" ? "page" : undefined}
+            onClick={() => navigate("matches")}
+          >
+            Matches
+          </button>
+          {(view === "teams" || view === "sources") && (
+            <div
+              className="settings-navigation"
+              role="group"
+              aria-label="Settings sections"
+            >
+              {tabs
+                .filter((tab) => tab.id === "teams" || tab.id === "sources")
+                .map((tab) => (
+                  <button
+                    type="button"
+                    key={tab.id}
+                    aria-current={view === tab.id ? "page" : undefined}
+                    onClick={() => navigate(tab.id)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+            </div>
+          )}
+        </nav>
+        <div className="header-utilities">
+          {(view === "goals" || importing) && (
+            <>
               <button
                 type="button"
-                key={tab.id}
-                aria-current={view === tab.id ? "page" : undefined}
-                onClick={() => navigate(tab.id)}
+                className="icon-button refresh"
+                aria-label="Refresh sources"
+                onClick={() => setRefresh((v) => v + 1)}
+                disabled={loading || pendingWrites > 0}
               >
-                {tab.label}
+                <RefreshCw size={16} />
               </button>
-            ))}
-        </nav>
+              <span
+                className="live-status"
+                data-state={live.state}
+                data-ready={sample || connected > 0}
+                title={
+                  live.receivedAt
+                    ? `Last feed change: ${new Date(live.receivedAt).toLocaleTimeString()}`
+                    : undefined
+                }
+              >
+                <span className="connection-label">
+                  {sample
+                    ? "Sample / auto updates off"
+                    : live.state === "connected"
+                      ? connected
+                        ? "Auto updates on"
+                        : "Waiting for source access"
+                      : live.state === "paused"
+                        ? "Updates paused while hidden"
+                        : live.state === "offline"
+                          ? "Offline / keeping your feed"
+                          : live.state === "reconnecting"
+                            ? "Reconnecting / keeping your feed"
+                            : "Connecting to updates…"}
+                </span>
+                {newGoalCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewGoalCount(0);
+                      setSelectedId(visibleGoals[0]?.id || null);
+                      setPlaying(false);
+                      setMobilePlayer(false);
+                    }}
+                  >
+                    {newGoalCount} new {newGoalCount === 1 ? "goal" : "goals"}
+                  </button>
+                )}
+              </span>
+
+              {workspaceActions}
+            </>
+          )}
+        </div>
         <button
           type="button"
           className="source-status"
           aria-label="Settings"
-          aria-current={view !== "goals" ? "page" : undefined}
+          aria-current={
+            view === "teams" || view === "sources" ? "page" : undefined
+          }
           title="Favourite teams and connections"
           onClick={() => navigate("teams")}
         >
@@ -655,34 +747,21 @@ export default function App() {
                 ? "Add a goal clip"
                 : view === "goals"
                   ? "Dashboard"
-                  : "Settings"}
+                  : view === "matches"
+                    ? "Matches"
+                    : "Settings"}
             </h1>
             <p>
               {view === "goals"
                 ? "Recent r/soccer goals. Your clubs, one place."
-                : view === "teams"
-                  ? "Pick your clubs. Their goals will find their way here."
-                  : "Choose where your fixtures and goal clips come from."}
+                : view === "matches"
+                  ? "Fixtures and matches with goal clips."
+                  : view === "teams"
+                    ? "Pick your clubs. Their goals will find their way here."
+                    : "Choose where your fixtures and goal clips come from."}
             </p>
           </div>
-          {(view !== "goals" || importing) && workspaceActions}
         </div>
-        {view !== "goals" && !importing && (
-          <nav className="settings-navigation" aria-label="Settings sections">
-            {tabs
-              .filter((tab) => tab.id !== "goals")
-              .map((tab) => (
-                <button
-                  type="button"
-                  key={tab.id}
-                  aria-current={view === tab.id ? "page" : undefined}
-                  onClick={() => navigate(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-          </nav>
-        )}
         {pendingWrites > 0 && (
           <span role="status" className="sr-only">
             Saving favourites…
@@ -773,104 +852,6 @@ export default function App() {
           </section>
         ) : (
           <>
-            {view === "goals" && (
-              <div className="workspace-toolbar">
-                <div className="team-filters" aria-label="Filter by team">
-                  <div className="feed-tabs">
-                    <button
-                      type="button"
-                      aria-pressed={feed === "all" && !team && !match}
-                      onClick={() => {
-                        setFeed("all");
-                        setSelectedId(null);
-                        setPlaying(true);
-                        setTeam("");
-                        setMatch("");
-                      }}
-                    >
-                      All r/soccer
-                    </button>
-                    <button
-                      type="button"
-                      aria-pressed={feed === "following" && !team && !match}
-                      onClick={() => {
-                        setFeed("following");
-                        setSelectedId(null);
-                        setPlaying(true);
-                        setTeam("");
-                        setMatch("");
-                      }}
-                    >
-                      Following
-                    </button>
-                    <button
-                      type="button"
-                      aria-pressed={feed === "watch" && !team && !match}
-                      onClick={() => {
-                        setFeed("watch");
-                        setTeam("");
-                        setMatch("");
-                        setSelectedId(null);
-                        setPlaying(true);
-                      }}
-                    >
-                      <Star size={14} />
-                      Ones to watch
-                    </button>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="icon-button refresh"
-                  aria-label="Refresh sources"
-                  onClick={() => setRefresh((v) => v + 1)}
-                  disabled={loading || pendingWrites > 0}
-                >
-                  <RefreshCw size={16} />
-                </button>
-                <span
-                  className="live-status"
-                  data-state={live.state}
-                  data-ready={sample || connected > 0}
-                  title={
-                    live.receivedAt
-                      ? `Last feed change: ${new Date(live.receivedAt).toLocaleTimeString()}`
-                      : undefined
-                  }
-                >
-                  <span className="connection-label">
-                    {sample
-                      ? "Sample / auto updates off"
-                      : live.state === "connected"
-                        ? connected
-                          ? "Auto updates on"
-                          : "Waiting for source access"
-                        : live.state === "paused"
-                          ? "Updates paused while hidden"
-                          : live.state === "offline"
-                            ? "Offline / keeping your feed"
-                            : live.state === "reconnecting"
-                              ? "Reconnecting / keeping your feed"
-                              : "Connecting to updates…"}
-                  </span>
-                  {newGoalCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNewGoalCount(0);
-                        setSelectedId(visibleGoals[0]?.id || null);
-                        setPlaying(false);
-                        setMobilePlayer(false);
-                      }}
-                    >
-                      {newGoalCount} new {newGoalCount === 1 ? "goal" : "goals"}
-                    </button>
-                  )}
-                </span>
-
-                {workspaceActions}
-              </div>
-            )}
             {loading && !data ? (
               <section
                 className="loading-view"
@@ -1507,93 +1488,64 @@ export default function App() {
                           </div>
                         )}
                       </section>
-                      {matchesOpen && (
-                        <button
-                          type="button"
-                          className="matches-scrim"
-                          aria-label="Close matches"
-                          onClick={() => {
-                            setMatchesOpen(false);
-                            matchesTrigger.current?.focus();
-                          }}
-                        />
-                      )}
-                      <div
-                        ref={matchesPanel}
-                        id="matches-sidebar"
-                        role={matchesOpen ? "dialog" : "complementary"}
-                        aria-modal={matchesOpen ? true : undefined}
-                        className={`match-rail${matchesOpen ? " matches-open" : ""}`}
-                        aria-label="Matches"
-                      >
-                        <div className="section-bar">
-                          <h2>Matches</h2>
-                          <button
-                            type="button"
-                            ref={matchesClose}
-                            className="icon-button matches-close"
-                            aria-label="Close matches sidebar"
-                            onClick={() => {
-                              setMatchesOpen(false);
-                              matchesTrigger.current?.focus();
-                            }}
-                          >
-                            <X size={17} />
-                          </button>
-                          <span className="muted">
-                            {matchList.length} matches
-                          </span>
-                        </div>
-                        {dateControls()}
-                        <div
-                          className="match-list scroll-region"
-                          tabIndex={0}
-                          aria-label="Today’s matches"
-                        >
-                          {matchList.length ? (
-                            <>
-                              {!!goalMatches.length && (
-                                <>
-                                  <h3 className="match-group-heading">
-                                    With goals <span>Last 48 hours</span>
-                                  </h3>
-                                  {goalMatches.map(matchRow)}
-                                </>
-                              )}
-                              {!!scheduledMatches.length && (
-                                <>
-                                  <h3 className="match-group-heading">
-                                    Fixtures{" "}
-                                    <span>
-                                      {new Intl.DateTimeFormat(undefined, {
-                                        day: "numeric",
-                                        month: "short",
-                                      }).format(selectedDate)}
-                                    </span>
-                                  </h3>
-                                  {scheduledMatches.map(matchRow)}
-                                </>
-                              )}
-                            </>
-                          ) : (
-                            <div className="empty">
-                              <p>
-                                {connected
-                                  ? "No fixtures available for this day."
-                                  : "Connect match data to see kickoffs and scores."}
-                              </p>
-                              <button
-                                type="button"
-                                className="quiet"
-                                onClick={() => navigate("sources")}
-                              >
-                                Source setup
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
                     </div>
+                  )}
+                  {view === "matches" && (
+                    <section className="matches-view" aria-label="Matches">
+                      <div className="matches-heading">
+                        <span className="muted">
+                          {matchList.length} matches
+                        </span>
+                        {dateControls()}
+                      </div>
+                      <div
+                        className="match-list scroll-region"
+                        tabIndex={0}
+                        aria-label="Today’s matches"
+                      >
+                        {matchList.length ? (
+                          <>
+                            {!!goalMatches.length && (
+                              <>
+                                <h2 className="match-group-heading">
+                                  With goals <span>Last 48 hours</span>
+                                </h2>
+                                {goalMatches.map(matchRow)}
+                              </>
+                            )}
+                            {!!scheduledMatches.length && (
+                              <>
+                                <h2 className="match-group-heading">
+                                  Fixtures{" "}
+                                  <span>
+                                    {new Intl.DateTimeFormat(undefined, {
+                                      day: "numeric",
+                                      month: "short",
+                                    }).format(selectedDate)}
+                                  </span>
+                                </h2>
+                                {scheduledMatches.map(matchRow)}
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <div className="empty">
+                            <p>
+                              {connected
+                                ? "No fixtures available for this day."
+                                : "Connect match data to see kickoffs and scores."}
+                            </p>
+                            <button
+                              type="button"
+                              className="quiet"
+                              onClick={() => navigate("sources")}
+                            >
+                              Source setup
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </section>
                   )}
                   {view === "teams" && (
                     <section className="teams-view">
