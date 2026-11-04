@@ -1,4 +1,4 @@
-/* Hallmark v2.0.0 · theme: brand (kiln ember retained) · genre: atmospheric · shape: app screen · scope: app · redesign: full · signature: named-team goal queue beside uninterrupted video and matches. */
+/* Hallmark v2.0.0 · theme: custom (graphite broadcast desk) · genre: atmospheric · shape: app screen · scope: app · redesign: full · signature: machined score strip, lime selection key and uninterrupted goal footage. */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V3 · weakest: V, existing shell retained; removed duplicated Sources chrome and lifted playback help off the footage. Finish review: in-thread, fix, 3 findings resolved (duplicate chrome, video overlays, scroll footer). */
 /* Hallmark · waive 39b · Goal rows exceed 52px · Each selectable goal contains minute, score, scorer and watch state; the entire row is a touch target rather than a toolbar button. */
 /* Hallmark · dismissed 3 · The goal row side rule marks the selected clip and changes with selection, rather than decorating unrelated content. */
@@ -280,8 +280,8 @@ small {
   border-radius: var(--radius-input);
 }
 .team-filters button[aria-pressed="true"] {
-  background: var(--color-ink);
-  color: var(--color-paper);
+  background: var(--color-clear);
+  color: var(--color-accent);
 }
 .team-filters .add-team {
   padding: var(--space-xs) var(--space-sm);
@@ -2111,6 +2111,269 @@ summary:focus-visible {
   }
   .scoreboard-result {
     font-size: 23px;
+  }
+  .clip-details h2 {
+    font-size: 28px;
+  }
+}
+
+/* Graphite desk: recessed media, raised controls, one phosphor selection key. */
+.topbar {
+  background: var(--color-paper-2);
+  border-top: 3px solid var(--color-accent);
+  border-bottom-color: var(--color-surface-edge);
+}
+.topbar .brand {
+  font: 900 30px/1 var(--font-display);
+  letter-spacing: -1.8px;
+}
+.topbar nav button {
+  border-radius: 0;
+}
+.topbar nav button[aria-current="page"] {
+  color: var(--color-accent);
+}
+.main {
+  gap: var(--space-sm);
+}
+.workspace-heading h1 {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+}
+.quiet,
+.primary,
+.icon-button,
+.source-status,
+.topbar nav button,
+.today-control,
+.team-filters button,
+.team-filters .add-team {
+  border-radius: 2px;
+}
+.quiet {
+  background: var(--color-paper-2);
+  border-color: var(--color-rule);
+  box-shadow: inset 0 1px 0 var(--color-surface-edge);
+}
+.quiet:hover {
+  border-color: var(--color-muted);
+  background: var(--color-paper-3);
+}
+.quiet[aria-pressed="true"] {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.primary {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  border: 1px solid var(--color-accent);
+  font-weight: 650;
+}
+.primary:hover {
+  background: var(--color-focus);
+  color: var(--color-accent-ink);
+}
+.workspace-toolbar {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.feed-tabs {
+  gap: 1px;
+  padding: var(--space-2xs);
+  border: 1px solid var(--color-rule);
+  background: var(--color-inset);
+}
+.feed-tabs > button {
+  border: 0;
+  min-height: 36px;
+}
+.feed-tabs > button[aria-pressed="true"] {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  box-shadow: inset 0 -2px 0 var(--color-accent-ink);
+}
+.club-filters {
+  padding-left: var(--space-xs);
+}
+.goal-workspace {
+  gap: var(--space-md);
+}
+.goal-queue,
+.match-rail {
+  border: 1px solid var(--color-rule);
+  background: var(--color-paper-2);
+  border-radius: 2px;
+}
+.section-bar {
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+  border-bottom-color: var(--color-surface-edge);
+}
+.goal-queue .section-bar {
+  padding-left: var(--space-sm);
+}
+.section-bar h2 {
+  font-weight: 650;
+}
+.section-bar h2 > span {
+  font-variant-numeric: tabular-nums;
+}
+.goal-search {
+  margin: var(--space-xs);
+}
+.goal-search input {
+  background: var(--color-inset);
+  box-shadow: inset 0 1px 2px var(--color-inset);
+  border-color: var(--color-rule);
+}
+.goal-row {
+  padding: var(--space-sm) var(--space-xs);
+  gap: var(--space-xs);
+}
+.goal-row.selected {
+  background: var(--color-paper-3);
+}
+.goal-minute {
+  font: 500 18px/1.3 var(--font-mono);
+  width: 44px;
+  letter-spacing: -1px;
+}
+.goal-team {
+  color: var(--color-ink);
+}
+.goal-copy strong {
+  color: var(--color-ink-2);
+}
+.queue-play {
+  width: 20px;
+}
+.goal-row.selected .queue-play {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  height: 24px;
+}
+.queue-footer,
+.rail-note {
+  background: var(--color-paper-2);
+  color: var(--color-muted);
+}
+.player-header {
+  min-height: 72px;
+  padding: var(--space-xs);
+  border: 1px solid var(--color-surface-edge);
+  background: var(--color-paper-3);
+  box-shadow: inset 0 1px 0 var(--color-surface-edge);
+}
+.player-header > .match-scoreboard:first-child {
+  gap: var(--space-sm);
+}
+.scoreboard-result {
+  min-width: 92px;
+  min-height: 48px;
+  justify-content: center;
+  padding: var(--space-xs);
+  background: var(--color-inset);
+  border: 1px solid var(--color-rule);
+  color: var(--color-ink);
+  font: 650 30px/1 var(--font-mono);
+}
+.scoreboard-team {
+  font-weight: 600;
+}
+.scoreboard-team .team-crest {
+  width: 26px;
+  height: 28px;
+  flex-basis: 26px;
+}
+.video-stage {
+  border: 1px solid var(--color-rule);
+  border-radius: 0;
+  box-shadow: 0 0 0 3px var(--color-inset);
+}
+.playback-tools {
+  background: var(--color-paper-2);
+}
+.clip-details {
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-rule);
+}
+.clip-details h2 {
+  font: 750 clamp(24px, 2.3vw, 36px)/1.06 var(--font-body);
+  letter-spacing: -1px;
+}
+.clip-navigation {
+  gap: 0;
+  border: 1px solid var(--color-rule);
+  background: var(--color-paper-2);
+}
+.clip-navigation > span {
+  min-width: 58px;
+  padding-inline: var(--space-xs);
+  font-variant-numeric: tabular-nums;
+}
+.clip-navigation .icon-button {
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 0;
+}
+.clip-navigation .icon-button:first-child {
+  border-right: 1px solid var(--color-rule);
+}
+.clip-navigation .icon-button:last-child {
+  border-left: 1px solid var(--color-rule);
+}
+.match-rail .section-bar {
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+}
+.match-group-heading {
+  background: var(--color-paper);
+}
+.fixture {
+  background: var(--color-paper-2);
+}
+.fixture.selected {
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+.app-footer {
+  border-top: 1px solid var(--color-rule);
+  padding-top: var(--space-xs);
+}
+.team-row,
+.source-row {
+  border-radius: 0;
+}
+@media (max-width: 760px) {
+  .topbar .brand {
+    font-size: 29px;
+  }
+  .feed-tabs {
+    width: 100%;
+  }
+  .feed-tabs > button {
+    min-height: 36px;
+    padding-inline: var(--space-2xs);
+  }
+  .player-header {
+    min-height: 64px;
+    padding: var(--space-xs);
+  }
+  .scoreboard-result {
+    min-width: 76px;
+    min-height: 40px;
+    font-size: 24px;
+  }
+  .player-header > .match-scoreboard:first-child {
+    gap: var(--space-xs);
+  }
+  .player-header .scoreboard-team .team-crest {
+    width: 20px;
+    height: 24px;
+    flex-basis: 20px;
+  }
+  .scoreboard-team {
+    gap: var(--space-2xs);
   }
   .clip-details h2 {
     font-size: 28px;
