@@ -1,8 +1,5 @@
 // Controlled failures against the local UI. No real preferences or clips are written.
-import {
-  chromium,
-  expect,
-} from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
@@ -105,6 +102,31 @@ async function scenario(item, handler, clock = false) {
 }
 
 try {
+  const transientRequests = [];
+  const transient = await scenario({ ...goal, mirrors: [] }, (route) => {
+    transientRequests.push(route.request().postDataJSON());
+    return transientRequests.length === 1
+      ? route.fulfill({
+          status: 503,
+          json: { detail: "Controlled temporary deployment interruption" },
+        })
+      : route.fulfill({ json: backup.media });
+  });
+  await expect(
+    transient.page
+      .frameLocator("iframe")
+      .getByText("Working mirror of the same goal - controlled test"),
+  ).toBeVisible();
+  expect(transientRequests).toHaveLength(2);
+  expect(transientRequests[1].refresh).toBe(true);
+  await expect(
+    transient.page.getByRole("heading", { name: "No working clip right now" }),
+  ).toHaveCount(0);
+  expect(transient.errors).toEqual([]);
+  await transient.context.close();
+  console.log(
+    "PASS temporary metadata failure retries once before declaring the clip unavailable.",
+  );
   let state = await scenario(goal, (route) =>
     route.fulfill({
       status: 422,

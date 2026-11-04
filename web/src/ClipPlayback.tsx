@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, RefreshCw } from "lucide-react";
-import { request, type Clip, type ClipSource, type Goal } from "./types";
+import {
+  ApiError,
+  request,
+  type Clip,
+  type ClipSource,
+  type Goal,
+} from "./types";
 import { clipSources } from "./clipSources";
 
 const metadata = new Map<string, { at: number; promise: Promise<Clip> }>();
@@ -173,6 +179,7 @@ function PlayerAttempt({
   });
   const [renew, setRenew] = useState(0);
   const renewed = useRef(false);
+  const lookupRetried = useRef(false);
   const handlingFailure = useRef(false);
   const frameLoaded = useRef(false);
   const video = useRef<HTMLVideoElement>(null);
@@ -206,6 +213,7 @@ function PlayerAttempt({
   }, [recover]);
   useEffect(() => {
     let active = true;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
     handlingFailure.current = false;
     setNeedsPlay(false);
     if (media.kind !== "resolve") {
@@ -217,12 +225,22 @@ function PlayerAttempt({
       .then((value) => {
         if (active) setResolved(value);
       })
-      .catch(() => {
-        if (active)
-          onFailure("The original clip host could not load this goal.");
+      .catch((error) => {
+        if (!active) return;
+        if (
+          !lookupRetried.current &&
+          error instanceof ApiError &&
+          [0, 408, 502, 503, 504].includes(error.status)
+        ) {
+          lookupRetried.current = true;
+          retryTimer = setTimeout(() => {
+            if (active) setRenew((value) => value + 1);
+          }, 1_000);
+        } else onFailure("The original clip host could not load this goal.");
       });
     return () => {
       active = false;
+      clearTimeout(retryTimer);
     };
   }, [media.kind, media.url, refresh, renew, onFailure]);
   useEffect(() => {

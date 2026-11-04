@@ -68,6 +68,15 @@ export type Dashboard = {
   sample: boolean;
 };
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (init?.body != null && !headers.has("Content-Type"))
@@ -84,19 +93,24 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     });
   } catch (error) {
     if (error instanceof Error && error.name === "TimeoutError")
-      throw new Error("Touchline took too long to respond. Please try again.");
+      throw new ApiError(
+        "Touchline took too long to respond. Please try again.",
+        408,
+      );
     if (error instanceof TypeError)
-      throw new Error(
+      throw new ApiError(
         "Could not reach Touchline. Check your connection and try again.",
+        0,
       );
     throw error;
   }
   if (!response.ok) {
     const problem = await response.json().catch(() => ({}));
-    throw new Error(
+    throw new ApiError(
       typeof problem?.detail === "string" && problem.detail.trim()
         ? problem.detail.slice(0, 500)
         : "Touchline could not complete the request. Try again.",
+      response.status,
     );
   }
   return response.status === 204 ? (undefined as T) : response.json();
