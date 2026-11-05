@@ -354,6 +354,11 @@ try {
   ).toHaveCount(0);
   await expect(page.locator(".goal-list > .goal-row")).toHaveCount(19);
   await expect(page.locator(".seen-goals .goal-row")).toHaveCount(1);
+  await page.locator(".goal-list").press("End");
+  await expect(page.locator(".goal-row:focus")).toHaveAttribute(
+    "data-goal-id",
+    "long19",
+  );
   await page.locator(".seen-goals").evaluate((node) => (node.open = false));
   await expect(page.locator(".seen-goals .goal-row")).not.toBeVisible();
   const beforeCollapse = loads;
@@ -386,6 +391,31 @@ try {
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
   expect(prefs.watched).not.toContain("long0");
   expect(prefs.watched).not.toContain("reposted");
+  await page.setViewportSize({ width: 390, height: 600 });
+  await page
+    .getByRole("button", { name: "Back to goals", exact: true })
+    .click();
+  await page.locator('[data-goal-id="long12"]').scrollIntoViewIfNeeded();
+  const mobileScroll = await page
+    .locator(".goal-list")
+    .evaluate((list) => list.scrollTop);
+  const mobileY = await page
+    .locator('[data-goal-id="long12"]')
+    .evaluate((row) => row.getBoundingClientRect().y);
+  await page.locator('[data-goal-id="long12"]').click();
+  await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  await page
+    .getByRole("button", { name: "Back to goals", exact: true })
+    .click();
+  expect(
+    await page.locator(".goal-list").evaluate((list) => list.scrollTop),
+  ).toBe(mobileScroll);
+  expect(
+    await page
+      .locator('[data-goal-id="long12"]')
+      .evaluate((row) => row.getBoundingClientRect().y),
+  ).toBe(mobileY);
+  await expect(page.locator('[data-goal-id="long12"]')).toHaveClass(/watched/);
   expect(errors).toEqual([]);
   console.log(
     "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, same-match goal selection, keyboard browsing and visible mobile search.",

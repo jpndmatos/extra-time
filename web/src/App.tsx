@@ -99,6 +99,7 @@ export default function App() {
   const known = useRef<Set<string> | null>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLDivElement>(null);
+  const queueScroll = useRef(0);
   const seenAccordion = useRef<HTMLDetailsElement>(null);
   const connections = useRef<HTMLDetailsElement>(null);
 
@@ -270,6 +271,8 @@ export default function App() {
   }, []);
   const select = useCallback(
     (goal: Goal) => {
+      if (list.current?.clientHeight)
+        queueScroll.current = list.current.scrollTop;
       if (visit.current && !sameGoal(visit.current.goal, goal)) finishVisit();
       if (
         hasSeenGoal(goal, new Set(latest.current.watched)) &&
@@ -361,6 +364,10 @@ export default function App() {
         autoMark: true,
       };
   }, [selected, ready, compact, mobilePlayer, hideScore]);
+  useLayoutEffect(() => {
+    if (compact && !mobilePlayer && list.current)
+      list.current.scrollTop = queueScroll.current;
+  }, [compact, mobilePlayer]);
   useEffect(() => {
     if (!cinema) return;
     const escape = (event: KeyboardEvent) => {
@@ -576,6 +583,10 @@ export default function App() {
                 tabIndex={0}
                 aria-label="Recent goal clips"
                 aria-describedby="goal-keyboard-help"
+                onScroll={(event) => {
+                  if (event.currentTarget.clientHeight)
+                    queueScroll.current = event.currentTarget.scrollTop;
+                }}
                 onKeyDown={(event) => {
                   if (
                     event.altKey ||
@@ -589,7 +600,11 @@ export default function App() {
                     event.currentTarget.querySelectorAll<HTMLButtonElement>(
                       ".goal-row",
                     ),
-                  ).filter((row) => row.getClientRects().length > 0);
+                  ).filter(
+                    (row) =>
+                      row.getClientRects().length > 0 &&
+                      !row.closest("details:not([open])"),
+                  );
                   if (!rows.length) return;
                   const current = rows.indexOf(
                     document.activeElement as HTMLButtonElement,
