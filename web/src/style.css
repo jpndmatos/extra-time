@@ -2867,14 +2867,15 @@ summary:focus-visible {
 }
 .post-attribution {
   flex: none;
+  min-height: 44px;
   display: flex;
   flex-direction: row;
-  align-items: baseline;
+  align-items: center;
   justify-content: flex-end;
   gap: 12px;
   padding: 10px 20px;
   background: #0e1210;
-  border-top: 1px solid #273129;
+  border-top: 1px solid #29352d;
   font: 400 11px/1.5 var(--font-body);
   color: #a6afa8;
   text-align: right;
@@ -3156,10 +3157,11 @@ summary:focus-visible {
   position: relative;
   flex-shrink: 0;
   width: 100%;
+  min-height: 44px;
   margin-top: auto;
   padding: 5px 10px;
-  border-top: 1px solid #292e2a;
-  background: #131614;
+  border-top: 1px solid #29352d;
+  background: #0e1210;
 }
 .goal-queue .connection-status > summary {
   display: flex;
