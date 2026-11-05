@@ -102,8 +102,8 @@ try {
     page.frameLocator("iframe").getByText("Browsing test player"),
   ).toBeVisible();
   expect(loads).toBe(1);
-  await expect(page.locator(".goal-row.selected")).toHaveClass(/watched/);
-  await expect.poll(() => prefs.watched.includes("clipa")).toBe(true);
+  await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  expect(prefs.watched).toEqual([]);
   await expect(
     page.locator(".topbar").getByRole("searchbox", { name: "Search goals" }),
   ).toBeVisible();
@@ -120,6 +120,8 @@ try {
   expect(loads).toBe(1);
   expect(new URL(page.url()).searchParams.get("q")).toBe("joao");
   await selectFromList(page, "clipc");
+  await expect.poll(() => prefs.watched.includes("clipa")).toBe(true);
+  await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
   await expect(
     page.getByRole("heading", { name: "João Félix", exact: true }),
   ).toBeVisible();
@@ -152,9 +154,16 @@ try {
   ).toBeVisible();
   await page.locator(".goal-row").first().press("ArrowDown");
   await expect(page.locator(".goal-row").nth(1)).toBeFocused();
+  const keyboardTarget = await page
+    .locator(".goal-row")
+    .nth(1)
+    .getAttribute("data-goal-id");
   await page.locator(".goal-row").nth(1).press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Second test scorer", exact: true }),
+    page.getByRole("heading", {
+      name: goals.find((goal) => goal.id === keyboardTarget).scorer,
+      exact: true,
+    }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Hide spoilers", exact: true })
@@ -270,6 +279,12 @@ try {
   await expect(page.locator(".match-goals > button")).toHaveCount(20);
   for (let index = 1; index <= 12; index++)
     await page.locator(`[data-match-goal-id="long${index}"]`).click();
+  expect(
+    await page.locator(".goal-list").evaluate((list) => list.scrollTop),
+  ).toBe(0);
+  await expect(page.locator(".goal-list > .goal-row")).toHaveCount(20);
+  await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  await expect.poll(() => prefs.watched.includes("long11")).toBe(true);
   await openSeen(page);
   await page.locator(".goal-row.selected").scrollIntoViewIfNeeded();
   const queuePosition = await page.locator(".goal-list").evaluate((list) => {
@@ -289,6 +304,19 @@ try {
   await openSeen(page);
   await page.locator(".goal-row.selected").click();
   expect(loads).toBe(loadCount);
+  const stableScroll = await page
+    .locator(".goal-list")
+    .evaluate((list) => list.scrollTop);
+  await page.locator('[data-goal-id="long13"]').click();
+  expect(
+    await page.locator(".goal-list").evaluate((list) => list.scrollTop),
+  ).toBe(stableScroll);
+  await expect(page.locator('[data-goal-id="long12"]')).toHaveClass(/watched/);
+  await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  await page
+    .getByRole("button", { name: "Mark as watched", exact: true })
+    .click();
+  await expect.poll(() => prefs.watched.includes("long13")).toBe(true);
   prefs = { ...prefs, watched: [], spoilers: true };
   await page.goto(base);
   await expect(
@@ -297,8 +325,12 @@ try {
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
   expect(prefs.watched).toEqual([]);
   await page.getByRole("button", { name: "Reveal goal", exact: true }).click();
-  await expect(page.locator(".goal-row.selected")).toHaveClass(/watched/);
+  await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  expect(prefs.watched).toEqual([]);
+  await page.locator('[data-match-goal-id="long1"]').click();
   await expect.poll(() => prefs.watched.includes("long0")).toBe(true);
+  expect(prefs.watched).not.toContain("long1");
+  await selectFromList(page, "long0");
   await page
     .getByRole("button", { name: "Mark as unwatched", exact: true })
     .click();
@@ -306,7 +338,17 @@ try {
   await expect.poll(() => prefs.watched.includes("long0")).toBe(false);
   await openSeen(page);
   await page.locator(".goal-row.selected").click();
-  await expect(page.locator(".goal-row.selected")).toHaveClass(/watched/);
+  await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  await page
+    .getByRole("button", { name: "Mark as watched", exact: true })
+    .click();
+  await expect(page.locator(".goal-list > .goal-row")).toHaveCount(20);
+  await expect.poll(() => prefs.watched.includes("long0")).toBe(true);
+  await page.reload();
+  await page.getByRole("button", { name: "Reveal goal", exact: true }).click();
+  await expect(
+    page.frameLocator("iframe").getByText("Browsing test player"),
+  ).toBeVisible();
   await expect(
     page.getByRole("combobox", { name: "Viewing history" }),
   ).toHaveCount(0);

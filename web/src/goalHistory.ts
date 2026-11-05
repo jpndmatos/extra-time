@@ -37,6 +37,10 @@ export function goalPostIds(goal: Goal): readonly string[] {
 export function hasSeenGoal(goal: Goal, watched: ReadonlySet<string>) {
   return goalPostIds(goal).some((id) => watched.has(id));
 }
+export function sameGoal(a: Goal, b: Goal) {
+  const ids = new Set(goalPostIds(a));
+  return goalPostIds(b).some((id) => ids.has(id));
+}
 export function setGoalSeen(goal: Goal, watched: string[], seen: boolean) {
   if (seen) return [...new Set([...watched, goal.id])].slice(-1000);
   const ids = new Set(goalPostIds(goal));

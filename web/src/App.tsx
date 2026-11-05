@@ -2,6 +2,7 @@ import {
   useCallback,
   useDeferredValue,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -29,7 +30,7 @@ import { appBase, browserPreferences } from "./api";
 import { clubCrest } from "./goalCategories";
 import { searchGoals } from "./goalNavigation";
 import { matchGoals } from "./matchGoals";
-import { goalPostIds, hasSeenGoal, setGoalSeen } from "./goalHistory";
+import { goalPostIds, hasSeenGoal, sameGoal, setGoalSeen } from "./goalHistory";
 import { useCompactPlayer } from "./useCompactPlayer";
 import { useLiveFeed } from "./useLiveFeed";
 import { useMatchday } from "./useMatchday";
@@ -84,6 +85,12 @@ export default function App() {
   const writes = useRef(Promise.resolve());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobilePlayer, setMobilePlayer] = useState(false);
+  const visit = useRef<{
+    goal: Goal;
+    eligible: boolean;
+    autoMark: boolean;
+  } | null>(null);
+  const [retained, setRetained] = useState<Set<string>>(() => new Set());
   const [cinema, setCinema] = useState(false);
   const [query, setQuery] = useState((initial.get("q") || "").slice(0, 100));
   const searchQuery = useDeferredValue(query);
@@ -224,6 +231,7 @@ export default function App() {
         await request("/api/preferences", {
           method: "PUT",
           body: JSON.stringify(next),
+          keepalive: true,
         });
       } catch (error) {
         setWriteError(
@@ -234,24 +242,35 @@ export default function App() {
       }
     });
   }
+  const retainRow = useCallback((goal: Goal) => {
+    setRetained((current) => new Set([...current, ...goalPostIds(goal)]));
+  }, []);
   const markSeen = useCallback(
     (goal: Goal) => {
-      if (
-        !ready ||
-        (latest.current.spoilers &&
-          !goalPostIds(goal).some((id) => revealed.includes(id))) ||
-        hasSeenGoal(goal, new Set(latest.current.watched))
-      )
-        return;
+      if (!ready || hasSeenGoal(goal, new Set(latest.current.watched))) return;
+      retainRow(goal);
       save({
         ...latest.current,
         watched: setGoalSeen(goal, latest.current.watched, true),
       });
     },
-    [ready, revealed],
+    [ready, retainRow],
   );
+  const finishVisit = useCallback(() => {
+    const previous = visit.current;
+    visit.current = null;
+    if (previous?.eligible && previous.autoMark) markSeen(previous.goal);
+  }, [markSeen]);
+  const leave = useRef(finishVisit);
+  leave.current = finishVisit;
+  useEffect(() => {
+    const finish = () => leave.current();
+    window.addEventListener("pagehide", finish);
+    return () => window.removeEventListener("pagehide", finish);
+  }, []);
   const select = useCallback(
     (goal: Goal) => {
+      if (visit.current && !sameGoal(visit.current.goal, goal)) finishVisit();
       if (
         hasSeenGoal(goal, new Set(latest.current.watched)) &&
         seenAccordion.current
@@ -262,13 +281,12 @@ export default function App() {
       );
       setMobilePlayer(true);
       setNewCount(0);
-      markSeen(goal);
     },
-    [markSeen],
+    [finishVisit],
   );
   const chooseRow = useCallback(
     (goal: Goal, keyboard: boolean) => {
-      if (keyboard) list.current?.focus();
+      if (keyboard) list.current?.focus({ preventScroll: true });
       select(goal);
     },
     [select],
@@ -298,13 +316,19 @@ export default function App() {
       if (goalPostIds(goal).some((id) => ids.has(id))) ids.add(goal.id);
     return ids;
   }, [revealed, data?.goals]);
-  const unseenGoals = useMemo(
-    () => goals.filter((goal) => !watched.has(goal.id)),
-    [goals, watched],
+  const queuedGoals = useMemo(
+    () =>
+      goals.filter(
+        (goal) => !watched.has(goal.id) || hasSeenGoal(goal, retained),
+      ),
+    [goals, watched, retained],
   );
   const seenGoals = useMemo(
-    () => goals.filter((goal) => watched.has(goal.id)),
-    [goals, watched],
+    () =>
+      goals.filter(
+        (goal) => watched.has(goal.id) && !hasSeenGoal(goal, retained),
+      ),
+    [goals, watched, retained],
   );
   const selected =
     data?.goals.find((goal) => goal.id === selectedId) ||
@@ -325,25 +349,18 @@ export default function App() {
     )
       setSelectedId(selected.id);
   }, [selectedId, selected?.id]);
-  useEffect(() => {
-    if (selected && (!compact || mobilePlayer)) markSeen(selected);
-  }, [selected?.id, ready, compact, mobilePlayer, hideScore]);
-  useEffect(() => {
-    const container = list.current;
-    const active = container?.querySelector<HTMLElement>(".goal-row.selected");
-    if (
-      !container ||
-      !active ||
-      !container.clientHeight ||
-      !active.getClientRects().length
-    )
-      return;
-    const bounds = container.getBoundingClientRect(),
-      row = active.getBoundingClientRect();
-    if (row.top < bounds.top) container.scrollTop += row.top - bounds.top;
-    else if (row.bottom > bounds.bottom)
-      container.scrollTop += row.bottom - bounds.bottom;
-  }, [selected?.id, mobilePlayer]);
+  useLayoutEffect(() => {
+    if (!selected || (compact && !mobilePlayer)) return;
+    if (visit.current && sameGoal(visit.current.goal, selected)) {
+      visit.current.goal = selected;
+      visit.current.eligible ||= ready && !hideScore;
+    } else
+      visit.current = {
+        goal: selected,
+        eligible: ready && !hideScore,
+        autoMark: true,
+      };
+  }, [selected, ready, compact, mobilePlayer, hideScore]);
   useEffect(() => {
     if (!cinema) return;
     const escape = (event: KeyboardEvent) => {
@@ -591,8 +608,8 @@ export default function App() {
                   rows[target]?.focus();
                 }}
               >
-                {unseenGoals.map(renderGoal)}
-                {!unseenGoals.length && seenGoals.length > 0 && (
+                {queuedGoals.map(renderGoal)}
+                {!queuedGoals.length && seenGoals.length > 0 && (
                   <p className="caught-up">You’re caught up.</p>
                 )}
                 {seenGoals.length > 0 && (
@@ -740,7 +757,10 @@ export default function App() {
               <button
                 type="button"
                 className="mobile-back quiet"
-                onClick={() => setMobilePlayer(false)}
+                onClick={() => {
+                  finishVisit();
+                  setMobilePlayer(false);
+                }}
               >
                 <ArrowLeft size={15} />
                 Back to goals
@@ -921,7 +941,10 @@ export default function App() {
                                 : "Mark as watched"
                             }
                             aria-pressed={watched.has(selected.id)}
-                            onClick={() =>
+                            onClick={() => {
+                              if (visit.current) visit.current.autoMark = false;
+                              if (!watched.has(selected.id))
+                                retainRow(selected);
                               save({
                                 ...latest.current,
                                 watched: setGoalSeen(
@@ -929,8 +952,8 @@ export default function App() {
                                   latest.current.watched,
                                   !watched.has(selected.id),
                                 ),
-                              })
-                            }
+                              });
+                            }}
                           >
                             {watched.has(selected.id) ? (
                               <Check size={17} />

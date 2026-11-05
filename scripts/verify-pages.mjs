@@ -1,8 +1,5 @@
 // Static project path and a separate read-only API; both are disposable local hosts.
-import {
-  chromium,
-  expect,
-} from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 const browser = await chromium.launch();
 try {
   const context = await browser.newContext({
@@ -34,14 +31,25 @@ try {
   await expect
     .poll(() =>
       page.evaluate(
-        () => JSON.parse(localStorage.getItem("touchline.preferences")).watched,
+        () =>
+          JSON.parse(localStorage.getItem("touchline.preferences"))?.watched ||
+          [],
       ),
     )
-    .toEqual(["pages-goal"]);
+    .toEqual([]);
   await page
     .getByRole("button", { name: "Hide spoilers", exact: true })
     .click();
   await page.reload();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("touchline.preferences"))?.watched ||
+          [],
+      ),
+    )
+    .toEqual(["pages-goal"]);
   await expect(
     page.getByRole("button", { name: "Show spoilers", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");

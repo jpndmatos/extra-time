@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { goalPostIds, hasSeenGoal, setGoalSeen } from "./goalHistory";
+import { goalPostIds, hasSeenGoal, sameGoal, setGoalSeen } from "./goalHistory";
 import type { Goal } from "./types";
 const goal = {
   id: "newpost",
@@ -13,6 +13,26 @@ const goal = {
   ],
 } as Goal;
 describe("viewing history across alternate posts", () => {
+  it("treats only shared Reddit posts as the same visit", () => {
+    expect(
+      sameGoal(goal, {
+        ...goal,
+        id: "oldpost",
+        sourceUrl: goal.alternatives[0],
+        alternatives: [],
+        mirrors: [],
+      }),
+    ).toBe(true);
+    expect(
+      sameGoal(goal, {
+        ...goal,
+        id: "different",
+        sourceUrl: "https://www.reddit.com/r/soccer/comments/different/",
+        alternatives: [],
+        mirrors: [],
+      }),
+    ).toBe(false);
+  });
   it("recognises a watched goal when a different playable post becomes primary", () => {
     expect(hasSeenGoal(goal, new Set(["oldpost"]))).toBe(true);
     expect(hasSeenGoal(goal, new Set(["mirror"]))).toBe(true);

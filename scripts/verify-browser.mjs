@@ -149,11 +149,12 @@ try {
       });
     }
     const opened = page.locator(".goal-row.selected");
-    await expect(opened).toHaveClass(/watched/);
+    await expect(opened).not.toHaveClass(/watched/);
     if (width < 760)
       await page
         .getByRole("button", { name: "Back to goals", exact: true })
         .click();
+    else await page.locator('[data-match-goal-id="sample-2"]').click();
     await page.reload();
     await expect(page.locator(".goal-row.watched")).not.toHaveCount(0);
     await page

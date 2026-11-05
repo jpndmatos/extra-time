@@ -24,7 +24,7 @@ For development, run `dotnet run --project src/Touchline.Api` and `npm --prefix 
 - Check individual Reddit and fixture source states and last fetch times from the bottom-left connection panel.
 - Search by team, alias or scorer. Old favourite and match URL parameters cannot filter the hub.
 - Play supported clips muted, with source recovery and alternate links. Reselecting the active goal preserves playback.
-- Mark goals seen immediately when opened; expand Seen inside the goal list to revisit viewing history, or mark one unwatched again.
+- Mark a goal seen when you leave it for another goal or return to the mobile feed. Rows stay in place for the current visit, preserving scroll; completed goals join the Seen accordion on your next visit. Re-clicking the active goal does not mark it seen.
 - Keep seen state, revealed details and the selected goal when an alternate Reddit post becomes the primary source.
 - Hide scores and scorers until you reveal a goal.
 - See club crests alongside goal details, with fallback formats and initials for unavailable images.
