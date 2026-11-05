@@ -2818,15 +2818,15 @@ summary:focus-visible {
 .goal-info {
   display: grid;
   grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
-  align-items: center;
-  gap: 28px;
-  padding: 16px 18px;
-  background: #131614;
-  border-top: 1px solid #2b322d;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  background: #191d1a;
+  border-top: 1px solid #344037;
 }
 .goal-info .clip-details {
-  padding: 0;
-  gap: 12px;
+  padding: 16px 20px;
+  gap: 16px;
   min-width: 0;
   background: transparent;
   align-items: center;
@@ -2852,8 +2852,12 @@ summary:focus-visible {
 .goal-info .clip-actions {
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   width: auto;
+  padding: 2px;
+  background: #101512;
+  border: 1px solid #303a33;
+  border-radius: 4px;
 }
 .goal-info .player-tools {
   gap: 2px;
@@ -2868,8 +2872,9 @@ summary:focus-visible {
   align-items: baseline;
   justify-content: flex-end;
   gap: 12px;
-  padding: 8px 18px 12px;
-  background: #131614;
+  padding: 10px 20px;
+  background: #0e1210;
+  border-top: 1px solid #273129;
   font: 400 11px/1.5 var(--font-body);
   color: #a6afa8;
   text-align: right;
@@ -2942,6 +2947,10 @@ summary:focus-visible {
   min-height: 36px;
   padding: 0;
 }
+.goal-info .clip-actions .icon-button[aria-pressed="true"] {
+  background: #273e30;
+  color: #e0eee4;
+}
 .goal-info .post-details {
   margin-top: 2px;
 }
@@ -2959,6 +2968,12 @@ summary:focus-visible {
 }
 .match-context {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px 20px;
+  background: #202923;
+  border-right: 1px solid #354238;
 }
 .match-scoreline {
   display: grid;
@@ -2996,15 +3011,16 @@ summary:focus-visible {
   text-align: center;
   font-size: 9px;
   color: var(--color-muted);
-  margin-top: 3px;
+  margin-top: 4px;
 }
 .match-goals {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   flex-shrink: 0;
-  padding: 0 18px 4px;
-  background: #131614;
+  padding: 10px 20px;
+  background: #131b16;
+  border-top: 1px solid #2c382f;
   scrollbar-width: thin;
   scrollbar-color: #3b463e transparent;
 }
@@ -3017,7 +3033,7 @@ summary:focus-visible {
   min-width: 0;
   min-height: 48px;
   padding: 8px 10px;
-  background: transparent;
+  background: #1d2720;
   border: 1px solid transparent;
   border-radius: 3px;
   text-align: left;
@@ -3026,7 +3042,7 @@ summary:focus-visible {
   background: #2a312c;
 }
 .match-goals > button[data-watched="true"]:not([aria-current="true"]) {
-  background: transparent;
+  background: #18201b;
   color: #a8b1aa;
 }
 .match-goals > button[aria-current="true"] {
@@ -3077,12 +3093,20 @@ summary:focus-visible {
 @media (max-width: 900px) {
   .goal-info {
     grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
+    gap: 0;
   }
   .match-context {
-    max-width: 500px;
+    max-width: none;
     width: 100%;
     justify-self: center;
+    border-right: 0;
+    border-bottom: 1px solid #354238;
+    padding-block: 12px;
+  }
+  .match-scoreline {
+    width: 100%;
+    max-width: 500px;
+    align-self: center;
   }
   .goal-info .clip-details {
     width: 100%;
@@ -3090,8 +3114,15 @@ summary:focus-visible {
 }
 @media (max-width: 480px) {
   .goal-info {
+    padding: 0;
+    gap: 0;
+  }
+  .goal-info .clip-details {
     padding: 12px;
-    gap: 12px;
+    gap: 8px;
+  }
+  .match-context {
+    padding: 12px;
   }
   .match-scoreline {
     gap: 8px;
@@ -3104,7 +3135,7 @@ summary:focus-visible {
     font-size: 20px;
   }
   .match-goals {
-    padding: 0 12px 4px;
+    padding: 10px 12px;
   }
   .match-goals > button {
     flex-basis: 150px;
@@ -3206,8 +3237,12 @@ summary:focus-visible {
 @media (max-height: 500px) and (min-width: 761px) {
   .goal-info {
     grid-template-columns: minmax(190px, 0.9fr) minmax(0, 1.1fr);
-    gap: 12px;
-    padding-block: 7px;
+    gap: 0;
+    padding: 0;
+  }
+  .goal-info .clip-details,
+  .goal-info .match-context {
+    padding-block: 8px;
   }
   .goal-info .scorer-heading {
     font-size: 16px;

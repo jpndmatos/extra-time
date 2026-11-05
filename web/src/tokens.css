@@ -18,11 +18,11 @@
   --color-feed-surface: #141414;
   --color-feed-selected: #343434;
   --color-feed-hover: #262626;
-  --color-row-rule: #3b3b3b;
-  --color-seen-surface: #0f0f0f;
-  --color-seen-hover: #191919;
-  --color-unseen-surface: #202020;
-  --color-unseen-hover: #292929;
+  --color-row-rule: #303832;
+  --color-seen-surface: #131715;
+  --color-seen-hover: #1c231e;
+  --color-unseen-surface: #202421;
+  --color-unseen-hover: #29312b;
   --color-orange: #814522;
   --color-orange-signal: #c68b64;
   --color-player-surface: #101010;
