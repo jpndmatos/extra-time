@@ -1103,9 +1103,7 @@ export default function App() {
                               <Play size={12} fill="currentColor" />
                             ) : watched.has(goal.id) ? (
                               <Check size={12} />
-                            ) : (
-                              <Play size={12} />
-                            )}
+                            ) : null}
                           </button>
                         );
                       })}

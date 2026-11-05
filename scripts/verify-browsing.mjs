@@ -198,6 +198,17 @@ try {
     })),
   ).toEqual([]);
   await expect(page.locator(".match-scoreboard")).toHaveCount(0);
+  expect(
+    await page
+      .locator(".goal-list")
+      .evaluate((list) => getComputedStyle(list).direction),
+  ).toBe("rtl");
+  expect(
+    await page
+      .locator(".goal-row")
+      .first()
+      .evaluate((row) => getComputedStyle(row).direction),
+  ).toBe("ltr");
   await expect(
     page.getByText("Controlled goal - João Félix", { exact: true }),
   ).toBeVisible();

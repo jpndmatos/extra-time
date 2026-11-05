@@ -285,6 +285,11 @@ small {
 .goal-list {
   flex: 1;
   min-height: 0;
+  /* Put the native vertical scrollbar on the outside edge of the feed. */
+  direction: rtl;
+}
+.goal-list > * {
+  direction: ltr;
 }
 .goal-row {
   width: 100%;
@@ -2067,7 +2072,7 @@ summary:focus-visible {
   gap: var(--space-2xs);
 }
 .goal-workspace {
-  grid-template-columns: clamp(240px, 20%, 300px) minmax(0, 1fr);
+  grid-template-columns: clamp(260px, 22%, 320px) minmax(0, 1fr);
   gap: var(--space-xs);
 }
 .goal-queue .section-bar,
@@ -2416,8 +2421,8 @@ summary:focus-visible {
   font-size: 10px;
 }
 .goal-row {
-  padding: 6px 10px;
-  gap: 8px;
+  padding: 10px 12px;
+  gap: 10px;
 }
 .goal-minute {
   width: 30px;
@@ -2429,7 +2434,7 @@ summary:focus-visible {
   flex-basis: 18px;
 }
 .goal-team {
-  min-height: 20px;
+  min-height: 22px;
 }
 .goal-copy strong,
 .goal-copy small {
@@ -2437,7 +2442,7 @@ summary:focus-visible {
 }
 .goal-copy strong {
   margin-top: 1px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .goal-copy .goal-team-name {
   font-size: 12px;
@@ -2814,8 +2819,8 @@ summary:focus-visible {
   display: grid;
   grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
   align-items: center;
-  gap: 24px;
-  padding: 12px;
+  gap: 28px;
+  padding: 16px 18px;
   background: #131614;
   border-top: 1px solid #2b322d;
 }
@@ -2828,7 +2833,7 @@ summary:focus-visible {
   flex-direction: row;
 }
 .goal-info .scorer-heading {
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.25;
   margin: 0;
 }
@@ -2847,7 +2852,7 @@ summary:focus-visible {
 .goal-info .clip-actions {
   flex-direction: row;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   width: auto;
 }
 .goal-info .player-tools {
@@ -2859,12 +2864,13 @@ summary:focus-visible {
 .post-attribution {
   flex: none;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  padding: 4px 12px 8px;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 18px 12px;
   background: #131614;
-  font: 400 10px/1.5 var(--font-body);
+  font: 400 11px/1.5 var(--font-body);
   color: #a6afa8;
   text-align: right;
 }
@@ -2880,6 +2886,8 @@ summary:focus-visible {
 }
 .post-attribution p {
   margin: 0;
+  white-space: nowrap;
+  color: #929e96;
 }
 .clip-actions .playback-tools {
   position: static;
@@ -2925,6 +2933,14 @@ summary:focus-visible {
 .goal-info .reddit-thread:hover {
   background: #252d27;
   color: var(--color-ink);
+}
+.goal-info .clip-actions .icon-button,
+.goal-info .clip-actions a {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
 }
 .goal-info .post-details {
   margin-top: 2px;
@@ -2984,21 +3000,24 @@ summary:focus-visible {
 }
 .match-goals {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   overflow-x: auto;
   flex-shrink: 0;
-  padding: 0 12px 8px;
+  padding: 0 18px 4px;
   background: #131614;
+  scrollbar-width: thin;
+  scrollbar-color: #3b463e transparent;
 }
 .match-goals > button {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1 0 132px;
+  flex: 1 0 150px;
   max-width: 220px;
-  min-height: 44px;
-  padding: 6px 8px;
-  background: #1c211e;
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px 10px;
+  background: transparent;
   border: 1px solid transparent;
   border-radius: 3px;
   text-align: left;
@@ -3007,7 +3026,7 @@ summary:focus-visible {
   background: #2a312c;
 }
 .match-goals > button[data-watched="true"]:not([aria-current="true"]) {
-  background: #111713;
+  background: transparent;
   color: #a8b1aa;
 }
 .match-goals > button[aria-current="true"] {
@@ -3071,8 +3090,8 @@ summary:focus-visible {
 }
 @media (max-width: 480px) {
   .goal-info {
-    padding: 8px;
-    gap: 8px;
+    padding: 12px;
+    gap: 12px;
   }
   .match-scoreline {
     gap: 8px;
@@ -3085,10 +3104,16 @@ summary:focus-visible {
     font-size: 20px;
   }
   .match-goals {
-    padding: 0 8px 8px;
+    padding: 0 12px 4px;
   }
   .match-goals > button {
-    flex-basis: 132px;
+    flex-basis: 150px;
+  }
+  .post-attribution {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    padding: 8px 12px 12px;
   }
 }
 
