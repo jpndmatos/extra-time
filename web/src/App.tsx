@@ -17,7 +17,6 @@ import {
   Goal as GoalIcon,
   Maximize2,
   Minimize2,
-  Play,
   RefreshCw,
   Search,
   Star,
@@ -1082,6 +1081,11 @@ export default function App() {
                                 ? "Reveal another goal from this match"
                                 : `${minute(goal)} ${goal.scorer}, ${goal.homeScore} to ${goal.awayScore}`
                             }
+                            title={
+                              hidden
+                                ? "Reveal goal"
+                                : `${minute(goal)} · ${goal.scorer}`
+                            }
                             onClick={() => select(goal)}
                             onPointerEnter={() => {
                               if (!hidden)
@@ -1091,19 +1095,11 @@ export default function App() {
                             <span className="match-goal-minute">
                               {hidden ? <EyeOff size={13} /> : minute(goal)}
                             </span>
-                            <span className="match-goal-copy">
-                              <b>{hidden ? "Goal hidden" : goal.scorer}</b>
-                              <span>
-                                {hidden
-                                  ? "Reveal goal"
-                                  : `${goal.homeScore}–${goal.awayScore}`}
-                              </span>
+                            <span className="match-goal-score">
+                              {hidden
+                                ? "—"
+                                : `${goal.homeScore}–${goal.awayScore}`}
                             </span>
-                            {goal.id === selected.id ? (
-                              <Play size={12} fill="currentColor" />
-                            ) : watched.has(goal.id) ? (
-                              <Check size={12} />
-                            ) : null}
                           </button>
                         );
                       })}

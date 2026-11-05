@@ -2428,6 +2428,11 @@ summary:focus-visible {
 .goal-minute {
   width: 30px;
   flex-basis: 30px;
+  align-self: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 .goal-copy .team-crest {
   width: 18px;
@@ -3032,17 +3037,19 @@ summary:focus-visible {
 }
 .match-goals > button {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  flex: 1 0 150px;
-  max-width: 220px;
+  justify-content: center;
+  gap: 2px;
+  flex: 0 0 72px;
+  max-width: none;
   min-width: 0;
-  min-height: 48px;
-  padding: 8px 10px;
+  min-height: 44px;
+  padding: 5px 8px;
   background: #19211c;
   border: 1px solid transparent;
   border-radius: 3px;
-  text-align: left;
+  text-align: center;
   box-shadow: none;
 }
 .match-goals > button:hover {
@@ -3059,29 +3066,17 @@ summary:focus-visible {
 }
 .match-goal-minute {
   color: #b5bcb7;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-.match-goal-copy {
-  flex: 1;
-  min-width: 0;
-}
-.match-goal-copy b {
-  display: block;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: 11px;
-  font-weight: 500;
-}
-.match-goal-copy > span {
-  display: block;
-  color: var(--color-muted);
   font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
-.match-goals > button[aria-current="true"] .match-goal-copy > span {
-  color: #bfd0c4;
+.match-goal-score {
+  color: #d3ddd6;
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.match-goals > button[aria-current="true"] .match-goal-score {
+  color: #e5f0e8;
 }
 .playback-tools {
   justify-content: flex-end;
@@ -3148,7 +3143,7 @@ summary:focus-visible {
     padding: 10px 12px;
   }
   .match-goals > button {
-    flex-basis: 150px;
+    flex-basis: 64px;
   }
   .post-attribution {
     flex-direction: column;

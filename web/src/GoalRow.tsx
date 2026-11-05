@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef } from "react";
-import { Check, EyeOff, Play, Star } from "lucide-react";
+import { Check, EyeOff, Star } from "lucide-react";
 import TeamCrest from "./TeamCrest";
 import { warmClip } from "./ClipPlayback";
 import type { Goal, Team } from "./types";
@@ -121,17 +121,15 @@ export default memo(function GoalRow({
           </small>
         )}
       </span>
-      <span
-        className="queue-play"
-        aria-hidden="true"
-        title={watched ? "Watched" : "Unwatched"}
-      >
-        {watched && !selected ? (
+      {watched && !selected && (
+        <span
+          className="queue-play"
+          aria-hidden="true"
+          title={watched ? "Watched" : "Unwatched"}
+        >
           <Check size={13} />
-        ) : (
-          <Play size={13} fill={selected ? "currentColor" : "none"} />
-        )}
-      </span>
+        </span>
+      )}
     </button>
   );
 });
