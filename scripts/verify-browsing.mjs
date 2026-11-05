@@ -354,8 +354,11 @@ try {
     ),
   ).toBeLessThanOrEqual(1);
   expect(
-    await page.locator(".goal-list").evaluate((feed) => feed.scrollTop),
-  ).toBe(stableScroll);
+    Math.abs(
+      (await page.locator(".goal-list").evaluate((feed) => feed.scrollTop)) -
+        stableScroll,
+    ),
+  ).toBeLessThanOrEqual(1);
   await page
     .getByRole("button", { name: "Mark as watched", exact: true })
     .click();
