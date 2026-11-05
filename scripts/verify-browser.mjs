@@ -18,6 +18,12 @@ async function fits(page, label) {
   expect(size.sh, `${label} page overflow`).toBeLessThanOrEqual(
     size.height + 1,
   );
+  const footer = await page.locator(".workspace-footer").boundingBox();
+  expect(footer, `${label} shared footer`).not.toBeNull();
+  expect(
+    Math.abs(footer.y + footer.height - size.height),
+    `${label} footer stays at the bottom`,
+  ).toBeLessThanOrEqual(1);
 }
 async function accessible(page, label) {
   const result = await new AxeBuilder({ page })
@@ -65,6 +71,21 @@ try {
       page.getByRole("searchbox", { name: "Search goals" }),
     ).toBeInViewport();
     await fits(page, `Goal room ${width}`);
+    if (width <= 760) {
+      for (const name of ["Refresh goals", "Hide spoilers"]) {
+        const button = await page
+          .getByRole("button", { name, exact: true })
+          .boundingBox();
+        expect(
+          button.width,
+          `${name} phone target width`,
+        ).toBeGreaterThanOrEqual(44);
+        expect(
+          button.height,
+          `${name} phone target height`,
+        ).toBeGreaterThanOrEqual(44);
+      }
+    }
     const header = await page.evaluate(() => {
       const bounds = (selector) => {
         const r = document.querySelector(selector).getBoundingClientRect();
@@ -133,6 +154,28 @@ try {
       page.getByRole("heading", { name: "Sample goal" }),
     ).toBeVisible();
     await fits(page, `Player ${width}`);
+    await page
+      .getByRole("button", {
+        name: "Connections and refresh status",
+        exact: true,
+      })
+      .click();
+    await expect(page.locator(".connection-panel")).toBeVisible();
+    const sourcePanel = await page.locator(".connection-panel").boundingBox();
+    expect(
+      sourcePanel.y,
+      "Connection details remain on screen",
+    ).toBeGreaterThanOrEqual(0);
+    expect(
+      sourcePanel.y + sourcePanel.height,
+      "Connection details open above the footer",
+    ).toBeLessThanOrEqual(height);
+    await page
+      .getByRole("button", {
+        name: "Connections and refresh status",
+        exact: true,
+      })
+      .click();
     const controlBounds = await page
       .locator(".clip-actions")
       .evaluate((node) => node.getBoundingClientRect().bottom);

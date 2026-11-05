@@ -121,13 +121,13 @@ export default memo(function GoalRow({
           </small>
         )}
       </span>
-      {watched && !selected && (
+      {watched && (
         <span
           className="queue-play"
           aria-hidden="true"
           title={watched ? "Watched" : "Unwatched"}
         >
-          <Check size={13} />
+          <Check size={14} strokeWidth={2.5} />
         </span>
       )}
     </button>
