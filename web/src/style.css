@@ -1,10 +1,3 @@
-/* Hallmark v2.0.0 · theme: brand (Poppins graphite and deep green, by request) · genre: atmospheric · shape: app screen · scope: app · depth: polish · signature: uninterrupted footage beside a named-team goal queue. */
-/* Hallmark · goals-only refinement: one header, universal goal feed, uninterrupted footage and playback tools below it. Catalogue, fixture and setup screen styles removed. */
-/* Hallmark · waive 39b · Goal rows exceed 52px · Each selectable goal contains minute, score, scorer and watch state; the entire row is a touch target rather than a toolbar button. */
-/* Hallmark · dismissed 3 · The goal row side rule marks the selected clip and changes with selection, rather than decorating unrelated content. */
-/* Hallmark · reworded "Keep watching in the meantime" to "Your clip links" · 19 and 69 replace vague filler with the actual task. */
-/* Hallmark · dismissed 28a · The lazy image is a 22px team crest, not the LCP; the goal video owns the stage and preloads its media. */
-/* Hallmark · answered F25 · Phone goal selection opens its player with Back to goals; search stays in the header and the list scrolls independently. */
 @import "./tokens.css";
 @import "./base.css";
 * {
@@ -1906,7 +1899,6 @@ summary:focus-visible {
   }
 }
 
-/* Hallmark polish: continuous footage, consistent panel insets, quiet separation. */
 .view-goals {
   padding: var(--space-sm) var(--space-md) var(--space-md);
   gap: var(--space-xs);
@@ -3171,69 +3163,6 @@ summary:focus-visible {
     gap: 2px;
     padding: 8px 12px 12px;
   }
-}
-
-/* Small, stacked source readout anchored below the independently scrolling feed. */
-.goal-queue {
-  overflow: visible;
-  z-index: 2;
-  box-shadow:
-    8px 0 18px -12px rgb(0 0 0 / 0.8),
-    inset -1px 0 0 rgb(255 255 255 / 0.035);
-}
-.goal-queue > .connection-status {
-  position: relative;
-  flex-shrink: 0;
-  width: 100%;
-  min-height: 44px;
-  margin-top: auto;
-  padding: 5px 10px;
-  border-top: 1px solid #29352d;
-  background: #0e1210;
-}
-.goal-queue .connection-status > summary {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  gap: 0;
-  min-height: 32px;
-  padding: 0;
-  font: 400 10px/16px var(--font-body);
-  color: #a8b0aa;
-}
-.goal-queue .source-summary {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font: inherit;
-}
-.goal-queue .source-summary > span:nth-child(2),
-.goal-queue .connection-label {
-  display: inline;
-  font: inherit;
-}
-.goal-queue .connection-status time {
-  display: inline;
-  margin-left: auto;
-  font: inherit;
-  color: inherit;
-}
-.goal-queue .connection-dot {
-  width: 4px;
-  height: 4px;
-  flex-basis: 4px;
-}
-.goal-queue .connection-panel {
-  top: auto;
-  bottom: calc(100% + 5px);
-  left: 6px;
-  right: auto;
-  z-index: 40;
-}
-.goal-queue .connection-status > summary:focus-visible {
-  outline: 1px solid var(--color-green-signal);
-  outline-offset: 2px;
 }
 
 /* Short windows reserve space for controls instead of forcing a 400px workspace. */

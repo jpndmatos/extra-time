@@ -155,10 +155,7 @@ try {
     ).toBeVisible();
     await fits(page, `Player ${width}`);
     await page
-      .getByRole("button", {
-        name: "Connections and refresh status",
-        exact: true,
-      })
+      .locator(".connection-status > summary")
       .click();
     await expect(page.locator(".connection-panel")).toBeVisible();
     const sourcePanel = await page.locator(".connection-panel").boundingBox();
@@ -171,10 +168,7 @@ try {
       "Connection details open above the footer",
     ).toBeLessThanOrEqual(height);
     await page
-      .getByRole("button", {
-        name: "Connections and refresh status",
-        exact: true,
-      })
+      .locator(".connection-status > summary")
       .click();
     const controlBounds = await page
       .locator(".clip-actions")
