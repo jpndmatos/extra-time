@@ -3080,6 +3080,9 @@ summary:focus-visible {
   font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
+.match-goals > button[aria-current="true"] .match-goal-copy > span {
+  color: #bfd0c4;
+}
 .playback-tools {
   justify-content: flex-end;
   min-height: 28px;
