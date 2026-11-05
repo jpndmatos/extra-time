@@ -104,6 +104,7 @@ export default function App() {
   const restoreAnchor = useRef(false);
   const seenAccordion = useRef<HTMLDetailsElement>(null);
   const connections = useRef<HTMLDetailsElement>(null);
+  const matchStrip = useRef<HTMLElement>(null);
 
   function rememberFeed() {
     const feed = list.current;
@@ -376,6 +377,17 @@ export default function App() {
     !visibleDetails.has(selected.id)
   );
   const match = useMemo(() => matchGoals(data, selected), [data, selected]);
+  useLayoutEffect(() => {
+    const strip = matchStrip.current;
+    const active = strip?.querySelector<HTMLElement>('[aria-current="true"]');
+    if (!strip?.clientWidth || !active) return;
+    const bounds = strip.getBoundingClientRect();
+    const tile = active.getBoundingClientRect();
+    if (tile.left < bounds.left + 8)
+      strip.scrollLeft += tile.left - bounds.left - 8;
+    else if (tile.right > bounds.right - 8)
+      strip.scrollLeft += tile.right - bounds.right + 8;
+  }, [selected?.id, match?.goals, compact, mobilePlayer]);
   useEffect(() => {
     if (
       selected &&
@@ -936,14 +948,18 @@ export default function App() {
                     )}
                     <div className="clip-details">
                       <div className="clip-caption">
-                        <h2 className="scorer-heading" key={selected.id}>
-                          {hideScore ? "Goal details hidden" : selected.scorer}
-                        </h2>
-                        <p>
-                          {hideScore
-                            ? "Reveal to see goal details"
-                            : `${minute(selected)} goal`}
-                        </p>
+                        <div className="clip-headline">
+                          <h2 className="scorer-heading" key={selected.id}>
+                            {hideScore
+                              ? "Goal details hidden"
+                              : selected.scorer}
+                          </h2>
+                          <p>
+                            {hideScore
+                              ? "Reveal to see goal details"
+                              : `${minute(selected)} goal`}
+                          </p>
+                        </div>
                         {!hideScore && selected.watchReason && (
                           <a
                             className="watch-reason"
@@ -952,7 +968,9 @@ export default function App() {
                             rel="noreferrer"
                           >
                             <Star size={14} />
-                            {selected.watchReason}, tagged on Reddit
+                            <span title="Tagged in the Reddit post title">
+                              {selected.watchReason}
+                            </span>
                             <ExternalLink size={12} />
                           </a>
                         )}
@@ -1029,12 +1047,14 @@ export default function App() {
                         </div>
                         {selected.sourceUrl && (
                           <a
-                            className="quiet"
+                            className="icon-button reddit-thread"
+                            aria-label="Reddit thread"
+                            title="Open Reddit thread"
                             href={selected.sourceUrl}
                             target="_blank"
                             rel="noreferrer"
                           >
-                            Reddit thread
+                            <span className="sr-only">Reddit thread</span>
                             <ExternalLink size={15} />
                           </a>
                         )}
@@ -1044,6 +1064,7 @@ export default function App() {
                   {match && match.goals.length > 1 && (
                     <nav
                       className="match-goals"
+                      ref={matchStrip}
                       aria-label="Goals from this match"
                     >
                       {match.goals.map((goal) => {
@@ -1054,6 +1075,7 @@ export default function App() {
                             type="button"
                             key={goal.id}
                             data-match-goal-id={goal.id}
+                            data-watched={watched.has(goal.id)}
                             aria-current={
                               goal.id === selected.id ? "true" : undefined
                             }

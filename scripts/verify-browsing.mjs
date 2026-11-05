@@ -280,6 +280,18 @@ try {
   await expect(page.locator(".match-goals > button")).toHaveCount(20);
   for (let index = 1; index <= 12; index++)
     await page.locator(`[data-match-goal-id="long${index}"]`).click();
+  const activeTile = await page
+    .locator('.match-goals [aria-current="true"]')
+    .evaluate((tile) => {
+      const bounds = tile.parentElement.getBoundingClientRect();
+      const active = tile.getBoundingClientRect();
+      return {
+        left: active.left - bounds.left,
+        right: bounds.right - active.right,
+      };
+    });
+  expect(activeTile.left).toBeGreaterThanOrEqual(0);
+  expect(activeTile.right).toBeGreaterThanOrEqual(0);
   expect(
     await page.locator(".goal-list").evaluate((list) => list.scrollTop),
   ).toBe(0);
@@ -454,6 +466,18 @@ try {
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
   await page.getByRole("button", { name: "Reveal goal", exact: true }).click();
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  const mobileControls = await page.locator(".goal-info").evaluate((info) => {
+    const caption = info.querySelector(".clip-caption").getBoundingClientRect();
+    const actions = info.querySelector(".clip-actions").getBoundingClientRect();
+    return {
+      overlap:
+        Math.min(caption.bottom, actions.bottom) -
+        Math.max(caption.top, actions.top),
+      fits: actions.right <= info.getBoundingClientRect().right,
+    };
+  });
+  expect(mobileControls.overlap).toBeGreaterThan(0);
+  expect(mobileControls.fits).toBe(true);
   await page
     .getByRole("button", { name: "Back to goals", exact: true })
     .click();

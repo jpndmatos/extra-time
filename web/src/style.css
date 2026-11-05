@@ -2812,10 +2812,10 @@ summary:focus-visible {
 /* Match context replaces global previous/next controls beneath the footage. */
 .goal-info {
   display: grid;
-  grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
   align-items: center;
-  gap: 20px;
-  padding: 10px 12px;
+  gap: 24px;
+  padding: 12px;
   background: #131614;
   border-top: 1px solid #2b322d;
 }
@@ -2824,15 +2824,64 @@ summary:focus-visible {
   gap: 12px;
   min-width: 0;
   background: transparent;
+  align-items: center;
+  flex-direction: row;
 }
 .goal-info .scorer-heading {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.25;
   margin: 0;
 }
-.goal-info .clip-caption > p {
-  margin: 3px 0 0;
+.clip-headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+.goal-info .clip-headline > p {
+  margin: 0;
   font-size: 11px;
+  color: #d7a47e;
+  white-space: nowrap;
+}
+.goal-info .clip-actions {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+}
+.goal-info .player-tools {
+  gap: 2px;
+}
+.goal-info .reddit-thread {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+}
+.goal-info .reddit-thread:hover {
+  background: #252d27;
+  color: var(--color-ink);
+}
+.goal-info .post-details {
+  margin-top: 2px;
+}
+.goal-info .post-details summary,
+.goal-info .watch-reason {
+  min-height: 24px;
+  font-size: 10px;
+}
+.goal-info .watch-reason {
+  color: #d7b28f;
+  text-decoration: none;
+}
+.goal-info .watch-reason:hover {
+  text-decoration: underline;
 }
 .match-context {
   min-width: 0;
@@ -2877,20 +2926,21 @@ summary:focus-visible {
 }
 .match-goals {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   overflow-x: auto;
   flex-shrink: 0;
-  padding: 0 12px 10px;
+  padding: 0 12px 8px;
   background: #131614;
 }
 .match-goals > button {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 0 0 168px;
-  min-height: 48px;
-  padding: 7px 10px;
-  background: #202421;
+  flex: 1 0 132px;
+  max-width: 220px;
+  min-height: 44px;
+  padding: 6px 8px;
+  background: #1c211e;
   border: 1px solid transparent;
   border-radius: 3px;
   text-align: left;
@@ -2898,9 +2948,14 @@ summary:focus-visible {
 .match-goals > button:hover {
   background: #2a312c;
 }
+.match-goals > button[data-watched="true"]:not([aria-current="true"]) {
+  background: #111713;
+  color: #a8b1aa;
+}
 .match-goals > button[aria-current="true"] {
   background: #193b2b;
   border-color: #3c6c50;
+  box-shadow: inset 0 -2px #77a588;
 }
 .match-goal-minute {
   color: #dca06f;
@@ -2927,8 +2982,22 @@ summary:focus-visible {
 }
 .playback-tools {
   justify-content: flex-end;
+  min-height: 28px;
+  padding-inline: 12px;
+  background: #101311;
 }
-@media (max-width: 1050px) {
+.playback-tools button,
+.playback-tools a {
+  min-height: 28px;
+  font-size: 10px;
+  color: #a6afa8;
+  text-decoration: none;
+}
+.playback-tools button:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+@media (max-width: 900px) {
   .goal-info {
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
@@ -2961,7 +3030,7 @@ summary:focus-visible {
     padding: 0 8px 8px;
   }
   .match-goals > button {
-    flex-basis: 150px;
+    flex-basis: 132px;
   }
 }
 
