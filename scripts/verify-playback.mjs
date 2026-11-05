@@ -147,6 +147,12 @@ try {
       .getByRole("link", { name: "Open Reddit post for source 2" })
       .getAttribute("href"),
   ).toBe(backup.sourceUrl);
+  await expect(state.page.locator(".video-stage .playback-tools")).toHaveCount(
+    0,
+  );
+  await expect(
+    state.page.locator(".clip-actions .playback-tools"),
+  ).toBeVisible();
   expect(
     (
       await new AxeBuilder({ page: state.page })

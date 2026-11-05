@@ -92,6 +92,9 @@ export default function App() {
   } | null>(null);
   const [retained, setRetained] = useState<Set<string>>(() => new Set());
   const [cinema, setCinema] = useState(false);
+  const [playbackActions, setPlaybackActions] = useState<HTMLDivElement | null>(
+    null,
+  );
   const [query, setQuery] = useState((initial.get("q") || "").slice(0, 100));
   const searchQuery = useDeferredValue(query);
   const [revealed, setRevealed] = useState<string[]>([]);
@@ -873,6 +876,7 @@ export default function App() {
                         alternatives={selected.alternatives}
                         sourceUrl={selected.sourceUrl}
                         title={`${name(selected.homeId)} versus ${name(selected.awayId)} goal clip`}
+                        controlsTarget={playbackActions}
                       />
                     ) : (
                       <div className="stage-message">
@@ -957,7 +961,9 @@ export default function App() {
                           <p>
                             {hideScore
                               ? "Reveal to see goal details"
-                              : `${minute(selected)} goal`}
+                              : selected.minute
+                                ? `${minute(selected)} goal`
+                                : "Goal"}
                           </p>
                         </div>
                         {!hideScore && selected.watchReason && (
@@ -988,6 +994,10 @@ export default function App() {
                         )}
                       </div>
                       <div className="clip-actions">
+                        <div
+                          className="playback-action-slot"
+                          ref={setPlaybackActions}
+                        />
                         <div className="player-tools">
                           <button
                             type="button"
@@ -1069,7 +1079,7 @@ export default function App() {
                     >
                       {match.goals.map((goal) => {
                         const hidden =
-                          prefs.spoilers && !revealed.includes(goal.id);
+                          prefs.spoilers && !visibleDetails.has(goal.id);
                         return (
                           <button
                             type="button"

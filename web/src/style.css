@@ -2853,6 +2853,39 @@ summary:focus-visible {
 .goal-info .player-tools {
   gap: 2px;
 }
+.playback-action-slot:empty {
+  display: none;
+}
+.clip-actions .playback-tools {
+  position: static;
+  display: flex;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  min-height: 32px;
+  background: transparent;
+}
+.clip-actions .playback-tools > span {
+  font-size: 10px;
+  color: #a6afa8;
+  margin-right: 4px;
+}
+.clip-actions .playback-tools button,
+.clip-actions .playback-tools a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  color: #a6afa8;
+  text-decoration: none;
+}
+.clip-actions .playback-tools button:hover,
+.clip-actions .playback-tools a:hover {
+  background: #252d27;
+  color: var(--color-ink);
+}
 .goal-info .reddit-thread {
   display: inline-flex;
   justify-content: center;

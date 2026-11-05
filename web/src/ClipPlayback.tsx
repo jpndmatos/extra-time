@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ExternalLink, RefreshCw } from "lucide-react";
+import { createPortal } from "react-dom";
+import { CircleHelp, ExternalLink, RefreshCw } from "lucide-react";
 import {
   ApiError,
   request,
@@ -35,12 +36,14 @@ export default function ClipPlayback({
   alternatives = [],
   title,
   sourceUrl,
+  controlsTarget,
 }: {
   media: Clip;
   mirrors?: ClipSource[] | null;
   alternatives?: string[];
   title: string;
   sourceUrl: string;
+  controlsTarget?: HTMLElement | null;
 }) {
   const sources = clipSources(media, sourceUrl, mirrors ?? []);
   const [failed, setFailed] = useState<string[]>([]);
@@ -120,6 +123,44 @@ export default function ClipPlayback({
       </div>
     );
   const number = sources.indexOf(current) + 1;
+  const actionLabel = next ? "Try next source" : "Clip not playing?";
+  const controls = (
+    <div className="playback-tools">
+      {sources.length > 1 && (
+        <>
+          <span
+            role="status"
+            title={`${failed.length ? "Backup, " : ""}Source ${number}/${sources.length}`}
+          >
+            <span className="sr-only">
+              {failed.length ? "Backup, " : ""}Source {number}/{sources.length}
+            </span>
+            <span aria-hidden="true">
+              {number}/{sources.length}
+            </span>
+          </span>
+          <a
+            href={current.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Open Reddit post for source ${number}`}
+            title={`Open source ${number}`}
+          >
+            <ExternalLink size={15} />
+          </a>
+        </>
+      )}
+      <button
+        type="button"
+        className="icon-button"
+        aria-label={actionLabel}
+        title={actionLabel}
+        onClick={() => fail("Playback did not work in this host’s player.")}
+      >
+        {next ? <RefreshCw size={16} /> : <CircleHelp size={16} />}
+      </button>
+    </div>
+  );
   return (
     <div className="clip-playback">
       <div className="playback-frame">
@@ -131,27 +172,11 @@ export default function ClipPlayback({
           refresh={retry > 0}
         />
       </div>
-      <div className="playback-tools">
-        {sources.length > 1 && (
-          <span role="status">
-            {failed.length ? "Backup, " : ""}Source {number}/{sources.length}
-          </span>
-        )}
-        <a
-          href={current.sourceUrl}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={`Open Reddit post for source ${number}`}
-        >
-          <ExternalLink size={13} />
-        </a>
-        <button
-          type="button"
-          onClick={() => fail("Playback did not work in this host’s player.")}
-        >
-          {sources.length > number ? "Try next source" : "Clip not playing?"}
-        </button>
-      </div>
+      {controlsTarget
+        ? createPortal(controls, controlsTarget)
+        : controlsTarget === undefined
+          ? controls
+          : null}
     </div>
   );
 }
