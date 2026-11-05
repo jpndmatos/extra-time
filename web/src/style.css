@@ -2856,6 +2856,31 @@ summary:focus-visible {
 .playback-action-slot:empty {
   display: none;
 }
+.post-attribution {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 4px 12px 8px;
+  background: #131614;
+  font: 400 10px/1.5 var(--font-body);
+  color: #a6afa8;
+  text-align: right;
+}
+.post-attribution a {
+  max-width: 80ch;
+  color: inherit;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+.post-attribution a:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+.post-attribution p {
+  margin: 0;
+}
 .clip-actions .playback-tools {
   position: static;
   display: flex;

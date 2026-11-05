@@ -980,18 +980,6 @@ export default function App() {
                             <ExternalLink size={12} />
                           </a>
                         )}
-                        {!hideScore && !selected.sample && (
-                          <details className="post-details">
-                            <summary>Original post</summary>
-                            <p>{selected.title}</p>
-                            {selected.author && (
-                              <p>Posted to r/soccer by u/{selected.author}</p>
-                            )}
-                            <p>
-                              Starts muted. Use the player controls for sound.
-                            </p>
-                          </details>
-                        )}
                       </div>
                       <div className="clip-actions">
                         <div
@@ -1138,6 +1126,24 @@ export default function App() {
                         </a>
                       ))}
                     </details>
+                  )}
+                  {!hideScore && !selected.sample && (
+                    <footer
+                      className="post-attribution"
+                      aria-label="Original post details"
+                    >
+                      <a
+                        href={selected.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {selected.title}
+                      </a>
+                      <p>
+                        r/soccer
+                        {selected.author ? ` · u/${selected.author}` : ""}
+                      </p>
+                    </footer>
                   )}
                 </>
               ) : (

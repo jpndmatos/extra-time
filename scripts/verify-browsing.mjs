@@ -198,11 +198,15 @@ try {
     })),
   ).toEqual([]);
   await expect(page.locator(".match-scoreboard")).toHaveCount(0);
-  await page.getByText("Original post", { exact: true }).click();
   await expect(
     page.getByText("Controlled goal - João Félix", { exact: true }),
   ).toBeVisible();
-  await page.getByText("Original post", { exact: true }).click();
+  await expect(page.locator(".post-attribution")).toBeVisible();
+  await expect(
+    page.getByText("Starts muted. Use the player controls for sound.", {
+      exact: true,
+    }),
+  ).toHaveCount(0);
   const density = await page.evaluate(() => ({
     controlsY: document
       .querySelector(".header-utilities .heading-actions")
