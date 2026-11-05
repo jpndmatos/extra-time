@@ -213,6 +213,11 @@ try {
     page.getByText("Controlled goal - João Félix", { exact: true }),
   ).toHaveCount(0);
   await expect(page.locator(".post-attribution a")).toContainText("r/soccer");
+  const attribution = await page.locator(".post-attribution a").boundingBox();
+  expect(
+    attribution.height,
+    "Reddit attribution remains a usable touch target",
+  ).toBeGreaterThanOrEqual(44);
   await expect(
     page.getByText("Starts muted. Use the player controls for sound.", {
       exact: true,

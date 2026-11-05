@@ -72,7 +72,7 @@
 .workspace-footer .post-attribution {
   min-width: 0;
   min-height: 44px;
-  padding: 6px 16px;
+  padding: 0 12px;
   border: 0;
   background: transparent;
 }
@@ -80,6 +80,49 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.workspace-footer .reddit-attribution {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: #c7d3cb;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.workspace-footer .reddit-attribution:hover {
+  background: #19221c;
+  text-decoration: none;
+}
+.workspace-footer .reddit-attribution:hover .reddit-community {
+  color: #f1c29b;
+}
+.workspace-footer .reddit-attribution:focus-visible {
+  outline: 2px solid #8bb49a;
+  outline-offset: -2px;
+}
+.reddit-mark {
+  flex: none;
+  color: #db9463;
+}
+.reddit-community {
+  flex: none;
+  font-weight: 500;
+}
+.reddit-divider {
+  flex: none;
+  color: #64766b;
+}
+.reddit-author {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #a4b2a9;
 }
 .goal-hub-header .brand,
 .goal-hub-header .brand-mark {
@@ -391,16 +434,11 @@
     justify-content: center;
     align-items: flex-end;
     gap: 2px;
-    padding: 6px 12px 6px 4px;
+    padding: 4px 8px 4px 0;
     font-size: 10px;
   }
   .workspace-footer .post-attribution a {
     max-width: 100%;
-  }
-  .workspace-footer .post-attribution p {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
   .workspace-footer[data-player-open="false"] .post-attribution {
     visibility: hidden;

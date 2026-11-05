@@ -1176,14 +1176,63 @@ export default function App() {
               </small>
             </div>
           </details>
-          {selected && !hideScore && !selected.sample && (
+          {selected && !selected.sample && (
             <div
               className="post-attribution"
               aria-label="Original post details"
             >
-              <a href={selected.sourceUrl} target="_blank" rel="noreferrer">
-                r/soccer
-                {selected.author ? ` · u/${selected.author}` : ""}
+              <a
+                className="reddit-attribution"
+                href={selected.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Open original r/soccer post${selected.author ? ` by u/${selected.author}` : ""}`}
+                title={
+                  selected.author
+                    ? `r/soccer · u/${selected.author}`
+                    : "r/soccer"
+                }
+              >
+                <svg
+                  className="reddit-mark"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="m12 9 1-5 5 1" />
+                  <circle cx="19.5" cy="5" r="1.5" />
+                  <path d="M4.5 12a2 2 0 1 0-1 4m16-4a2 2 0 1 1 1 4" />
+                  <ellipse cx="12" cy="14.5" rx="8" ry="5" />
+                  <circle
+                    cx="8.5"
+                    cy="14"
+                    r=".8"
+                    fill="currentColor"
+                    stroke="none"
+                  />
+                  <circle
+                    cx="15.5"
+                    cy="14"
+                    r=".8"
+                    fill="currentColor"
+                    stroke="none"
+                  />
+                  <path d="M8.5 17c2 1.3 5 1.3 7 0" />
+                </svg>
+                <span className="reddit-community">r/soccer</span>
+                {selected.author && (
+                  <>
+                    <span className="reddit-divider" aria-hidden="true">
+                      ·
+                    </span>
+                    <span className="reddit-author">u/{selected.author}</span>
+                  </>
+                )}
               </a>
             </div>
           )}
