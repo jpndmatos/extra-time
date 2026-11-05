@@ -314,6 +314,44 @@ try {
   ).toBe(stableScroll);
   await expect(page.locator('[data-goal-id="long12"]')).toHaveClass(/watched/);
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  const anchorY = await page
+    .locator('[data-goal-id="long13"]')
+    .evaluate((row) => row.getBoundingClientRect().y);
+  const beforeRefreshLoads = loads;
+  longGoals.unshift(
+    make("incoming1", "New arrival one", "benfica", "porto"),
+    make("incoming2", "New arrival two", "benfica", "porto"),
+  );
+  await page
+    .getByRole("button", { name: "Refresh goals", exact: true })
+    .click();
+  await expect(page.locator(".goal-row")).toHaveCount(22);
+  expect(
+    await page
+      .locator('[data-goal-id="long13"]')
+      .evaluate((row) => row.getBoundingClientRect().y),
+  ).toBe(anchorY);
+  expect(
+    await page.locator(".goal-list").evaluate((feed) => feed.scrollTop),
+  ).toBeGreaterThan(stableScroll);
+  await expect(page.locator(".goal-row.selected")).toHaveAttribute(
+    "data-goal-id",
+    "long13",
+  );
+  expect(loads).toBe(beforeRefreshLoads);
+  longGoals.splice(0, 2);
+  await page
+    .getByRole("button", { name: "Refresh goals", exact: true })
+    .click();
+  await expect(page.locator(".goal-row")).toHaveCount(20);
+  expect(
+    await page
+      .locator('[data-goal-id="long13"]')
+      .evaluate((row) => row.getBoundingClientRect().y),
+  ).toBe(anchorY);
+  expect(
+    await page.locator(".goal-list").evaluate((feed) => feed.scrollTop),
+  ).toBe(stableScroll);
   await page
     .getByRole("button", { name: "Mark as watched", exact: true })
     .click();

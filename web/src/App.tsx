@@ -100,8 +100,31 @@ export default function App() {
   const searchInput = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const queueScroll = useRef(0);
+  const feedAnchor = useRef<{ id: string; top: number }[]>([]);
+  const restoreAnchor = useRef(false);
   const seenAccordion = useRef<HTMLDetailsElement>(null);
   const connections = useRef<HTMLDetailsElement>(null);
+
+  function rememberFeed() {
+    const feed = list.current;
+    if (!feed?.clientHeight) return;
+    const bounds = feed.getBoundingClientRect();
+    feedAnchor.current =
+      feed.scrollTop > 0
+        ? Array.from(feed.querySelectorAll<HTMLElement>(".goal-row"))
+            .filter((row) => !row.closest("details:not([open])"))
+            .map((row) => ({
+              id: row.dataset.goalId!,
+              top: row.getBoundingClientRect().top,
+              bottom: row.getBoundingClientRect().bottom,
+            }))
+            .filter((row) => row.bottom > bounds.top && row.top < bounds.bottom)
+        : [];
+  }
+  function preserveFeed() {
+    rememberFeed();
+    restoreAnchor.current = feedAnchor.current.length > 0;
+  }
 
   // Expire posts locally too, including when the event stream is offline.
   useEffect(() => {
@@ -111,7 +134,8 @@ export default function App() {
     );
     if (!Number.isFinite(expires)) return;
     const timer = window.setTimeout(
-      () =>
+      () => {
+        preserveFeed();
         setData((current) =>
           current
             ? {
@@ -122,7 +146,8 @@ export default function App() {
                 ),
               }
             : current,
-        ),
+        );
+      },
       Math.max(0, Math.min(expires - Date.now(), 2_147_483_647)),
     );
     return () => window.clearTimeout(timer);
@@ -162,6 +187,7 @@ export default function App() {
       if (added) setNewCount((count) => count + added);
     }
     known.current = new Set(next.goals.flatMap(goalPostIds));
+    preserveFeed();
     setData(next);
     setLoading(false);
     setError("");
@@ -200,6 +226,7 @@ export default function App() {
     )
       .then((value) => {
         known.current ??= new Set(value.goals.flatMap(goalPostIds));
+        preserveFeed();
         setData(value);
       })
       .catch((error) => {
@@ -368,6 +395,21 @@ export default function App() {
     if (compact && !mobilePlayer && list.current)
       list.current.scrollTop = queueScroll.current;
   }, [compact, mobilePlayer]);
+  useLayoutEffect(() => {
+    const feed = list.current;
+    if (!restoreAnchor.current || !feed?.clientHeight) return;
+    // Use the next surviving visible row if the first one has just expired.
+    const rows = Array.from(feed.querySelectorAll<HTMLElement>(".goal-row"));
+    for (const anchor of feedAnchor.current) {
+      const row = rows.find((item) => item.dataset.goalId === anchor.id);
+      if (!row || row.closest("details:not([open])")) continue;
+      feed.scrollTop += row.getBoundingClientRect().top - anchor.top;
+      queueScroll.current = feed.scrollTop;
+      break;
+    }
+    restoreAnchor.current = false;
+    rememberFeed();
+  }, [data, compact, mobilePlayer]);
   useEffect(() => {
     if (!cinema) return;
     const escape = (event: KeyboardEvent) => {
@@ -566,8 +608,12 @@ export default function App() {
                   type="button"
                   className="new-goals"
                   onClick={() => {
+                    restoreAnchor.current = false;
+                    feedAnchor.current = [];
+                    if (list.current) list.current.scrollTop = 0;
+                    queueScroll.current = 0;
                     setNewCount(0);
-                    if (goals[0]) select(goals[0]);
+                    if (queuedGoals[0]) select(queuedGoals[0]);
                   }}
                 >
                   {newCount} new {newCount === 1 ? "goal" : "goals"}
@@ -586,6 +632,7 @@ export default function App() {
                 onScroll={(event) => {
                   if (event.currentTarget.clientHeight)
                     queueScroll.current = event.currentTarget.scrollTop;
+                  rememberFeed();
                 }}
                 onKeyDown={(event) => {
                   if (
