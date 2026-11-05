@@ -2129,7 +2129,7 @@ summary:focus-visible {
   gap: 0;
 }
 .goal-workspace {
-  gap: var(--space-2xs);
+  gap: 0;
 }
 .goal-queue .section-bar {
   min-height: 40px;
@@ -2421,8 +2421,9 @@ summary:focus-visible {
   font-size: 10px;
 }
 .goal-row {
-  padding: 10px 12px;
-  gap: 10px;
+  padding: 7px 10px;
+  gap: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.025);
 }
 .goal-minute {
   width: 30px;
@@ -2434,7 +2435,7 @@ summary:focus-visible {
   flex-basis: 18px;
 }
 .goal-team {
-  min-height: 22px;
+  min-height: 20px;
 }
 .goal-copy strong,
 .goal-copy small {
@@ -2823,6 +2824,9 @@ summary:focus-visible {
   padding: 0;
   background: #191d1a;
   border-top: 1px solid #344037;
+  box-shadow:
+    0 -8px 20px -16px rgb(0 0 0 / 0.8),
+    inset 0 1px 0 rgb(255 255 255 / 0.025);
 }
 .goal-info .clip-details {
   padding: 16px 20px;
@@ -2858,6 +2862,9 @@ summary:focus-visible {
   background: #101512;
   border: 1px solid #303a33;
   border-radius: 4px;
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.25),
+    inset 0 1px 0 rgb(255 255 255 / 0.03);
 }
 .goal-info .player-tools {
   gap: 2px;
@@ -3038,6 +3045,9 @@ summary:focus-visible {
   border: 1px solid transparent;
   border-radius: 3px;
   text-align: left;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / 0.025);
 }
 .match-goals > button:hover {
   background: #2a312c;
@@ -3049,7 +3059,9 @@ summary:focus-visible {
 .match-goals > button[aria-current="true"] {
   background: #193b2b;
   border-color: #3c6c50;
-  box-shadow: inset 0 -2px #77a588;
+  box-shadow:
+    inset 0 -2px #77a588,
+    0 2px 8px rgb(0 0 0 / 0.3);
 }
 .match-goal-minute {
   color: #dca06f;
@@ -3152,6 +3164,10 @@ summary:focus-visible {
 /* Small, stacked source readout anchored below the independently scrolling feed. */
 .goal-queue {
   overflow: visible;
+  z-index: 2;
+  box-shadow:
+    8px 0 18px -12px rgb(0 0 0 / 0.8),
+    inset -1px 0 0 rgb(255 255 255 / 0.035);
 }
 .goal-queue > .connection-status {
   position: relative;
