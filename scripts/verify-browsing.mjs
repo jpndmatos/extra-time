@@ -211,8 +211,8 @@ try {
   ).toBe("ltr");
   await expect(
     page.getByText("Controlled goal - João Félix", { exact: true }),
-  ).toBeVisible();
-  await expect(page.locator(".post-attribution")).toBeVisible();
+  ).toHaveCount(0);
+  await expect(page.locator(".post-attribution a")).toContainText("r/soccer");
   await expect(
     page.getByText("Starts muted. Use the player controls for sound.", {
       exact: true,

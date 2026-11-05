@@ -1182,12 +1182,9 @@ export default function App() {
               aria-label="Original post details"
             >
               <a href={selected.sourceUrl} target="_blank" rel="noreferrer">
-                {selected.title}
-              </a>
-              <p>
                 r/soccer
                 {selected.author ? ` · u/${selected.author}` : ""}
-              </p>
+              </a>
             </div>
           )}
         </footer>
