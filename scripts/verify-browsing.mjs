@@ -504,6 +504,23 @@ try {
       .locator('[data-goal-id="long12"]')
       .evaluate((row) => row.getBoundingClientRect().y),
   ).toBe(mobileY);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const tallPhoneRow = page.locator('[data-goal-id="long14"]');
+  await tallPhoneRow.scrollIntoViewIfNeeded();
+  const tallPhoneScroll = await page
+    .locator(".goal-list")
+    .evaluate((list) => list.scrollTop);
+  await tallPhoneRow.click();
+  await expect(page.locator(".goal-queue")).toBeVisible();
+  expect(
+    await page.locator(".goal-list").evaluate((list) => list.scrollTop),
+  ).toBe(tallPhoneScroll);
+  await page
+    .getByRole("button", { name: "Back to goals", exact: true })
+    .click();
+  expect(
+    await page.locator(".goal-list").evaluate((list) => list.scrollTop),
+  ).toBe(tallPhoneScroll);
   await expect(page.locator('[data-goal-id="long12"]')).toHaveClass(/watched/);
   expect(errors).toEqual([]);
   console.log(
