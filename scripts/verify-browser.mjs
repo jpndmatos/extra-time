@@ -154,9 +154,15 @@ try {
       page.getByRole("heading", { name: "Sample goal" }),
     ).toBeVisible();
     await fits(page, `Player ${width}`);
-    await page
-      .locator(".connection-status > summary")
-      .click();
+    if (width <= 760 && height >= 740) {
+      await expect(page.locator(".goal-queue")).toBeVisible();
+      const feed = await page.locator(".goal-list").boundingBox();
+      expect(
+        feed.height,
+        "Phone feed remains usable below the player",
+      ).toBeGreaterThan(100);
+    }
+    await page.locator(".connection-status > summary").click();
     await expect(page.locator(".connection-panel")).toBeVisible();
     const sourcePanel = await page.locator(".connection-panel").boundingBox();
     expect(
@@ -167,9 +173,7 @@ try {
       sourcePanel.y + sourcePanel.height,
       "Connection details open above the footer",
     ).toBeLessThanOrEqual(height);
-    await page
-      .locator(".connection-status > summary")
-      .click();
+    await page.locator(".connection-status > summary").click();
     const controlBounds = await page
       .locator(".clip-actions")
       .evaluate((node) => node.getBoundingClientRect().bottom);
