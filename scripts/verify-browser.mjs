@@ -154,6 +154,10 @@ try {
       page.getByRole("heading", { name: "Sample goal" }),
     ).toBeVisible();
     await fits(page, `Player ${width}`);
+    if (width <= 760) {
+      await expect(page.locator(".goal-hub-header .header-back")).toBeVisible();
+      await expect(page.locator(".player-column .mobile-back")).toHaveCount(0);
+    }
     if (width <= 760 && height >= 740) {
       await expect(page.locator(".goal-queue")).toBeVisible();
       const feed = await page.locator(".goal-list").boundingBox();

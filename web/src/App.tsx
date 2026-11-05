@@ -487,15 +487,30 @@ export default function App() {
       </a>
       <header className="topbar goal-hub-header">
         <div className="header-browse">
-          <a className="brand" href={appBase} aria-label="Touchline home">
-            <img
-              className="brand-mark"
-              src={`${appBase}icon.svg?v=9`}
-              width="32"
-              height="32"
-              alt=""
-            />
-          </a>
+          {compact && mobilePlayer && selected ? (
+            <button
+              type="button"
+              className="header-back"
+              aria-label="Back to goals"
+              title="Back to goals"
+              onClick={() => {
+                finishVisit();
+                setMobilePlayer(false);
+              }}
+            >
+              <ArrowLeft size={20} aria-hidden="true" />
+            </button>
+          ) : (
+            <a className="brand" href={appBase} aria-label="Touchline home">
+              <img
+                className="brand-mark"
+                src={`${appBase}icon.svg?v=9`}
+                width="32"
+                height="32"
+                alt=""
+              />
+            </a>
+          )}
         </div>
         <label className="goal-search">
           <Search size={15} aria-hidden="true" />
@@ -504,7 +519,7 @@ export default function App() {
             name="goal-search"
             type="search"
             aria-label="Search goals"
-            placeholder={prefs.spoilers ? "Find a team" : "Find team or scorer"}
+            placeholder={prefs.spoilers ? "Find a team" : "Search goals"}
             value={query}
             maxLength={100}
             onChange={(event) => {
@@ -739,17 +754,6 @@ export default function App() {
               tabIndex={0}
               aria-label="Goal player"
             >
-              <button
-                type="button"
-                className="mobile-back quiet"
-                onClick={() => {
-                  finishVisit();
-                  setMobilePlayer(false);
-                }}
-              >
-                <ArrowLeft size={15} />
-                Back to goals
-              </button>
               {selected ? (
                 <>
                   <div className="video-stage">
