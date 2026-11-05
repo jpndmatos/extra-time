@@ -113,11 +113,14 @@ export default function App() {
       feed.scrollTop > 0
         ? Array.from(feed.querySelectorAll<HTMLElement>(".goal-row"))
             .filter((row) => !row.closest("details:not([open])"))
-            .map((row) => ({
-              id: row.dataset.goalId!,
-              top: row.getBoundingClientRect().top,
-              bottom: row.getBoundingClientRect().bottom,
-            }))
+            .map((row) => {
+              const bounds = row.getBoundingClientRect();
+              return {
+                id: row.dataset.goalId!,
+                top: bounds.top,
+                bottom: bounds.bottom,
+              };
+            })
             .filter((row) => row.bottom > bounds.top && row.top < bounds.bottom)
         : [];
   }
@@ -300,6 +303,7 @@ export default function App() {
     (goal: Goal) => {
       if (list.current?.clientHeight)
         queueScroll.current = list.current.scrollTop;
+      rememberFeed();
       if (visit.current && !sameGoal(visit.current.goal, goal)) finishVisit();
       if (
         hasSeenGoal(goal, new Set(latest.current.watched)) &&
@@ -632,7 +636,6 @@ export default function App() {
                 onScroll={(event) => {
                   if (event.currentTarget.clientHeight)
                     queueScroll.current = event.currentTarget.scrollTop;
-                  rememberFeed();
                 }}
                 onKeyDown={(event) => {
                   if (
