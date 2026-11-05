@@ -2092,14 +2092,14 @@ summary:focus-visible {
 }
 .goal-row:not(.watched):not(.selected) {
   background: var(--color-unseen-surface);
-  border-left-color: var(--color-orange-signal);
+  border-left-color: transparent;
 }
 .goal-row:not(.watched):not(.selected):hover {
   background: var(--color-unseen-hover);
 }
 .goal-row:not(.watched):not(.selected) .goal-minute,
 .goal-row:not(.watched):not(.selected) .queue-play {
-  color: var(--color-orange-signal);
+  color: #a6b0a9;
 }
 .goal-search {
   margin: var(--space-2xs) var(--space-xs);
@@ -2822,8 +2822,8 @@ summary:focus-visible {
   align-items: stretch;
   gap: 0;
   padding: 0;
-  background: #191d1a;
-  border-top: 1px solid #344037;
+  background: #181d19;
+  border-top: 1px solid #2a342d;
   box-shadow:
     0 -8px 20px -16px rgb(0 0 0 / 0.8),
     inset 0 1px 0 rgb(255 255 255 / 0.025);
@@ -2850,7 +2850,7 @@ summary:focus-visible {
 .goal-info .clip-headline > p {
   margin: 0;
   font-size: 11px;
-  color: #d7a47e;
+  color: #c4a086;
   white-space: nowrap;
 }
 .goal-info .clip-actions {
@@ -2859,12 +2859,10 @@ summary:focus-visible {
   gap: 4px;
   width: auto;
   padding: 2px;
-  background: #101512;
-  border: 1px solid #303a33;
+  background: #141a16;
+  border: 1px solid transparent;
   border-radius: 4px;
-  box-shadow:
-    0 2px 6px rgb(0 0 0 / 0.25),
-    inset 0 1px 0 rgb(255 255 255 / 0.03);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.15);
 }
 .goal-info .player-tools {
   gap: 2px;
@@ -2980,8 +2978,8 @@ summary:focus-visible {
   flex-direction: column;
   justify-content: center;
   padding: 16px 20px;
-  background: #202923;
-  border-right: 1px solid #354238;
+  background: #1c241f;
+  border-right: 1px solid #2a342d;
 }
 .match-scoreline {
   display: grid;
@@ -3027,8 +3025,8 @@ summary:focus-visible {
   overflow-x: auto;
   flex-shrink: 0;
   padding: 10px 20px;
-  background: #131b16;
-  border-top: 1px solid #2c382f;
+  background: #141b16;
+  border-top: 1px solid #27312a;
   scrollbar-width: thin;
   scrollbar-color: #3b463e transparent;
 }
@@ -3041,13 +3039,11 @@ summary:focus-visible {
   min-width: 0;
   min-height: 48px;
   padding: 8px 10px;
-  background: #1d2720;
+  background: #19211c;
   border: 1px solid transparent;
   border-radius: 3px;
   text-align: left;
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.22),
-    inset 0 1px 0 rgb(255 255 255 / 0.025);
+  box-shadow: none;
 }
 .match-goals > button:hover {
   background: #2a312c;
@@ -3057,14 +3053,12 @@ summary:focus-visible {
   color: #a8b1aa;
 }
 .match-goals > button[aria-current="true"] {
-  background: #193b2b;
-  border-color: #3c6c50;
-  box-shadow:
-    inset 0 -2px #77a588,
-    0 2px 8px rgb(0 0 0 / 0.3);
+  background: #203e2d;
+  border-color: #3d5847;
+  box-shadow: inset 0 -1px #7f9d89;
 }
 .match-goal-minute {
-  color: #dca06f;
+  color: #b5bcb7;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
@@ -3113,7 +3107,7 @@ summary:focus-visible {
     width: 100%;
     justify-self: center;
     border-right: 0;
-    border-bottom: 1px solid #354238;
+    border-bottom: 1px solid #2a342d;
     padding-block: 12px;
   }
   .match-scoreline {

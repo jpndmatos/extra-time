@@ -18,11 +18,11 @@
   --color-feed-surface: #141414;
   --color-feed-selected: #343434;
   --color-feed-hover: #262626;
-  --color-row-rule: #303832;
+  --color-row-rule: #29312c;
   --color-seen-surface: #131715;
   --color-seen-hover: #1c231e;
-  --color-unseen-surface: #202421;
-  --color-unseen-hover: #29312b;
+  --color-unseen-surface: #1b211d;
+  --color-unseen-hover: #252e28;
   --color-orange: #814522;
   --color-orange-signal: #c68b64;
   --color-player-surface: #101010;
@@ -31,7 +31,7 @@
   --color-match-hover: #303030;
   --color-green: #163e29;
   --color-green-hover: #1c4a33;
-  --color-green-selected: #123323;
+  --color-green-selected: #1b3829;
   --color-green-ink: #edf7f0;
   --color-green-muted: #b8d3c2;
   --color-green-signal: #719280;
