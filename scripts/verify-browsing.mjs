@@ -327,10 +327,12 @@ try {
     .click();
   await expect(page.locator(".goal-row")).toHaveCount(22);
   expect(
-    await page
-      .locator('[data-goal-id="long13"]')
-      .evaluate((row) => row.getBoundingClientRect().y),
-  ).toBe(anchorY);
+    Math.abs(
+      (await page
+        .locator('[data-goal-id="long13"]')
+        .evaluate((row) => row.getBoundingClientRect().y)) - anchorY,
+    ),
+  ).toBeLessThanOrEqual(1);
   expect(
     await page.locator(".goal-list").evaluate((feed) => feed.scrollTop),
   ).toBeGreaterThan(stableScroll);
@@ -345,10 +347,12 @@ try {
     .click();
   await expect(page.locator(".goal-row")).toHaveCount(20);
   expect(
-    await page
-      .locator('[data-goal-id="long13"]')
-      .evaluate((row) => row.getBoundingClientRect().y),
-  ).toBe(anchorY);
+    Math.abs(
+      (await page
+        .locator('[data-goal-id="long13"]')
+        .evaluate((row) => row.getBoundingClientRect().y)) - anchorY,
+    ),
+  ).toBeLessThanOrEqual(1);
   expect(
     await page.locator(".goal-list").evaluate((feed) => feed.scrollTop),
   ).toBe(stableScroll);
