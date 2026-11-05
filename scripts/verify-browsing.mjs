@@ -393,9 +393,11 @@ try {
   expect(prefs.watched).not.toContain("long0");
   expect(prefs.watched).not.toContain("reposted");
   await page.setViewportSize({ width: 390, height: 600 });
-  await page
-    .getByRole("button", { name: "Back to goals", exact: true })
-    .click();
+  const mobileBack = page.getByRole("button", {
+    name: "Back to goals",
+    exact: true,
+  });
+  if (await mobileBack.isVisible()) await mobileBack.click();
   await page.locator('[data-goal-id="long12"]').scrollIntoViewIfNeeded();
   const mobileScroll = await page
     .locator(".goal-list")
@@ -404,6 +406,8 @@ try {
     .locator('[data-goal-id="long12"]')
     .evaluate((row) => row.getBoundingClientRect().y);
   await page.locator('[data-goal-id="long12"]').click();
+  await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
+  await page.getByRole("button", { name: "Reveal goal", exact: true }).click();
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
   await page
     .getByRole("button", { name: "Back to goals", exact: true })
