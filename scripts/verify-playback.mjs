@@ -1,9 +1,10 @@
+import { browserOptions } from "./browser-options.mjs";
 // Controlled failures against the local UI. No real preferences or clips are written.
 import { chromium, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
-const browser = await chromium.launch();
+const browser = await chromium.launch(browserOptions);
 const backup = {
   media: { kind: "embed", url: "https://streamable.com/e/backup01" },
   sourceUrl: "https://www.reddit.com/r/soccer/comments/backup01/goal/",

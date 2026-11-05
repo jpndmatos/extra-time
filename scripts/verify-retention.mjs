@@ -1,8 +1,9 @@
+import { browserOptions } from "./browser-options.mjs";
 import {
   chromium,
   expect,
 } from "@playwright/test";
-const browser = await chromium.launch();
+const browser = await chromium.launch(browserOptions);
 try {
   const context = await browser.newContext({
       viewport: { width: 1280, height: 800 },

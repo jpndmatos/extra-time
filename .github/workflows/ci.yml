@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -26,7 +26,7 @@ jobs:
       - name: Install browser verification tools
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          google-chrome --version
       - name: Start isolated UI verification host
         env:
           DatabasePath: ${{ runner.temp }}/touchline-ui.db
@@ -42,6 +42,8 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:5195/api/health
       - name: Verify responsive UI, accessibility and playback recovery
+        env:
+          TOUCHLINE_BROWSER_CHANNEL: chrome
         run: npm run test:browser
       - name: Save browser verification evidence
         if: always()

@@ -1,8 +1,9 @@
+import { browserOptions } from "./browser-options.mjs";
 import { chromium, devices, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
-const browser = await chromium.launch();
+const browser = await chromium.launch(browserOptions);
 await mkdir(new URL("../docs/", import.meta.url), { recursive: true });
 async function fits(page, label) {
   const size = await page.evaluate(() => ({

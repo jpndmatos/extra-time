@@ -1,8 +1,9 @@
+import { browserOptions } from "./browser-options.mjs";
 // Controlled local UI data. No preferences or clips are written to the server.
 import { chromium, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const base = process.env.TOUCHLINE_URL || "http://127.0.0.1:5195";
-const browser = await chromium.launch();
+const browser = await chromium.launch(browserOptions);
 async function openSeen(page) {
   const accordion = page.locator(".seen-goals");
   if (
