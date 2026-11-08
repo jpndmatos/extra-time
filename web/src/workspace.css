@@ -352,6 +352,36 @@
 .goal-row.watched .queue-play {
   border-radius: var(--radius);
 }
+/* React restores the surviving visible row when a clip moves into history. */
+.goal-list {
+  overflow-anchor: none;
+}
+/* History is a separate, bottom-docked accordion, outside the unseen scroll. */
+.goal-queue > .seen-goals {
+  flex: none;
+  min-height: 44px;
+  max-height: 45%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rule) transparent;
+  border-top: 1px solid var(--color-rule);
+  box-shadow: 0 -4px 12px rgb(0 0 0 / 0.18);
+}
+.goal-queue > .seen-goals > summary {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-paper);
+}
+.seen-list .goal-row.watched {
+  background: var(--color-seen-surface);
+}
+.seen-list .goal-row.watched:hover,
+.seen-list .goal-row.watched.selected {
+  background: var(--color-seen-hover);
+}
+
 /* Utility actions share a target size and a quiet, predictable hover state. */
 .goal-hub-header .header-tools .icon-button,
 .goal-info .clip-actions .icon-button,

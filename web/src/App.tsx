@@ -89,7 +89,6 @@ export default function App() {
     eligible: boolean;
     autoMark: boolean;
   } | null>(null);
-  const [retained, setRetained] = useState<Set<string>>(() => new Set());
   const [cinema, setCinema] = useState(false);
   const [playbackActions, setPlaybackActions] = useState<HTMLDivElement | null>(
     null,
@@ -276,19 +275,16 @@ export default function App() {
       }
     });
   }
-  const retainRow = useCallback((goal: Goal) => {
-    setRetained((current) => new Set([...current, ...goalPostIds(goal)]));
-  }, []);
   const markSeen = useCallback(
     (goal: Goal) => {
       if (!ready || hasSeenGoal(goal, new Set(latest.current.watched))) return;
-      retainRow(goal);
+      preserveFeed();
       save({
         ...latest.current,
         watched: setGoalSeen(goal, latest.current.watched, true),
       });
     },
-    [ready, retainRow],
+    [ready],
   );
   const finishVisit = useCallback(() => {
     const previous = visit.current;
@@ -308,6 +304,15 @@ export default function App() {
         queueScroll.current = list.current.scrollTop;
       rememberFeed();
       if (visit.current && !sameGoal(visit.current.goal, goal)) finishVisit();
+      // Keep the clicked record in place as the previous clip moves into Seen.
+      const clicked = feedAnchor.current.find((anchor) =>
+        goalPostIds(goal).includes(anchor.id),
+      );
+      if (clicked && restoreAnchor.current)
+        feedAnchor.current = [
+          clicked,
+          ...feedAnchor.current.filter((anchor) => anchor !== clicked),
+        ];
       if (
         hasSeenGoal(goal, new Set(latest.current.watched)) &&
         seenAccordion.current
@@ -354,18 +359,12 @@ export default function App() {
     return ids;
   }, [revealed, data?.goals]);
   const queuedGoals = useMemo(
-    () =>
-      goals.filter(
-        (goal) => !watched.has(goal.id) || hasSeenGoal(goal, retained),
-      ),
-    [goals, watched, retained],
+    () => goals.filter((goal) => !watched.has(goal.id)),
+    [goals, watched],
   );
   const seenGoals = useMemo(
-    () =>
-      goals.filter(
-        (goal) => watched.has(goal.id) && !hasSeenGoal(goal, retained),
-      ),
-    [goals, watched, retained],
+    () => goals.filter((goal) => watched.has(goal.id)),
+    [goals, watched],
   );
   const selected =
     data?.goals.find((goal) => goal.id === selectedId) ||
@@ -427,7 +426,7 @@ export default function App() {
     }
     restoreAnchor.current = false;
     rememberFeed();
-  }, [data, compact, mobilePlayer]);
+  }, [data, compact, mobilePlayer, watched]);
   useEffect(() => {
     if (!cinema) return;
     const escape = (event: KeyboardEvent) => {
@@ -641,7 +640,45 @@ export default function App() {
           <div
             className={`goal-workspace${compact && mobilePlayer && selected ? " player-open" : ""}${cinema ? " cinema" : ""}`}
           >
-            <section className="goal-queue" aria-label="Goal feed">
+            <section
+              className="goal-queue"
+              aria-label="Goal feed"
+              onKeyDown={(event) => {
+                if (
+                  event.altKey ||
+                  event.ctrlKey ||
+                  event.metaKey ||
+                  event.shiftKey ||
+                  !["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)
+                )
+                  return;
+                const rows = Array.from(
+                  event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                    ".goal-row",
+                  ),
+                ).filter(
+                  (row) =>
+                    row.getClientRects().length > 0 &&
+                    !row.closest("details:not([open])"),
+                );
+                if (!rows.length) return;
+                const current = rows.indexOf(
+                  document.activeElement as HTMLButtonElement,
+                );
+                const target =
+                  event.key === "Home"
+                    ? 0
+                    : event.key === "End"
+                      ? rows.length - 1
+                      : event.key === "ArrowUp"
+                        ? current < 0
+                          ? rows.length - 1
+                          : Math.max(0, current - 1)
+                        : Math.min(rows.length - 1, current + 1);
+                event.preventDefault();
+                rows[target]?.focus();
+              }}
+            >
               {newCount > 0 && (
                 <button
                   type="button"
@@ -672,55 +709,11 @@ export default function App() {
                   if (event.currentTarget.clientHeight)
                     queueScroll.current = event.currentTarget.scrollTop;
                 }}
-                onKeyDown={(event) => {
-                  if (
-                    event.altKey ||
-                    event.ctrlKey ||
-                    event.metaKey ||
-                    event.shiftKey ||
-                    !["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)
-                  )
-                    return;
-                  const rows = Array.from(
-                    event.currentTarget.querySelectorAll<HTMLButtonElement>(
-                      ".goal-row",
-                    ),
-                  ).filter(
-                    (row) =>
-                      row.getClientRects().length > 0 &&
-                      !row.closest("details:not([open])"),
-                  );
-                  if (!rows.length) return;
-                  const current = rows.indexOf(
-                    document.activeElement as HTMLButtonElement,
-                  );
-                  const target =
-                    event.key === "Home"
-                      ? 0
-                      : event.key === "End"
-                        ? rows.length - 1
-                        : event.key === "ArrowUp"
-                          ? current < 0
-                            ? rows.length - 1
-                            : Math.max(0, current - 1)
-                          : Math.min(rows.length - 1, current + 1);
-                  event.preventDefault();
-                  rows[target]?.focus();
-                }}
+
               >
                 {queuedGoals.map(renderGoal)}
                 {!queuedGoals.length && seenGoals.length > 0 && (
                   <p className="caught-up">You’re caught up.</p>
-                )}
-                {seenGoals.length > 0 && (
-                  <details className="seen-goals" ref={seenAccordion}>
-                    <summary>
-                      <ChevronRight size={14} aria-hidden="true" />
-                      <span>Seen</span>
-                      <span className="seen-count">{seenGoals.length}</span>
-                    </summary>
-                    {seenGoals.map(renderGoal)}
-                  </details>
                 )}
                 {!goals.length && (
                   <div className="empty queue-empty">
@@ -748,6 +741,19 @@ export default function App() {
                   </div>
                 )}
               </div>
+              <details className="seen-goals" ref={seenAccordion}>
+                <summary>
+                  <ChevronRight size={14} aria-hidden="true" />
+                  <span>Seen</span>
+                  <span className="seen-count">{seenGoals.length}</span>
+                </summary>
+                <div className="seen-list" role="group" aria-label="Seen goals">
+                  {seenGoals.map(renderGoal)}
+                  {!seenGoals.length && (
+                    <p className="caught-up">No seen goals{query.trim() ? " match your search" : " yet"}.</p>
+                  )}
+                </div>
+              </details>
             </section>
             <section
               className="player-column scroll-region"
@@ -933,8 +939,7 @@ export default function App() {
                             aria-pressed={watched.has(selected.id)}
                             onClick={() => {
                               if (visit.current) visit.current.autoMark = false;
-                              if (!watched.has(selected.id))
-                                retainRow(selected);
+                              preserveFeed();
                               save({
                                 ...latest.current,
                                 watched: setGoalSeen(

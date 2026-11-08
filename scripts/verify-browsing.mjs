@@ -298,8 +298,11 @@ try {
   await page.goto(base);
   await expect(page.locator(".goal-row")).toHaveCount(20);
   await expect(page.locator(".match-goals > button")).toHaveCount(20);
-  for (let index = 1; index <= 12; index++)
-    await page.locator(`[data-match-goal-id="long${index}"]`).click();
+  const dock = await page.locator(".seen-goals").boundingBox();
+  const queue = await page.locator(".goal-queue").boundingBox();
+  expect(Math.abs(dock.y + dock.height - queue.y - queue.height)).toBeLessThanOrEqual(1);
+  await expect(page.locator(".seen-count")).toHaveText("0");
+  await page.locator('[data-match-goal-id="long12"]').click();
   const activeTile = await page
     .locator('.match-goals [aria-current="true"]')
     .evaluate((tile) => {
@@ -315,9 +318,9 @@ try {
   expect(
     await page.locator(".goal-list").evaluate((list) => list.scrollTop),
   ).toBe(0);
-  await expect(page.locator(".goal-list > .goal-row")).toHaveCount(20);
+  await expect(page.locator(".goal-list > .goal-row")).toHaveCount(19);
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
-  await expect.poll(() => prefs.watched.includes("long11")).toBe(true);
+  await expect.poll(() => prefs.watched.includes("long0")).toBe(true);
   await openSeen(page);
   await page.locator(".goal-row.selected").scrollIntoViewIfNeeded();
   const queuePosition = await page.locator(".goal-list").evaluate((list) => {
@@ -337,13 +340,13 @@ try {
   await openSeen(page);
   await page.locator(".goal-row.selected").click();
   expect(loads).toBe(loadCount);
-  const stableScroll = await page
-    .locator(".goal-list")
-    .evaluate((list) => list.scrollTop);
+  await page.locator('[data-goal-id="long13"]').scrollIntoViewIfNeeded();
+  const nextRowY = await page.locator('[data-goal-id="long13"]').evaluate(row => row.getBoundingClientRect().y);
   await page.locator('[data-goal-id="long13"]').click();
-  expect(
-    await page.locator(".goal-list").evaluate((list) => list.scrollTop),
-  ).toBe(stableScroll);
+  expect(Math.abs((await page.locator('[data-goal-id="long13"]').evaluate(row => row.getBoundingClientRect().y)) - nextRowY)).toBeLessThanOrEqual(1);
+  const stableScroll = await page.locator(".goal-list").evaluate(list => list.scrollTop);
+  await expect(page.locator('.seen-goals [data-goal-id="long12"]')).toHaveCount(1);
+  await expect(page.locator('.goal-list [data-goal-id="long12"]')).toHaveCount(0);
   await expect(page.locator('[data-goal-id="long12"]')).toHaveClass(/watched/);
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
   const anchorY = await page
@@ -420,7 +423,7 @@ try {
   await page
     .getByRole("button", { name: "Mark as watched", exact: true })
     .click();
-  await expect(page.locator(".goal-list > .goal-row")).toHaveCount(20);
+  await expect(page.locator(".goal-list > .goal-row")).toHaveCount(19);
   await expect.poll(() => prefs.watched.includes("long0")).toBe(true);
   await page.reload();
   await page.getByRole("button", { name: "Reveal goal", exact: true }).click();
@@ -479,9 +482,6 @@ try {
   const mobileScroll = await page
     .locator(".goal-list")
     .evaluate((list) => list.scrollTop);
-  const mobileY = await page
-    .locator('[data-goal-id="long12"]')
-    .evaluate((row) => row.getBoundingClientRect().y);
   await page.locator('[data-goal-id="long12"]').click();
   await expect(page.locator(".goal-row.selected")).not.toHaveClass(/watched/);
   await page.getByRole("button", { name: "Reveal goal", exact: true }).click();
@@ -504,11 +504,8 @@ try {
   expect(
     await page.locator(".goal-list").evaluate((list) => list.scrollTop),
   ).toBe(mobileScroll);
-  expect(
-    await page
-      .locator('[data-goal-id="long12"]')
-      .evaluate((row) => row.getBoundingClientRect().y),
-  ).toBe(mobileY);
+  await expect(page.locator('.goal-list [data-goal-id="long12"]')).toHaveCount(0);
+  await expect(page.locator('.seen-goals [data-goal-id="long12"]')).toHaveCount(1);
   await page.setViewportSize({ width: 390, height: 844 });
   const tallPhoneRow = page.locator('[data-goal-id="long14"]');
   await tallPhoneRow.scrollIntoViewIfNeeded();
@@ -532,5 +529,8 @@ try {
     "PASS browsing: spoiler-safe search, accent/alias matching, bookmarked query, uninterrupted player, same-match goal selection, keyboard browsing and visible mobile search.",
   );
 } finally {
+  for (const context of browser.contexts())
+    for (const page of context.pages())
+      await page.unrouteAll({ behavior: "ignoreErrors" });
   await browser.close();
 }
