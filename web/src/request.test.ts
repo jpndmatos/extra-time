@@ -42,7 +42,7 @@ describe("API requests", () => {
       );
     vi.stubGlobal("fetch", fetch);
     await expect(request("/api/test")).rejects.toThrow(
-      "Touchline could not complete",
+      "Dinho80 could not complete",
     );
     fetch.mockRejectedValue(new TypeError("Failed to fetch"));
     await expect(request("/api/test")).rejects.toThrow("Check your connection");
