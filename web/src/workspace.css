@@ -419,12 +419,20 @@
   border-top-color: var(--color-rule);
 }
 .match-goals > button {
+  position: relative;
   flex-basis: 64px;
   border-radius: var(--radius);
   background: var(--color-control);
 }
 .match-goals > button:hover {
   background: var(--color-control-hover);
+}
+.match-goal-seen {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: var(--color-seen-ink);
+  pointer-events: none;
 }
 .match-goals > button[data-watched="true"]:not([aria-current="true"]) {
   background: var(--color-seen-surface);

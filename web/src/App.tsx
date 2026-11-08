@@ -992,9 +992,10 @@ export default function App() {
                               goal.id === selected.id ? "true" : undefined
                             }
                             aria-label={
-                              hidden
+                              (hidden
                                 ? "Reveal another goal from this match"
-                                : `${minute(goal)} ${goal.scorer}, ${goal.homeScore} to ${goal.awayScore}`
+                                : `${minute(goal)} ${goal.scorer}, ${goal.homeScore} to ${goal.awayScore}`) +
+                              (watched.has(goal.id) ? ", seen" : "")
                             }
                             title={
                               hidden
@@ -1007,6 +1008,9 @@ export default function App() {
                                 void warmClip(goal.media).catch(() => {});
                             }}
                           >
+                            {watched.has(goal.id) && (
+                              <Check className="match-goal-seen" size={11} strokeWidth={2.5} aria-hidden="true" />
+                            )}
                             <span className="match-goal-minute">
                               {hidden ? <EyeOff size={13} /> : minute(goal)}
                             </span>
