@@ -504,7 +504,7 @@ export default function App() {
             <a className="brand" href={appBase} aria-label="Extra Time home" title="Extra Time — Goal clips">
               <img
                 className="brand-mark"
-                src={`${appBase}icon.svg?v=11`}
+                src={`${appBase}icon.svg?v=12`}
                 width="32"
                 height="32"
                 alt=""

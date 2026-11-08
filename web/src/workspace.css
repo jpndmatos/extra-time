@@ -96,7 +96,7 @@
   line-height: 1.4;
 }
 .workspace-footer .reddit-attribution:hover {
-  background: #19221c;
+  background: #202020;
   text-decoration: none;
 }
 .workspace-footer .reddit-attribution:hover .reddit-community {
@@ -116,7 +116,7 @@
 }
 .reddit-divider {
   flex: none;
-  color: #64766b;
+  color: #717171;
 }
 .reddit-author {
   min-width: 0;
@@ -188,7 +188,7 @@
   padding-right: 28px;
 }
 .goal-info .seen-toggle {
-  color: #bac7bf;
+  color: #c4c4c4;
 }
 .goal-info .seen-toggle[aria-pressed="true"] {
   background: var(--color-seen-mark);
@@ -682,7 +682,7 @@
     grid-column: 1;
     grid-row: 2;
     min-height: 0;
-    border-top: 1px solid #354139;
+    border-top: 1px solid #3e3e3e;
     box-shadow: inset 0 8px 16px -12px rgb(0 0 0 / 0.8);
   }
 }

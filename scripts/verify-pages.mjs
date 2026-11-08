@@ -18,7 +18,7 @@ try {
   );
   await expect(page.locator(".brand img")).toHaveAttribute(
     "src",
-    "/touchline/icon.svg?v=11",
+    "/touchline/icon.svg?v=12",
   );
   await expect(page.locator(".brand")).toHaveAttribute("href", "/touchline/");
   await expect

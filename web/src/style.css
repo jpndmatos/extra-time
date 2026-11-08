@@ -2091,7 +2091,7 @@ summary:focus-visible {
 }
 .goal-row:not(.watched):not(.selected) .goal-minute,
 .goal-row:not(.watched):not(.selected) .queue-play {
-  color: #a6b0a9;
+  color: #adadad;
 }
 .goal-search {
   margin: var(--space-2xs) var(--space-xs);
@@ -2364,7 +2364,7 @@ summary:focus-visible {
   background: #ba824d;
 }
 .connection-dot[data-state="connected"] {
-  background: #7fba9c;
+  background: #ababab;
 }
 .connection-dot[data-state="error"],
 .connection-dot[data-state="offline"] {
@@ -2378,8 +2378,8 @@ summary:focus-visible {
   width: 330px;
   max-width: calc(100vw - 24px);
   padding: 16px;
-  background: #202322;
-  border: 1px solid #414743;
+  background: #222222;
+  border: 1px solid #454545;
   box-shadow: 0 12px 32px #0009;
 }
 .connection-panel > strong {
@@ -2387,7 +2387,7 @@ summary:focus-visible {
 }
 .connection-source {
   padding-block: 12px;
-  border-bottom: 1px solid #363c38;
+  border-bottom: 1px solid #3a3a3a;
   margin-bottom: 10px;
 }
 .connection-source > div {
@@ -2450,7 +2450,7 @@ summary:focus-visible {
   margin: 4px 0 0;
   padding-right: 20px;
   font-size: 11px;
-  color: #b4c0b8;
+  color: #bdbdbd;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2463,7 +2463,7 @@ summary:focus-visible {
   position: absolute;
   right: 14px;
   bottom: 10px;
-  color: #91a398;
+  color: #9e9e9e;
 }
 .goal-queue .section-bar {
   min-height: 36px;
@@ -2583,7 +2583,7 @@ summary:focus-visible {
 .goal-hub-header .goal-search:focus-within {
   background: #ffffff05;
   border-radius: 4px;
-  outline: 1px solid #59665e;
+  outline: 1px solid #636363;
   outline-offset: -1px;
 }
 .goal-hub-header .header-utilities {
@@ -2675,8 +2675,8 @@ summary:focus-visible {
 
 /* Viewing history sits in the feed and stays collapsed until requested. */
 .seen-goals {
-  background: #171a18;
-  border-top: 1px solid #333b36;
+  background: #191919;
+  border-top: 1px solid #393939;
 }
 .seen-goals > summary {
   display: flex;
@@ -2807,7 +2807,7 @@ summary:focus-visible {
 }
 .goal-hub-header .connection-status {
   padding-left: 12px;
-  border-left: 1px solid #343a36;
+  border-left: 1px solid #383838;
 }
 @media (max-width: 760px) {
   .goal-hub-header {
@@ -2915,7 +2915,7 @@ summary:focus-visible {
 .post-attribution p {
   margin: 0;
   white-space: nowrap;
-  color: #929e96;
+  color: #9b9b9b;
 }
 .clip-actions .playback-tools {
   position: static;
@@ -2972,7 +2972,7 @@ summary:focus-visible {
 }
 .goal-info .clip-actions .icon-button[aria-pressed="true"] {
   background: var(--color-seen-mark);
-  color: #e0eee4;
+  color: #eaeaea;
 }
 .goal-info .post-details {
   margin-top: 2px;
@@ -3043,9 +3043,9 @@ summary:focus-visible {
   flex-shrink: 0;
   padding: 10px 20px;
   background: var(--color-paper);
-  border-top: 1px solid #27312a;
+  border-top: 1px solid #2e2e2e;
   scrollbar-width: thin;
-  scrollbar-color: #3b463e transparent;
+  scrollbar-color: #434343 transparent;
 }
 .match-goals > button {
   display: flex;
@@ -3058,43 +3058,43 @@ summary:focus-visible {
   min-width: 0;
   min-height: 44px;
   padding: 5px 8px;
-  background: #19211c;
+  background: #1f1f1f;
   border: 1px solid transparent;
   border-radius: 3px;
   text-align: center;
   box-shadow: none;
 }
 .match-goals > button:hover {
-  background: #2a312c;
+  background: #2f2f2f;
 }
 .match-goals > button[data-watched="true"]:not([aria-current="true"]) {
-  background: #18201b;
-  color: #a8b1aa;
+  background: #1e1e1e;
+  color: #afafaf;
 }
 .match-goals > button[aria-current="true"] {
-  background: #203e2d;
-  border-color: #3d5847;
-  box-shadow: inset 0 -1px #7f9d89;
+  background: #363636;
+  border-color: #515151;
+  box-shadow: inset 0 -1px #959595;
 }
 .match-goal-minute {
-  color: #b5bcb7;
+  color: #bababa;
   font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
 .match-goal-score {
-  color: #d3ddd6;
+  color: #dadada;
   font-size: 13px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 .match-goals > button[aria-current="true"] .match-goal-score {
-  color: #e5f0e8;
+  color: #ededed;
 }
 .playback-tools {
   justify-content: flex-end;
   min-height: 28px;
   padding-inline: 12px;
-  background: #101311;
+  background: #121212;
 }
 .playback-tools button,
 .playback-tools a {
