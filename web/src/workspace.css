@@ -14,8 +14,8 @@
   grid-template-columns: clamp(220px, 22%, 320px) minmax(0, 1fr);
   min-height: 44px;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: #0e1210;
-  border-top: 1px solid #29352d;
+  background: var(--color-paper);
+  border-top: 1px solid var(--color-rule);
   z-index: 5;
 }
 .workspace-footer > .connection-status {
@@ -34,7 +34,7 @@
   gap: 0;
   min-height: 32px;
   padding: 0;
-  color: #a8b0aa;
+  color: var(--color-muted);
   font: 400 10px/16px var(--font-body);
 }
 .workspace-footer .source-summary {
@@ -91,7 +91,7 @@
   min-height: 44px;
   padding: 4px 6px;
   border-radius: 4px;
-  color: #c7d3cb;
+  color: var(--color-ink-2);
   font-size: 11px;
   line-height: 1.4;
 }
@@ -103,12 +103,12 @@
   color: #f1c29b;
 }
 .workspace-footer .reddit-attribution:focus-visible {
-  outline: 2px solid #8bb49a;
+  outline: 2px solid var(--color-focus);
   outline-offset: -2px;
 }
 .reddit-mark {
   flex: none;
-  color: #db9463;
+  color: var(--color-orange-signal);
 }
 .reddit-community {
   flex: none;
@@ -122,7 +122,7 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #a4b2a9;
+  color: var(--color-muted);
 }
 .goal-hub-header .brand,
 .goal-hub-header .brand-mark {
@@ -150,9 +150,9 @@
   width: fit-content;
   padding: 2px 6px;
   border: 0;
-  border-radius: 3px;
-  background: #3c291a;
-  color: #f2b77f;
+  border-radius: var(--radius);
+  background: var(--color-highlight-surface);
+  color: var(--color-highlight-ink);
   font-size: 10px;
   line-height: 1.5;
   font-weight: 500;
@@ -160,7 +160,7 @@
 .goal-row .watch-tag,
 .goal-row.selected .watch-tag,
 .goal-info .watch-reason {
-  color: #f2b77f;
+  color: var(--color-highlight-ink);
 }
 .watch-tag svg,
 .watch-reason > svg:first-child {
@@ -177,8 +177,8 @@
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: #2a533b;
-  color: #d4eddb;
+  background: var(--color-seen-mark);
+  color: var(--color-seen-ink);
   opacity: 1;
 }
 .goal-row.watched .goal-copy > strong {
@@ -191,8 +191,8 @@
   color: #bac7bf;
 }
 .goal-info .seen-toggle[aria-pressed="true"] {
-  background: #294c37;
-  color: #d4eddb;
+  background: var(--color-seen-mark);
+  color: var(--color-seen-ink);
 }
 .goal-info .player-tools {
   background: transparent;
@@ -201,14 +201,67 @@
   padding: 0;
 }
 
+/* Extra Time uses one control treatment above and below the footage. */
+.goal-hub-header {
+  background: var(--color-paper);
+  border-bottom-color: var(--color-rule);
+}
+.goal-hub-header .header-tools,
+.goal-info .clip-actions {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  gap: 4px;
+}
+.goal-hub-header > .goal-search {
+  background: var(--color-control);
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+.goal-hub-header .header-tools .icon-button,
+.goal-info .clip-actions .icon-button,
+.goal-info .clip-actions a {
+  border-radius: var(--radius);
+  transition: background-color var(--dur-micro), color var(--dur-micro);
+}
+.goal-row.selected {
+  background: var(--color-green-selected);
+  box-shadow: inset 2px 0 var(--color-orange-signal);
+}
+.goal-row.selected .goal-minute,
+.match-goals > button[aria-current="true"] .match-goal-minute {
+  color: var(--color-highlight-ink);
+}
+.goal-minute,
+.match-goal-minute,
+.goal-team b {
+  font-variant-numeric: tabular-nums;
+}
+.match-goals > button[aria-current="true"] {
+  background: var(--color-green-selected);
+  border-color: var(--color-green-signal);
+  box-shadow: inset 0 -2px var(--color-orange-signal);
+}
+.goal-row.watched .queue-play {
+  border-radius: var(--radius);
+}
+@media (prefers-reduced-motion: reduce) {
+  .goal-hub-header .header-tools .icon-button,
+  .goal-info .clip-actions .icon-button,
+  .goal-info .clip-actions a {
+    transition: none;
+  }
+}
+
 @media (max-width: 760px) {
   .goal-hub-header {
     min-height: 56px;
     grid-template-columns: 44px minmax(0, 1fr) auto;
     padding: 2px 6px;
     gap: 4px;
-    background: #111512;
-    border-bottom-color: #263129;
+    background: var(--color-paper);
+    border-bottom-color: var(--color-rule);
   }
   .header-back {
     display: grid;
@@ -218,15 +271,15 @@
     height: 44px;
     padding: 0;
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--radius);
     background: transparent;
-    color: #d4ddd7;
+    color: var(--color-ink-2);
   }
   .header-back:hover {
-    background: #202a23;
+    background: var(--color-control-hover);
   }
   .header-back:focus-visible {
-    outline: 2px solid #8bb49a;
+    outline: 2px solid var(--color-focus);
     outline-offset: -3px;
   }
   .goal-hub-header .header-browse {
@@ -241,13 +294,13 @@
     margin: 0;
     padding-inline: 10px;
     gap: 8px;
-    background: #1b211d;
+    background: var(--color-unseen-surface);
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--radius);
     box-shadow: none;
   }
   .goal-hub-header .goal-search:focus-within {
-    outline: 1px solid #739982;
+    outline: 1px solid var(--color-focus);
     outline-offset: 0;
   }
   .goal-hub-header .goal-search > svg {
@@ -255,7 +308,7 @@
     inset: auto;
     transform: none;
     flex: none;
-    color: #9eada3;
+    color: var(--color-muted);
   }
   .goal-hub-header .goal-search input {
     flex: 1;
@@ -285,7 +338,7 @@
     background: transparent;
   }
   .goal-hub-header .goal-search input::placeholder {
-    color: #a1ada5;
+    color: var(--color-muted);
     opacity: 1;
   }
   .goal-hub-header .header-utilities {

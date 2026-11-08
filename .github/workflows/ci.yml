@@ -68,5 +68,5 @@ jobs:
             sleep 1
           done
           curl --fail --silent http://localhost:8080/api/health
-          curl --fail --silent http://localhost:8080/ | grep 'Touchline'
+          curl --fail --silent http://localhost:8080/ | grep 'Extra Time'
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/preferences)" = 404
