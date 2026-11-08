@@ -166,26 +166,27 @@
 .watch-reason > svg:first-child {
   fill: currentColor;
 }
+.goal-row.watched .goal-minute {
+  flex-direction: column;
+  gap: 4px;
+  padding-block: 5px;
+}
 .goal-row.watched .queue-play {
-  position: absolute;
-  right: 12px;
-  bottom: 10px;
+  position: static;
+  inset: auto;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: var(--color-seen-mark);
+  background: transparent;
   color: var(--color-seen-ink);
   opacity: 1;
 }
-.goal-row.watched .goal-copy > strong {
-  padding-right: 28px;
-}
-.goal-row.watched .goal-copy > small {
-  padding-right: 28px;
+.goal-row .goal-copy > strong,
+.goal-row .goal-copy > small {
+  padding-right: 0;
 }
 .goal-info .seen-toggle {
   color: #c4c4c4;
@@ -427,12 +428,15 @@
 .match-goals > button:hover {
   background: var(--color-control-hover);
 }
+.match-goals .match-goal-minute {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
 .match-goal-seen {
-  position: absolute;
-  top: 4px;
-  right: 4px;
+  flex: none;
   color: var(--color-seen-ink);
-  pointer-events: none;
 }
 .match-goals > button[data-watched="true"]:not([aria-current="true"]) {
   background: var(--color-seen-surface);

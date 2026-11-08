@@ -75,6 +75,11 @@ export default memo(function GoalRow({
         ) : (
           "Goal"
         )}
+        {watched && (
+          <span className="queue-play" aria-hidden="true" title="Seen">
+            <Check size={14} strokeWidth={2.5} />
+          </span>
+        )}
       </span>
       <span className="goal-copy">
         <span className="goal-matchup">
@@ -121,15 +126,7 @@ export default memo(function GoalRow({
           </small>
         )}
       </span>
-      {watched && (
-        <span
-          className="queue-play"
-          aria-hidden="true"
-          title={watched ? "Watched" : "Unwatched"}
-        >
-          <Check size={14} strokeWidth={2.5} />
-        </span>
-      )}
+
     </button>
   );
 });

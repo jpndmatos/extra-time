@@ -1008,11 +1008,16 @@ export default function App() {
                                 void warmClip(goal.media).catch(() => {});
                             }}
                           >
-                            {watched.has(goal.id) && (
-                              <Check className="match-goal-seen" size={11} strokeWidth={2.5} aria-hidden="true" />
-                            )}
                             <span className="match-goal-minute">
                               {hidden ? <EyeOff size={13} /> : minute(goal)}
+                              {watched.has(goal.id) && (
+                                <Check
+                                  className="match-goal-seen"
+                                  size={11}
+                                  strokeWidth={2.5}
+                                  aria-hidden="true"
+                                />
+                              )}
                             </span>
                             <span className="match-goal-score">
                               {hidden
