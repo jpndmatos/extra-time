@@ -201,6 +201,63 @@
   padding: 0;
 }
 
+/* Compact goal records: one minute tile, aligned teams, a fixed score column. */
+.goal-row {
+  padding-block: 10px;
+  border-bottom: 2px solid var(--color-paper);
+  box-shadow: inset 0 1px rgb(255 255 255 / 0.035);
+}
+.goal-row .goal-minute {
+  min-height: 32px;
+  background: var(--color-control);
+  border-radius: 0;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  font-size: 11px;
+  font-weight: 600;
+}
+.goal-row .goal-matchup {
+  display: grid;
+  gap: 3px;
+}
+.goal-row .goal-team {
+  min-height: 19px;
+  gap: 6px;
+}
+.goal-row .goal-team-name {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+.goal-row .goal-team b {
+  min-width: 22px;
+  padding-inline: 3px;
+  color: var(--color-ink);
+  font-size: 13px;
+  text-align: center;
+  line-height: 19px;
+}
+.goal-row .goal-copy > strong {
+  margin-top: 5px;
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+.goal-row.selected .goal-minute {
+  background: var(--color-green);
+}
+.goal-row.selected .goal-team b {
+  color: var(--color-green-ink);
+  background: var(--color-green);
+  border-radius: 2px;
+}
+.goal-row.selected,
+.goal-row.watched:not(.selected) {
+  border-bottom-color: var(--color-paper);
+}
+.goal-row:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
 /* Extra Time uses one control treatment above and below the footage. */
 .goal-hub-header {
   background: var(--color-paper);
