@@ -260,6 +260,9 @@
 
 /* Extra Time uses one control treatment above and below the footage. */
 .goal-hub-header {
+  min-height: 56px;
+  padding-block: 0;
+  column-gap: 12px;
   background: var(--color-paper);
   border-bottom-color: var(--color-rule);
 }
@@ -271,10 +274,61 @@
   box-shadow: none;
   gap: 4px;
 }
-.goal-hub-header > .goal-search {
+.goal-hub-header .goal-search {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  padding-inline: 10px;
+  gap: 8px;
   background: var(--color-control);
+  border: 0;
   border-radius: var(--radius);
   box-shadow: none;
+}
+.goal-hub-header .goal-search:focus-within {
+  outline: 1px solid var(--color-focus);
+  outline-offset: 0;
+}
+.goal-hub-header .goal-search > svg {
+  position: static;
+  inset: auto;
+  transform: none;
+  flex: none;
+  color: var(--color-muted);
+}
+.goal-hub-header .goal-search input {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  outline: none;
+}
+.goal-hub-header .goal-search > button {
+  position: static;
+  inset: auto;
+  transform: none;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  min-width: 28px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.goal-hub-header .goal-search input::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
 }
 .goal-hub-header .header-tools .icon-button,
 .goal-info .clip-actions .icon-button,
@@ -295,13 +349,100 @@
 .goal-team b {
   font-variant-numeric: tabular-nums;
 }
+.goal-row.watched .queue-play {
+  border-radius: var(--radius);
+}
+/* Utility actions share a target size and a quiet, predictable hover state. */
+.goal-hub-header .header-tools .icon-button,
+.goal-info .clip-actions .icon-button,
+.goal-info .clip-actions a {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  color: var(--color-ink-2);
+}
+.goal-hub-header .header-tools .icon-button:hover,
+.goal-info .clip-actions .icon-button:hover,
+.goal-info .clip-actions a:hover {
+  background: var(--color-control-hover);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.goal-info .clip-actions .icon-button[aria-pressed="true"] {
+  color: var(--color-seen-ink);
+  background: var(--color-seen-mark);
+}
+.goal-hub-header .header-tools .icon-button:focus-visible,
+.goal-info .clip-actions .icon-button:focus-visible,
+.goal-info .clip-actions a:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+.goal-info .match-context,
+.goal-info .clip-details {
+  padding: 12px 16px;
+}
+.match-goals {
+  gap: 6px;
+  padding: 8px 16px;
+  border-top-color: var(--color-rule);
+}
+.match-goals > button {
+  flex-basis: 64px;
+  border-radius: var(--radius);
+  background: var(--color-control);
+}
+.match-goals > button:hover {
+  background: var(--color-control-hover);
+}
+.match-goals > button[data-watched="true"]:not([aria-current="true"]) {
+  background: var(--color-seen-surface);
+  color: var(--color-muted);
+}
+.match-goals > button:focus-visible {
+  outline-offset: -2px;
+}
+.match-goal-score {
+  color: var(--color-ink-2);
+}
+.match-goal-minute {
+  color: var(--color-muted);
+}
+.seen-goals {
+  background: var(--color-paper);
+  border-top-color: var(--color-rule);
+}
+.seen-goals > summary {
+  padding-inline: 12px;
+  min-height: 44px;
+  font-size: 11px;
+}
+.seen-goals > summary:hover {
+  background: var(--color-control);
+  color: var(--color-ink);
+}
+.workspace-footer .connection-status time {
+  font-variant-numeric: tabular-nums;
+}
+.queue-empty {
+  padding: 24px 16px;
+  gap: 12px;
+}
+.queue-empty p {
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.stage-message .primary,
+.queue-empty .quiet {
+  border-radius: var(--radius);
+}
+
 .match-goals > button[aria-current="true"] {
   background: var(--color-green-selected);
   border-color: var(--color-green-signal);
   box-shadow: inset 0 -2px var(--color-orange-signal);
-}
-.goal-row.watched .queue-play {
-  border-radius: var(--radius);
 }
 @media (prefers-reduced-motion: reduce) {
   .goal-hub-header .header-tools .icon-button,
@@ -342,61 +483,8 @@
   .goal-hub-header .header-browse {
     min-width: 0;
   }
-  .goal-hub-header .goal-search {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    width: 100%;
-    height: 40px;
-    margin: 0;
-    padding-inline: 10px;
-    gap: 8px;
-    background: var(--color-unseen-surface);
-    border: 0;
-    border-radius: var(--radius);
-    box-shadow: none;
-  }
-  .goal-hub-header .goal-search:focus-within {
-    outline: 1px solid var(--color-focus);
-    outline-offset: 0;
-  }
-  .goal-hub-header .goal-search > svg {
-    position: static;
-    inset: auto;
-    transform: none;
-    flex: none;
-    color: var(--color-muted);
-  }
   .goal-hub-header .goal-search input {
-    flex: 1;
-    min-width: 0;
     font-size: 16px;
-    height: 40px;
-    min-height: 40px;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    outline: none;
-  }
-  .goal-hub-header .goal-search > button {
-    position: static;
-    inset: auto;
-    transform: none;
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 28px;
-    min-width: 28px;
-    height: 32px;
-    min-height: 32px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-  }
-  .goal-hub-header .goal-search input::placeholder {
-    color: var(--color-muted);
-    opacity: 1;
   }
   .goal-hub-header .header-utilities {
     margin: 0;
