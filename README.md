@@ -1,8 +1,8 @@
-# Dinho80
+# Extra Time
 
 A focused r/soccer goal hub: open it, browse the latest available clips, and watch. Built with .NET 10, React, TypeScript and SQLite.
 
-![Dinho80 goal hub playing a real clip](docs/goal-room-live.png)
+![Extra Time goal hub playing a real clip](docs/goal-room-live.png)
 
 Read the [project case study](docs/case-study.md) for the UX decisions, implementation and verified limits. For a public frontend with a separately hosted API, follow [GitHub Pages deployment](docs/github-pages.md).
 

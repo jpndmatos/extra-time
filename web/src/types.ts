@@ -94,12 +94,12 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   } catch (error) {
     if (error instanceof Error && error.name === "TimeoutError")
       throw new ApiError(
-        "Dinho80 took too long to respond. Please try again.",
+        "Extra Time took too long to respond. Please try again.",
         408,
       );
     if (error instanceof TypeError)
       throw new ApiError(
-        "Could not reach Dinho80. Check your connection and try again.",
+        "Could not reach Extra Time. Check your connection and try again.",
         0,
       );
     throw error;
@@ -109,7 +109,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiError(
       typeof problem?.detail === "string" && problem.detail.trim()
         ? problem.detail.slice(0, 500)
-        : "Dinho80 could not complete the request. Try again.",
+        : "Extra Time could not complete the request. Try again.",
       response.status,
     );
   }
