@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Touchline;
 
-public record Team(string Id, string Name, string ShortName, string Country, string[] Aliases, string? Crest = null);
+public record Team(string Id, string Name, string ShortName, string Country, string[] Aliases, string? Crest = null, string? CrestFallback = null);
 public record Fixture(string Id, string HomeId, string AwayId, string HomeName, string AwayName,
     DateTimeOffset Kickoff, string Competition, string Status, int? HomeScore, int? AwayScore, bool Sample = false, string? HomeCrest = null, string? AwayCrest = null, string? Source = null, string[]? GoalIds = null);
 public record Media(string Kind, string Url);

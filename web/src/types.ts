@@ -7,6 +7,7 @@ export type Team = {
   country: string;
   aliases: string[];
   crest?: string | null;
+  crestFallback?: string | null;
 };
 export type Fixture = {
   id: string;

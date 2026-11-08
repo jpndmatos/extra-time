@@ -13,7 +13,7 @@ export default function TeamCrest({
 }) {
   const candidates = [
     ...new Set(
-      [src, team?.crest]
+      [src, team?.crest, team?.crestFallback]
         .filter((url): url is string => !!url)
         .flatMap((url) => {
           const alternate =

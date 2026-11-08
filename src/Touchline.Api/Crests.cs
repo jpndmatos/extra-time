@@ -11,7 +11,7 @@ public static class Crests
         using var stream = typeof(Crests).Assembly.GetManifestResourceStream("Touchline.crest-catalogue.json")!;
         using var data = JsonDocument.Parse(stream);
         return data.RootElement.EnumerateArray().GroupBy(item => Key(item.GetProperty("name").GetString()!))
-            .ToDictionary(group => group.Key, group => "/crests/" + group.First().GetProperty("file").GetString());
+            .ToDictionary(group => group.Key, group => "/crests/" + group.OrderBy(item => item.TryGetProperty("source", out _) ? 1 : 0).First().GetProperty("file").GetString());
     }
     // Display assets only: youth and women's teams keep their own identity.
     private static string Key(string name)
@@ -26,7 +26,12 @@ public static class Crests
         var available = teams.Where(team => !string.IsNullOrWhiteSpace(team.Crest))
             .GroupBy(team => Key(team.Name)).ToDictionary(group => group.Key, group => group.First().Crest);
         // Resolve display assets without changing persisted club IDs or follows.
-        return teams.Select(team => team with { Crest = team.Crest ?? Bundled.GetValueOrDefault(Key(team.Name)) ??
-            available.GetValueOrDefault(Key(team.Name)) }).ToArray();
+        return teams.Select(team => {
+            var local = Bundled.GetValueOrDefault(Key(team.Name));
+            return team with {
+                Crest = team.Crest ?? local ?? available.GetValueOrDefault(Key(team.Name)),
+                CrestFallback = local
+            };
+        }).ToArray();
     }
 }
