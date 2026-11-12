@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clubCrest, goalCategory } from "./goalCategories";
+import { bundledCrest, clubCrest, goalCategory } from "./goalCategories";
 import type { Goal, Team, Fixture } from "./types";
 const data = { teams: [], matches: [] };
 const goal = (title: string) =>
@@ -48,5 +48,36 @@ describe("goal categories", () => {
       { name: "PAE AEK", aliases: [], crest: "aek.png" },
     ] as unknown as Team[];
     expect(clubCrest(undefined, teams, "AEK Athens")).toBe("aek.png");
+  });
+  it.each([
+    ["Juventus W", "109.png"],
+    ["Bayern Munich W", "5.png"],
+    ["Manchester City W", "65.png"],
+    ["Inter W", "108.png"],
+    ["PSG W", "524.png"],
+    ["Roma W", "100.png"],
+    ["OL Lyonnes W", "espn-19256.png"],
+    ["Servette W", "espn-20835.png"],
+    ["Leuven W", "espn-131423.png"],
+    ["Koge W", "espn-21127.png"],
+    ["Tavernes", "federation-tavernes.png"],
+    ["Mijas Las Lagunas", "club-mijas.png"],
+    ["Trival Valderas", "club-trival.png"],
+    ["Jaen", "club-jaen.png"],
+  ])(
+    "recovers %s from bundled artwork without API crest metadata",
+    (name, file) => {
+      expect(clubCrest(undefined, [], name)).toBe(`/crests/${file}`);
+    },
+  );
+  it("prefers a specific women’s badge and retains unknown-club fallbacks", () => {
+    expect(bundledCrest("OL Lyonnes W")).not.toBe(bundledCrest("Lyon"));
+    expect(bundledCrest("Unknown Club W")).toBeUndefined();
+    const team = {
+      name: "Juventus W",
+      crest: "provider.png",
+      aliases: [],
+    } as unknown as Team;
+    expect(clubCrest(team, [])).toBe("provider.png");
   });
 });

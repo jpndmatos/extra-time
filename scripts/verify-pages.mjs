@@ -8,7 +8,7 @@ try {
     page = await context.newPage();
   const requests = [];
   page.on("request", (request) => requests.push(request.url()));
-  await page.goto("http://127.0.0.1:5197/touchline/");
+  await page.goto("http://127.0.0.1:5197/extra-time/");
   await expect(
     page.getByRole("heading", { name: "Pages scorer", exact: true }),
   ).toBeVisible();
@@ -18,9 +18,9 @@ try {
   );
   await expect(page.locator(".brand img")).toHaveAttribute(
     "src",
-    "/touchline/icon.svg?v=12",
+    "/extra-time/icon.svg?v=12",
   );
-  await expect(page.locator(".brand")).toHaveAttribute("href", "/touchline/");
+  await expect(page.locator(".brand")).toHaveAttribute("href", "/extra-time/");
   await expect
     .poll(() =>
       page
@@ -75,7 +75,7 @@ try {
   expect(status).toBe(422);
   const visitor = await browser.newContext();
   const other = await visitor.newPage();
-  await other.goto("http://127.0.0.1:5197/touchline/");
+  await other.goto("http://127.0.0.1:5197/extra-time/");
   await expect(
     other.getByRole("button", { name: "Hide spoilers", exact: true }),
   ).toHaveAttribute("aria-pressed", "false");

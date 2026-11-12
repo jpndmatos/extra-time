@@ -56,4 +56,27 @@ public class CrestTests
         var result = Crests.Enrich([united, unrelated]);
         Assert.Null(result[1].Crest); Assert.Equal(united.Crest, result[0].Crest);
     }
+    [Theory]
+    [InlineData("Juventus W", "109.png")]
+    [InlineData("Bayern Munich W", "5.png")]
+    [InlineData("OL Lyonnes W", "espn-19256.png")]
+    [InlineData("Servette W", "espn-20835.png")]
+    [InlineData("Koge W", "espn-21127.png")]
+    [InlineData("Leuven W", "espn-131423.png")]
+    [InlineData("Tavernes", "federation-tavernes.png")]
+    [InlineData("Amorebieta", "espn-12587.png")]
+    [InlineData("UD Logrones", "espn-7206.png")]
+    [InlineData("Mijas Las Lagunas", "club-mijas.png")]
+    [InlineData("Trival Valderas", "club-trival.png")]
+    [InlineData("Jaen", "club-jaen.png")]
+    [InlineData("Bangladesh", "espn-ban.png")]
+    [InlineData("Sri Lanka", "espn-sri.png")]
+    public void ResolvesRecentFeedBadgesWithoutChangingTeamIdentity(string name, string file)
+    {
+        var team = Catalog.FromName(name);
+        var result = Assert.Single(Crests.Enrich([team]));
+        Assert.Equal("/crests/" + file, result.Crest);
+        Assert.Equal(team.Id, result.Id);
+        Assert.Equal(name, result.Name);
+    }
 }

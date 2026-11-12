@@ -16,3 +16,5 @@ New assets are resized to at most 96 × 96 pixels, stored as transparent PNGs, l
 Provider crests remain authoritative. Each known team also receives a bundled recovery crest, so a failed provider image and its PNG/SVG alternate can recover locally. Youth and women’s sides retain their own IDs. Exact aliases resolve common Reddit names without confusing Oxford City with Oxford United, Austria Salzburg with RB Salzburg, or Hong Kong Rangers with Rangers.
 
 `CrestCoverageTests` checks the audited feed names and these identity boundaries. `scripts/verify-crests.mjs` checks real browser decoding and provider failure recovery.
+
+The 12 November 2026 update adds the missing badges in the live feed, including women’s sides, Spanish cup clubs, Bangladesh and Sri Lanka. Names ending in `W` can use their club badge; teams with their own badge resolve that exact artwork first. The frontend reads the same bundled catalogue as the API, including recovery for older API snapshots. New source URLs are recorded beside each catalogue entry.

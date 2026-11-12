@@ -2,7 +2,7 @@
 
 A hub for individual football goal clips from the last 48 hours. Search teams or scorers, watch goals from the same match and keep seen clips in a separate list. .NET 10, React, TypeScript and SQLite.
 
-[Open app](https://jpndmatos.github.io/touchline/)
+[Open app](https://jpndmatos.github.io/extra-time/)
 
 ## Run
 

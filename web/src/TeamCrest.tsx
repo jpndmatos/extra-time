@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Team } from "./types";
 import { appBase } from "./api";
+import { bundledCrest } from "./goalCategories";
 
 export default function TeamCrest({
   team,
@@ -13,7 +14,7 @@ export default function TeamCrest({
 }) {
   const candidates = [
     ...new Set(
-      [src, team?.crest, team?.crestFallback]
+      [src, team?.crest, team?.crestFallback, team && bundledCrest(team.name)]
         .filter((url): url is string => !!url)
         .flatMap((url) => {
           const alternate =

@@ -1,4 +1,5 @@
 import type { Dashboard, Goal, Team } from "./types";
+import crestCatalogue from "../../src/Touchline.Api/crest-catalogue.json";
 
 export const categories = [
   ["main", "Main"],
@@ -48,6 +49,8 @@ export function goalCategory(
 }
 
 const aliases: Record<string, string> = {
+  inter: "inter milan",
+  psg: "paris saint germain",
   "aek athens": "aek",
   "feyenoord rotterdam": "feyenoord",
   "shakhtar donetsk": "shakhtar",
@@ -56,27 +59,43 @@ const aliases: Record<string, string> = {
   "real betis": "betis",
   "como 1907": "como",
 };
-function crestKey(name: string) {
-  const key = normalize(name)
-    .replace(
-      /\b(?:u[ -]?\d{2}|under[ -]?\d{2}|women(?:'s)?|ladies|feminino|feminina|frauen)\b/g,
-      "",
-    )
-    .replace(/\(w\)/g, "")
-    .replace(/\s+(?:ii|b)$/, "")
+function crestKey(name: string, parent = true) {
+  let key = normalize(name).replace(/\s+w$/, " women");
+  if (parent)
+    key = key
+      .replace(
+        /\b(?:u[ -]?\d{2}|under[ -]?\d{2}|women(?:'s)?|ladies|feminino|feminina|frauen)\b/g,
+        "",
+      )
+      .replace(/\(w\)/g, "")
+      .replace(/\s+(?:ii|b)$/, "");
+  key = key
     .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .replace(/^(?:fc|fk|afc|cf|sc|ac|pae)\s+|\s+(?:fc|fk|afc|cf|sc|ac)$/, "")
+    .replace(/^(?:fc|fk|afc|cf|sc|ac|as|pae)\s+|\s+(?:fc|fk|afc|cf|sc|ac)$/, "")
     .trim();
   return aliases[key] || key;
+}
+// Pages can recover artwork even while an older API snapshot is still cached.
+const bundled = new Map<string, string>();
+for (const item of [...crestCatalogue].sort(
+  (a, b) => Number(!!a.source) - Number(!!b.source),
+)) {
+  const key = crestKey(item.name, false);
+  if (!bundled.has(key)) bundled.set(key, `/crests/${item.file}`);
+}
+export function bundledCrest(name: string) {
+  return bundled.get(crestKey(name, false)) || bundled.get(crestKey(name));
 }
 export function clubCrest(team: Team | undefined, teams: Team[], name = "") {
   if (team?.crest) return team.crest;
   const key = crestKey(team?.name || name);
-  return teams.find(
-    (candidate) =>
-      candidate.crest &&
-      [candidate.name, ...candidate.aliases].some(
-        (alias) => crestKey(alias) === key,
-      ),
-  )?.crest;
+  return (
+    teams.find(
+      (candidate) =>
+        candidate.crest &&
+        [candidate.name, ...candidate.aliases].some(
+          (alias) => crestKey(alias) === key,
+        ),
+    )?.crest || bundledCrest(team?.name || name)
+  );
 }

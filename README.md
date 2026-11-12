@@ -2,7 +2,7 @@
 
 Catch up on football goals from the last 48 hours. Search teams or scorers, watch clips from the same match, and keep watched goals in a separate list.
 
-[Try it](https://jpndmatos.github.io/touchline/)
+[Try it](https://jpndmatos.github.io/extra-time/)
 
 ![Extra Time workspace](docs/goal-room-live.png)
 

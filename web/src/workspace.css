@@ -221,8 +221,13 @@
   gap: 3px;
 }
 .goal-row .goal-team {
-  min-height: 19px;
+  min-height: 24px;
   gap: 6px;
+}
+.goal-row .team-crest {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
 }
 .goal-row .goal-team-name {
   color: var(--color-ink);

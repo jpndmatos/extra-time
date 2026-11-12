@@ -153,6 +153,11 @@
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/132335.png"
   },
   {
+    "name": "Amorebieta",
+    "file": "espn-12587.png",
+    "source": "https://a.espncdn.com/i/teamlogos/soccer/500/12587.png"
+  },
+  {
     "name": "Anderlecht",
     "file": "espn-441.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/441.png"
@@ -331,6 +336,11 @@
     "name": "Banfield",
     "file": "espn-235.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/235.png"
+  },
+  {
+    "name": "Bangladesh",
+    "file": "espn-ban.png",
+    "source": "https://a.espncdn.com/i/teamlogos/countries/500/ban.png"
   },
   {
     "name": "Barcelona",
@@ -1799,6 +1809,11 @@
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/7914.png"
   },
   {
+    "name": "Jaen",
+    "file": "club-jaen.png",
+    "source": "https://realjaen.com/wp-content/uploads/2024/07/Logotipo-Header-1922.png"
+  },
+  {
     "name": "Jahn Regensburg",
     "file": "wiki-jahn-regensburg.png",
     "source": "https://en.wikipedia.org/api/rest_v1/page/summary/SSV_Jahn_Regensburg"
@@ -1856,6 +1871,11 @@
     "name": "Kocaelispor",
     "file": "espn-995.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/995.png"
+  },
+  {
+    "name": "Koge W",
+    "file": "espn-21127.png",
+    "source": "https://a.espncdn.com/i/teamlogos/soccer/500/21127.png"
   },
   {
     "name": "Konyaspor",
@@ -1969,6 +1989,11 @@
     "name": "Lens",
     "file": "espn-175.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/175.png"
+  },
+  {
+    "name": "Leuven W",
+    "file": "espn-131423.png",
+    "source": "https://a.espncdn.com/i/teamlogos/soccer/500/131423.png"
   },
   {
     "name": "Levante",
@@ -2166,6 +2191,11 @@
   {
     "name": "Middlesbrough FC",
     "file": "343.png"
+  },
+  {
+    "name": "Mijas Las Lagunas",
+    "file": "club-mijas.png",
+    "source": "https://cpmijas.es/wp-content/uploads/2024/02/logo-polideportivo.png"
   },
   {
     "name": "Milan",
@@ -2409,6 +2439,11 @@
     "name": "OH Leuven",
     "file": "espn-5579.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/5579.png"
+  },
+  {
+    "name": "OL Lyonnes W",
+    "file": "espn-19256.png",
+    "source": "https://a.espncdn.com/i/teamlogos/soccer/500/19256.png"
   },
   {
     "name": "Oldham",
@@ -3006,6 +3041,11 @@
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/9726.png"
   },
   {
+    "name": "Servette W",
+    "file": "espn-20835.png",
+    "source": "https://a.espncdn.com/i/teamlogos/soccer/500/20835.png"
+  },
+  {
     "name": "Sevilla",
     "file": "espn-243.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/243.png"
@@ -3166,6 +3206,11 @@
     "name": "SpVgg Greuther Fürth",
     "file": "espn-3070.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/3070.png"
+  },
+  {
+    "name": "Sri Lanka",
+    "file": "espn-sri.png",
+    "source": "https://a.espncdn.com/i/teamlogos/countries/500/sri.png"
   },
   {
     "name": "SSV Jahn Regensburg",
@@ -3357,6 +3402,11 @@
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/19.png"
   },
   {
+    "name": "Tavernes",
+    "file": "federation-tavernes.png",
+    "source": "https://www.elbalondelacomunitat.es/escudo/Clubes/00100_0074686190_Escut_UE.jpg"
+  },
+  {
     "name": "Telstar",
     "file": "espn-3735.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/3735.png"
@@ -3430,6 +3480,11 @@
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/345.png"
   },
   {
+    "name": "Trival Valderas",
+    "file": "club-trival.png",
+    "source": "https://api.clupik.com/clubs/10724/images/splash.png"
+  },
+  {
     "name": "Troyes",
     "file": "espn-170.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/170.png"
@@ -3448,6 +3503,11 @@
     "name": "TSV Hartberg",
     "file": "espn-6907.png",
     "source": "https://a.espncdn.com/i/teamlogos/soccer/500/6907.png"
+  },
+  {
+    "name": "UD Logrones",
+    "file": "espn-7206.png",
+    "source": "https://a.espncdn.com/i/teamlogos/soccer/500/7206.png"
   },
   {
     "name": "Udinese",
