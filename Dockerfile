@@ -3,6 +3,7 @@ WORKDIR /source/web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
 COPY web/ ./
+COPY src/Touchline.Api/crest-catalogue.json /source/src/Touchline.Api/crest-catalogue.json
 ENV VITE_BROWSER_PREFERENCES=true
 RUN npm run build
 
