@@ -229,6 +229,11 @@
   height: 22px;
   flex-basis: 22px;
 }
+/* The supplied Juventus mark is monochrome black; use its white silhouette on this dark UI. */
+.team-crest img[src$="/109.png"],
+.team-crest img[src$="/109.svg"] {
+  filter: brightness(0) invert(1);
+}
 .goal-row .goal-team-name {
   color: var(--color-ink);
   font-weight: 500;
