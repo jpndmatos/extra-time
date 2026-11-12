@@ -18,7 +18,7 @@ try {
   );
   await expect(page.locator(".brand img")).toHaveAttribute(
     "src",
-    "/extra-time/icon.svg?v=12",
+    "/extra-time/icon.svg?v=13",
   );
   await expect(page.locator(".brand")).toHaveAttribute("href", "/extra-time/");
   await expect

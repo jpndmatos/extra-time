@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" shape-rendering="crispEdges">
-  <path fill="#909090" d="M12 4h12v4H12zM8 8h4v4H8zM4 12h4v16H4zM8 28h4v4H8zM12 32h16v4H12zM28 28h4v4h-4zM32 16h4v12h-4z"/>
-  <path fill="#df945f" d="M18 12h4v10h6v4H18zM30 2h4v4h4v4h-4v4h-4v-4h-4V6h4z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 40">
+  <title>Extra Time — 90 plus</title>
+  <g transform="translate(5 0) skewX(-9)" fill="#f0eee8" fill-rule="evenodd">
+    <path d="M8 6h10l5 5v11L12 34H5l11-12H8l-5-5v-6Zm2 5-2 2v2l2 2h6l2-2v-2l-2-2Z"/>
+    <path d="M31 6h9l5 5v18l-5 5h-9l-5-5V11Zm2 5-2 2v14l2 2h5l2-2V13l-2-2Z"/>
+  </g>
+  <path fill="#df945f" d="M58 3h4v5h5v4h-5v5h-4v-5h-5V8h5Z"/>
 </svg>
