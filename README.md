@@ -15,5 +15,3 @@ Catch up on football goals from the last 48 hours. Search teams or scorers, watc
 ```
 
 Open http://127.0.0.1:5195. If needed, pass `-DotNet /path/to/dotnet`. Clips depend on the original video hosts and configured discovery providers.
-
-.NET · React · TypeScript · SQLite. [Development notes](docs/development.md).
